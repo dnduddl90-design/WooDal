@@ -1,0 +1,497 @@
+/* 전역 변수 설정 - 더 화려한 색상 팔레트 */
+:root {
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --warm-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+  --emerald-gradient: linear-gradient(135deg, #0ba360 0%, #3cba92 100%);
+  --sunset-gradient: linear-gradient(135deg, #ff6a88 0%, #ff99ac 100%);
+  --ocean-gradient: linear-gradient(135deg, #2e3192 0%, #1bffff 100%);
+  --fire-gradient: linear-gradient(135deg, #f83600 0%, #fe8c00 100%);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
+  --shadow-xl: 0 12px 48px rgba(0, 0, 0, 0.2);
+  --shadow-2xl: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+/* 부드러운 스크롤 */
+* {
+  scroll-behavior: smooth;
+}
+
+/* 앱 전체 컨테이너 - 애니메이션 배경 */
+.App {
+  min-height: 100vh;
+  background: linear-gradient(270deg, #667eea, #764ba2, #f093fb, #667eea);
+  background-size: 800% 800%;
+  animation: gradientShift 20s ease infinite;
+  background-attachment: fixed;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* 글래스모피즘 효과 - 강화 버전 */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  box-shadow:
+    0 8px 32px 0 rgba(31, 38, 135, 0.37),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+}
+
+/* 카드 호버 효과 - 더 역동적 */
+.card-hover {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+}
+
+.card-hover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.3),
+    0 0 40px rgba(102, 126, 234, 0.4);
+}
+
+.card-hover:hover::before {
+  opacity: 1;
+}
+
+/* 버튼 애니메이션 - 물결 효과 강화 */
+.btn-animate {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+}
+
+.btn-animate::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.6) 0%, transparent 70%);
+  transform: translate(-50%, -50%);
+  transition: width 0.8s ease-out, height 0.8s ease-out;
+  z-index: -1;
+}
+
+.btn-animate:hover::before {
+  width: 400px;
+  height: 400px;
+}
+
+.btn-animate:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.btn-animate:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* 그라데이션 텍스트 - 애니메이션 추가 */
+.gradient-text {
+  background: linear-gradient(90deg, #667eea, #764ba2, #f093fb, #667eea);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  animation: gradientTextShift 5s ease infinite;
+}
+
+@keyframes gradientTextShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* 펄스 애니메이션 - 더 부드럽게 */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
+}
+
+.pulse-animation {
+  animation: pulse 2.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* 페이드인 애니메이션 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 슬라이드인 애니메이션 */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in-right {
+  animation: slideInRight 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.slide-in-left {
+  animation: slideInLeft 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 스케일 업 애니메이션 */
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.7) rotate(-5deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.scale-up {
+  animation: scaleUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* 바운스 애니메이션 */
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+.bounce-animation {
+  animation: bounce 2s ease infinite;
+}
+
+/* 회전 애니메이션 */
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rotate-animation {
+  animation: rotate 20s linear infinite;
+}
+
+/* 커스텀 스크롤바 - 더 화려하게 */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+  border-radius: 10px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #f093fb 0%, #764ba2 50%, #667eea 100%);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* 입력 필드 포커스 효과 - 더 화려하게 */
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #667eea !important;
+  box-shadow:
+    0 0 0 4px rgba(102, 126, 234, 0.15),
+    0 8px 20px rgba(102, 126, 234, 0.2) !important;
+  transform: translateY(-2px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 로딩 스피너 - 다채로운 버전 */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-spinner {
+  animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+  background: conic-gradient(from 0deg, #667eea, #764ba2, #f093fb, #667eea);
+  border-radius: 50%;
+}
+
+/* 뱃지 효과 - 반짝임 */
+.badge-glow {
+  position: relative;
+  box-shadow: 0 0 30px rgba(102, 126, 234, 0.6);
+  animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+  0%, 100% {
+    box-shadow:
+      0 0 20px rgba(102, 126, 234, 0.5),
+      0 0 40px rgba(118, 75, 162, 0.3);
+  }
+  50% {
+    box-shadow:
+      0 0 40px rgba(102, 126, 234, 0.8),
+      0 0 60px rgba(118, 75, 162, 0.5);
+  }
+}
+
+/* 모달 백드롭 - 더 부드러운 블러 */
+.modal-backdrop {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px) saturate(180%);
+  -webkit-backdrop-filter: blur(10px) saturate(180%);
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* 카테고리 아이콘 효과 - 더 역동적 */
+.category-icon {
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  position: relative;
+}
+
+.category-icon::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.5) 0%, transparent 70%);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.4s ease;
+}
+
+.category-icon:hover {
+  transform: scale(1.2) rotate(15deg);
+}
+
+.category-icon:hover::after {
+  transform: translate(-50%, -50%) scale(1.5);
+  opacity: 0;
+}
+
+/* 숫자 카운터 애니메이션 */
+.number-counter {
+  font-variant-numeric: tabular-nums;
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
+}
+
+.number-counter:hover {
+  transform: scale(1.05);
+  color: #667eea;
+}
+
+/* 툴팁 스타일 - 더 예쁘게 */
+.tooltip {
+  position: relative;
+}
+
+.tooltip::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-5px);
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 13px;
+  font-weight: 500;
+  border-radius: 10px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-bottom: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.tooltip::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #764ba2;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  margin-bottom: 4px;
+}
+
+.tooltip:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(-10px);
+}
+
+.tooltip:hover::before {
+  opacity: 1;
+}
+
+/* 반응형 그리드 개선 */
+@media (max-width: 768px) {
+  .glass-effect {
+    border-radius: 12px;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-4px) scale(1.01);
+  }
+}
+
+/* 다크모드 대응 */
+@media (prefers-color-scheme: dark) {
+  .glass-effect {
+    background: rgba(30, 30, 30, 0.95);
+    border: 2px solid rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* 선택 영역 스타일 - 그라데이션 */
+::selection {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.5) 0%, rgba(118, 75, 162, 0.5) 100%);
+  color: white;
+}
+
+::-moz-selection {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.5) 0%, rgba(118, 75, 162, 0.5) 100%);
+  color: white;
+}
+
+/* 빛나는 테두리 효과 */
+.glow-border {
+  position: relative;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 3px;
+}
+
+.glow-border::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: inherit;
+  background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #667eea);
+  background-size: 300% 300%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  animation: gradientShift 3s ease infinite;
+  filter: blur(10px);
+  z-index: -1;
+}
+
+.glow-border:hover::before {
+  opacity: 1;
+}
+
+/* 플로팅 애니메이션 */
+@keyframes floating {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+.floating-animation {
+  animation: floating 3s ease-in-out infinite;
+}
+
+/* 반짝임 효과 */
+@keyframes sparkle {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+}
+
+.sparkle-animation {
+  animation: sparkle 1.5s ease-in-out infinite;
+}

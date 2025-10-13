@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm start)",
+      "Bash(npm install lucide-react)",
+      "Bash(taskkill:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(copy:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -10,7 +10,10 @@
       "Bash(timeout:*)",
       "Bash(npm install)",
       "Bash(npm install:*)",
-      "Bash(npx kill-port:*)"
+      "Bash(npx kill-port:*)",
+      "Bash(firebase --version)",
+      "Bash(firebase login:*)",
+      "Bash(npm run build)"
     ],
     "deny": [],
     "ask": []

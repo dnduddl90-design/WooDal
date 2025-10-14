@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { onAuthChange, logout as firebaseLogout } from '../firebase';
+import { getUserFamilyId, getFamily, onInvitationsChange } from '../firebase/databaseService';
 
 /**
  * 인증 관리 커스텀 훅 (Firebase 사용)
@@ -9,12 +10,14 @@ export const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [familyInfo, setFamilyInfo] = useState(null);
+  const [pendingInvitations, setPendingInvitations] = useState([]);
 
   /**
-   * Firebase 인증 상태 변경 감지
+   * Firebase 인증 상태 변경 감지 및 가족 정보 로드
    */
   useEffect(() => {
-    const unsubscribe = onAuthChange((firebaseUser) => {
+    const unsubscribe = onAuthChange(async (firebaseUser) => {
       if (firebaseUser) {
         // Firebase User를 앱에서 사용할 형태로 변환
         // 기존 LocalStorage 데이터와 호환되도록 user1 ID 유지
@@ -35,12 +38,30 @@ export const useAuth = () => {
           avatar: '👨', // 고정 아바타 (나중에 커스터마이징 가능)
           role: 'admin' // 로그인한 사람은 관리자로 설정
         };
+
+        // 가족 정보 로드
+        try {
+          const familyId = await getUserFamilyId(firebaseUser.uid);
+          if (familyId) {
+            const family = await getFamily(familyId);
+            setFamilyInfo(family);
+            console.log('👨‍👩‍👧‍👦 가족 정보 로드됨:', family.name);
+          } else {
+            setFamilyInfo(null);
+            console.log('👤 개인 가계부 모드 (가족 없음)');
+          }
+        } catch (error) {
+          console.error('❌ 가족 정보 로드 실패:', error);
+          setFamilyInfo(null);
+        }
+
         setCurrentUser(user);
         setIsAuthenticated(true);
         console.log('✅ 인증 상태 변경: 로그인됨', user.email);
         console.log('👤 사용자 정보:', user);
       } else {
         setCurrentUser(null);
+        setFamilyInfo(null);
         setIsAuthenticated(false);
         console.log('✅ 인증 상태 변경: 로그아웃됨');
       }
@@ -50,6 +71,26 @@ export const useAuth = () => {
     // 클린업: 컴포넌트 언마운트 시 리스너 제거
     return () => unsubscribe();
   }, []);
+
+  /**
+   * 초대 확인 리스너 설정
+   */
+  useEffect(() => {
+    if (!currentUser?.email) return;
+
+    console.log('📬 초대 리스너 시작:', currentUser.email);
+
+    // 실시간 초대 리스너 설정
+    const unsubscribe = onInvitationsChange(currentUser.email, (invitations) => {
+      setPendingInvitations(invitations);
+      if (invitations.length > 0) {
+        console.log(`📩 대기 중인 초대 ${invitations.length}건 발견`);
+      }
+    });
+
+    // 클린업
+    return () => unsubscribe();
+  }, [currentUser?.email]);
 
   /**
    * 로그인 처리
@@ -75,6 +116,8 @@ export const useAuth = () => {
   return {
     isAuthenticated,
     currentUser,
+    familyInfo,
+    pendingInvitations,
     loading,
     handleLogin,
     handleLogout

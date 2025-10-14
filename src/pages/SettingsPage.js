@@ -1,5 +1,5 @@
-import React from 'react';
-import { Download, Trash2, Upload, Save } from 'lucide-react';
+import React, { useState } from 'react';
+import { Download, Trash2, Upload, Save, Users, UserPlus, Mail, LogOut } from 'lucide-react';
 import { CATEGORIES } from '../constants';
 import { Button, Input, Modal } from '../components/common';
 
@@ -19,8 +19,17 @@ export const SettingsPage = ({
   showBackupModal,
   backupData,
   onShowBackupModal,
-  onDownloadBackup
+  onDownloadBackup,
+  // 가족 관련 props
+  currentUser,
+  familyInfo,
+  onCreateFamily,
+  onInviteMember,
+  onLeaveFamily
 }) => {
+  const [showFamilyModal, setShowFamilyModal] = useState(false);
+  const [familyName, setFamilyName] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
   const handleFileImport = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -58,6 +67,101 @@ export const SettingsPage = ({
           </Button>
         </div>
       </div>
+
+      {/* 가족 가계부 설정 */}
+      {familyInfo ? (
+        <div className="glass-effect rounded-xl p-6 shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-800 flex items-center">
+              <Users className="mr-2" size={20} />
+              가족 가계부
+            </h3>
+            <span className="px-3 py-1 bg-green-100 text-green-700 text-sm font-medium rounded-full">
+              공유 중
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+              <p className="text-sm font-medium text-gray-700 mb-2">가족 이름</p>
+              <p className="text-lg font-bold text-gray-900">{familyInfo.name}</p>
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-gray-700 mb-2">가족 구성원</p>
+              <div className="space-y-2">
+                {Object.values(familyInfo.members || {}).map(member => (
+                  <div key={member.userId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-medium text-gray-800">{member.name}</p>
+                      <p className="text-xs text-gray-600">{member.role === 'admin' ? '관리자' : '멤버'}</p>
+                    </div>
+                    {member.userId === currentUser?.firebaseId && (
+                      <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">나</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t border-gray-200 pt-4 space-y-3">
+              <Button
+                variant="primary"
+                icon={UserPlus}
+                onClick={() => setShowFamilyModal(true)}
+                className="w-full"
+              >
+                가족 초대하기
+              </Button>
+
+              <Button
+                variant="danger"
+                icon={LogOut}
+                onClick={onLeaveFamily}
+                className="w-full"
+              >
+                가족 탈퇴하기
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="glass-effect rounded-xl p-6 shadow-lg">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-gray-800 flex items-center">
+              <Users className="mr-2" size={20} />
+              가족 가계부
+            </h3>
+            <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded-full">
+              개인 모드
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            <p className="text-gray-600 text-sm">
+              가족과 함께 가계부를 공유하고 실시간으로 함께 관리하세요.
+            </p>
+
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <p className="text-sm font-medium text-blue-900 mb-2">가족 가계부 기능</p>
+              <ul className="text-sm text-blue-800 space-y-1">
+                <li>• 실시간 거래 내역 공유</li>
+                <li>• 함께하는 예산 관리</li>
+                <li>• 고정지출 자동 등록</li>
+              </ul>
+            </div>
+
+            <Button
+              variant="primary"
+              icon={Users}
+              onClick={() => setShowFamilyModal(true)}
+              className="w-full"
+            >
+              가족 만들기
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* 설정 그리드 */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -348,6 +452,113 @@ export const SettingsPage = ({
                 클립보드에 복사
               </Button>
             </div>
+          </div>
+        </Modal>
+      )}
+
+      {/* 가족 생성/초대 모달 */}
+      {showFamilyModal && (
+        <Modal
+          isOpen={showFamilyModal}
+          onClose={() => {
+            setShowFamilyModal(false);
+            setFamilyName('');
+            setInviteEmail('');
+          }}
+          title={familyInfo ? '가족 초대하기' : '가족 만들기'}
+        >
+          <div className="space-y-4">
+            {familyInfo ? (
+              // 가족 초대 폼
+              <>
+                <p className="text-gray-700">
+                  초대할 가족 구성원의 이메일 주소를 입력하세요.
+                </p>
+                <Input
+                  label="이메일 주소"
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="family@example.com"
+                  icon={Mail}
+                />
+                <div className="flex space-x-3">
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setShowFamilyModal(false);
+                      setInviteEmail('');
+                    }}
+                    className="flex-1"
+                  >
+                    취소
+                  </Button>
+                  <Button
+                    variant="primary"
+                    icon={UserPlus}
+                    onClick={() => {
+                      if (inviteEmail) {
+                        onInviteMember(inviteEmail);
+                        setShowFamilyModal(false);
+                        setInviteEmail('');
+                      }
+                    }}
+                    className="flex-1"
+                  >
+                    초대하기
+                  </Button>
+                </div>
+              </>
+            ) : (
+              // 가족 생성 폼
+              <>
+                <p className="text-gray-700">
+                  우리 가족만의 가계부를 만들어보세요.
+                </p>
+                <Input
+                  label="가족 이름"
+                  type="text"
+                  value={familyName}
+                  onChange={(e) => setFamilyName(e.target.value)}
+                  placeholder="예: 우리 가족, 홍길동 가족"
+                  icon={Users}
+                />
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <p className="text-sm font-medium text-blue-900 mb-2">가족 만들기 후에는</p>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• 가족 구성원을 초대할 수 있어요</li>
+                    <li>• 모든 거래 내역이 실시간으로 공유돼요</li>
+                    <li>• 함께 예산을 관리할 수 있어요</li>
+                  </ul>
+                </div>
+                <div className="flex space-x-3">
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setShowFamilyModal(false);
+                      setFamilyName('');
+                    }}
+                    className="flex-1"
+                  >
+                    취소
+                  </Button>
+                  <Button
+                    variant="primary"
+                    icon={Users}
+                    onClick={() => {
+                      if (familyName) {
+                        onCreateFamily(familyName);
+                        setShowFamilyModal(false);
+                        setFamilyName('');
+                      }
+                    }}
+                    className="flex-1"
+                  >
+                    만들기
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </Modal>
       )}

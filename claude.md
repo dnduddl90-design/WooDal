@@ -6,8 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **우영달림 가계부** - A couples' expense tracking React application built with SOLID principles. This is a shared budget app for two users (우영 & 달림) to track income/expenses together.
 
-**Tech Stack**: React 19.2.0, Tailwind CSS (via CDN), Lucide React icons
-**Storage**: LocalStorage (Firebase integration planned)
+**Tech Stack**: React 19.2.0, Tailwind CSS (via CDN), Lucide React icons, Firebase
+**Storage**: Firebase Realtime Database + Authentication
 **Language**: Korean UI, JavaScript codebase
 
 ## Development Commands
@@ -38,6 +38,10 @@ src/
 ├── utils/              # Pure utility functions (date, format, storage)
 ├── services/           # Business logic layer (TransactionService)
 ├── hooks/              # Custom React hooks (useAuth, useTransactions, useFixedExpenses)
+├── firebase/           # Firebase configuration and services
+│   ├── config.js       # Firebase initialization
+│   ├── authService.js  # Authentication functions
+│   └── databaseService.js  # Database CRUD functions
 ├── components/
 │   ├── common/         # Reusable UI components (Button, Input, Modal)
 │   ├── forms/          # Form components (TransactionForm, FixedExpenseForm)
@@ -63,10 +67,11 @@ src/
    - Props are passed down to page components
    - Page components pass data to presentational components
 
-4. **Storage**: LocalStorage abstraction
-   - `storageUtils.js` provides save/load/clear operations
-   - Storage keys defined in `STORAGE_KEYS` constant
-   - All data persisted automatically via useEffect
+4. **Storage**: Firebase Realtime Database
+   - `databaseService.js` provides CRUD operations
+   - Real-time listeners for automatic UI updates
+   - LocalStorage used only for automatic migration
+   - Family mode and personal mode support
 
 ### Data Models
 
@@ -150,22 +155,25 @@ import { Button, Modal } from '../components/common';
 
 ## Key Files to Understand
 
-- `SOLID-GUIDE.md` - **MUST READ** for all development
-- `claude.md` - Detailed project documentation (Korean)
-- `README.md` - Project overview and SOLID architecture
+- `개발일지.md` - **Complete development history** (Korean)
+- `SOLID.md` - SOLID principles guide
+- `CLAUDE.md` - This file, project documentation
+- `README.md` - Project overview
 - `src/App.js` - Main orchestration, shows how everything connects
 - `src/hooks/` - Understanding hooks is key to understanding state flow
+- `src/firebase/databaseService.js` - Firebase CRUD operations
 - `src/services/transactionService.js` - Core business logic
 
 ## Development Guidelines
 
 ### Adding New Features
 
-1. Check `SOLID-GUIDE.md` for the appropriate checklist
-2. Determine correct folder: constants/utils/services/hooks/components
-3. Create file with single responsibility
-4. Add export to corresponding `index.js`
-5. Keep files under 200 lines, functions under 30 lines
+1. Check `SOLID.md` for SOLID principles
+2. Review `개발일지.md` for implementation patterns
+3. Determine correct folder: constants/utils/services/hooks/components/firebase
+4. Create file with single responsibility
+5. Add export to corresponding `index.js`
+6. Keep files under 200 lines, functions under 30 lines
 
 ### Code Review Checklist
 
@@ -177,29 +185,62 @@ Before committing, verify:
 - [ ] Props documented if > 3 props
 - [ ] Korean UI text for user-facing content
 
-## Known Issues & Limitations
+## Current Status
 
-- Data stored in localStorage only (no backend yet)
-- Firebase integration is planned but not implemented
-- Mobile optimization needs improvement
-- No TypeScript (migration planned)
-- No unit tests yet (planned for Phase 3)
+✅ **Completed**:
+- SOLID principles refactoring
+- Firebase Authentication (Google login)
+- Firebase Realtime Database integration
+- Real-time synchronization
+- Family sharing system (couples can share budgets)
+- Auto-migration from LocalStorage
 
-## Future Plans (Priority Order)
+⏳ **In Progress**:
+- Family creation UI
 
-1. **High**: Firebase integration (Realtime Database, Auth, Hosting)
-2. **High**: Real-time sync between two users
-3. **Medium**: Budget management with alerts
-4. **Medium**: PWA conversion for offline support
-5. **Low**: TypeScript migration, comprehensive testing
+🔮 **Future Plans**:
+1. **High**: Firebase Security Rules
+2. **Medium**: Budget management with alerts
+3. **Medium**: PWA conversion for offline support
+4. **Low**: TypeScript migration, comprehensive testing
+
+## Firebase Setup
+
+This app requires Firebase configuration. Create `.env` file:
+
+```env
+REACT_APP_FIREBASE_API_KEY=your_api_key
+REACT_APP_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+REACT_APP_FIREBASE_DATABASE_URL=https://your_project.firebasedatabase.app
+REACT_APP_FIREBASE_PROJECT_ID=your_project
+REACT_APP_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+REACT_APP_FIREBASE_APP_ID=your_app_id
+```
+
+**Database Structure**:
+- `families/{familyId}/transactions` - Shared budget mode
+- `families/{familyId}/fixedExpenses` - Shared fixed expenses
+- `users/{userId}/transactions` - Personal mode (fallback)
+- `users/{userId}/fixedExpenses` - Personal fixed expenses
 
 ## Context for Development
 
-This app was initially built as a monolithic 2177-line `App.js` using Claude web interface. It has been refactored using Claude Code to follow SOLID principles. The refactoring is in **Phase 1 complete, Phase 2 in progress** (see `SOLID-GUIDE.md` for phases).
+This app was initially built as a monolithic 2177-line `App.js` using Claude web interface. It has been refactored using Claude Code to follow SOLID principles and integrated with Firebase for real-time sync.
+
+**Development Phases**:
+- ✅ Phase 1: SOLID refactoring (100%)
+- ✅ Phase 2: Firebase Authentication (100%)
+- ✅ Phase 3: Firebase Realtime Database (100%)
+- ✅ Phase 4: Family sharing system (95%)
+- ⏳ Phase 5: Family creation UI (in progress)
+
+**Development Log**: See `개발일지.md` for complete development history.
 
 When making changes:
 - Preserve the existing SOLID architecture
 - Keep Korean language in UI elements
 - Maintain the glassmorphism visual style
-- Consult `SOLID-GUIDE.md` for any structural questions
+- Consult `SOLID.md` for SOLID principles
 - Test in browser at localhost:3000 after changes
+- Check `개발일지.md` for implementation details

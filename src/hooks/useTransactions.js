@@ -4,15 +4,20 @@ import {
   saveTransaction,
   updateTransaction,
   deleteTransaction,
-  onTransactionsChange
+  onTransactionsChange,
+  saveFamilyTransaction,
+  updateFamilyTransaction,
+  deleteFamilyTransaction,
+  onFamilyTransactionsChange
 } from '../firebase/databaseService';
 import { STORAGE_KEYS, loadFromStorage } from '../utils';
 
 /**
  * 거래 내역 관리 커스텀 훅 (Firebase 사용)
  * SRP: 거래 내역 상태 및 CRUD 로직만 담당
+ * 가족 모드와 개인 모드를 모두 지원
  */
-export const useTransactions = (currentUser) => {
+export const useTransactions = (currentUser, familyInfo) => {
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddTransaction, setShowAddTransaction] = useState(false);
@@ -30,6 +35,8 @@ export const useTransactions = (currentUser) => {
 
   /**
    * Firebase에서 데이터 로드 및 실시간 리스너 설정
+   * 가족 모드: families/{familyId}/transactions
+   * 개인 모드: users/{userId}/transactions
    */
   useEffect(() => {
     if (!currentUser?.firebaseId) {
@@ -37,18 +44,25 @@ export const useTransactions = (currentUser) => {
       return;
     }
 
-    console.log('📥 Firebase에서 거래 내역 로드 중...');
+    // 가족 모드인지 개인 모드인지 확인
+    const isFamilyMode = familyInfo && familyInfo.id;
+    const dataId = isFamilyMode ? familyInfo.id : currentUser.firebaseId;
+    const mode = isFamilyMode ? '가족 공유' : '개인';
 
-    // 실시간 리스너 설정
-    const unsubscribe = onTransactionsChange(
-      currentUser.firebaseId,
+    console.log(`📥 Firebase에서 거래 내역 로드 중... (${mode} 모드)`);
+
+    // 실시간 리스너 설정 (가족 모드 or 개인 모드)
+    const listenerFunction = isFamilyMode ? onFamilyTransactionsChange : onTransactionsChange;
+
+    const unsubscribe = listenerFunction(
+      dataId,
       (firebaseTransactions) => {
-        console.log(`✅ 거래 내역 ${firebaseTransactions.length}건 로드됨`);
+        console.log(`✅ 거래 내역 ${firebaseTransactions.length}건 로드됨 (${mode} 모드)`);
 
         // Firebase 데이터가 비어있으면 LocalStorage에서 마이그레이션
         if (firebaseTransactions.length === 0) {
           const localTransactions = loadFromStorage(STORAGE_KEYS.TRANSACTIONS, []);
-          if (localTransactions.length > 0) {
+          if (localTransactions.length > 0 && !isFamilyMode) { // 개인 모드일 때만 마이그레이션
             console.log(`🔄 LocalStorage에서 ${localTransactions.length}건 마이그레이션 시작...`);
             migrateLocalTransactions(localTransactions);
           } else {
@@ -64,7 +78,7 @@ export const useTransactions = (currentUser) => {
 
     // 클린업: 컴포넌트 언마운트 시 리스너 제거
     return () => unsubscribe();
-  }, [currentUser?.firebaseId]);
+  }, [currentUser?.firebaseId, familyInfo?.id]);
 
   /**
    * LocalStorage 데이터를 Firebase로 마이그레이션
@@ -85,7 +99,7 @@ export const useTransactions = (currentUser) => {
   };
 
   /**
-   * 거래 추가
+   * 거래 추가 (가족 모드/개인 모드 자동 선택)
    */
   const handleAddTransaction = async (formData) => {
     try {
@@ -94,13 +108,14 @@ export const useTransactions = (currentUser) => {
         currentUser?.id
       );
 
-      // Firebase에 저장
-      const savedId = await saveTransaction(
-        currentUser.firebaseId,
-        newTransaction
-      );
+      const isFamilyMode = familyInfo && familyInfo.id;
 
-      console.log('✅ 거래 추가 성공:', savedId);
+      // 가족 모드 or 개인 모드로 저장
+      const savedId = isFamilyMode
+        ? await saveFamilyTransaction(familyInfo.id, newTransaction)
+        : await saveTransaction(currentUser.firebaseId, newTransaction);
+
+      console.log('✅ 거래 추가 성공:', savedId, `(${isFamilyMode ? '가족 공유' : '개인'} 모드)`);
       // 실시간 리스너가 자동으로 UI 업데이트
     } catch (error) {
       console.error('❌ 거래 추가 실패:', error);
@@ -109,7 +124,7 @@ export const useTransactions = (currentUser) => {
   };
 
   /**
-   * 거래 수정
+   * 거래 수정 (가족 모드/개인 모드 자동 선택)
    */
   const handleUpdateTransaction = async (id, formData) => {
     try {
@@ -119,14 +134,16 @@ export const useTransactions = (currentUser) => {
         formData
       );
 
-      // Firebase에 업데이트
-      await updateTransaction(
-        currentUser.firebaseId,
-        id,
-        updatedTransaction
-      );
+      const isFamilyMode = familyInfo && familyInfo.id;
 
-      console.log('✅ 거래 수정 성공:', id);
+      // 가족 모드 or 개인 모드로 업데이트
+      if (isFamilyMode) {
+        await updateFamilyTransaction(familyInfo.id, id, updatedTransaction);
+      } else {
+        await updateTransaction(currentUser.firebaseId, id, updatedTransaction);
+      }
+
+      console.log('✅ 거래 수정 성공:', id, `(${isFamilyMode ? '가족 공유' : '개인'} 모드)`);
       // 실시간 리스너가 자동으로 UI 업데이트
     } catch (error) {
       console.error('❌ 거래 수정 실패:', error);
@@ -135,13 +152,20 @@ export const useTransactions = (currentUser) => {
   };
 
   /**
-   * 거래 삭제
+   * 거래 삭제 (가족 모드/개인 모드 자동 선택)
    */
   const handleDeleteTransaction = async (id) => {
     try {
-      // Firebase에서 삭제
-      await deleteTransaction(currentUser.firebaseId, id);
-      console.log('✅ 거래 삭제 성공:', id);
+      const isFamilyMode = familyInfo && familyInfo.id;
+
+      // 가족 모드 or 개인 모드로 삭제
+      if (isFamilyMode) {
+        await deleteFamilyTransaction(familyInfo.id, id);
+      } else {
+        await deleteTransaction(currentUser.firebaseId, id);
+      }
+
+      console.log('✅ 거래 삭제 성공:', id, `(${isFamilyMode ? '가족 공유' : '개인'} 모드)`);
       // 실시간 리스너가 자동으로 UI 업데이트
     } catch (error) {
       console.error('❌ 거래 삭제 실패:', error);
@@ -227,7 +251,7 @@ export const useTransactions = (currentUser) => {
   };
 
   /**
-   * 고정지출을 실제 거래로 등록
+   * 고정지출을 실제 거래로 등록 (가족 모드/개인 모드 자동 선택)
    */
   const registerFixedExpense = async (fixedExpense, date) => {
     const newTransaction = {
@@ -245,8 +269,16 @@ export const useTransactions = (currentUser) => {
     };
 
     try {
-      await saveTransaction(currentUser.firebaseId, newTransaction);
-      console.log('✅ 고정지출 자동 등록 성공');
+      const isFamilyMode = familyInfo && familyInfo.id;
+
+      // 가족 모드 or 개인 모드로 저장
+      if (isFamilyMode) {
+        await saveFamilyTransaction(familyInfo.id, newTransaction);
+      } else {
+        await saveTransaction(currentUser.firebaseId, newTransaction);
+      }
+
+      console.log('✅ 고정지출 자동 등록 성공', `(${isFamilyMode ? '가족 공유' : '개인'} 모드)`);
       return newTransaction;
     } catch (error) {
       console.error('❌ 고정지출 등록 실패:', error);

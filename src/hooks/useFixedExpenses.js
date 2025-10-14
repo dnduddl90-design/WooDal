@@ -3,15 +3,20 @@ import {
   saveFixedExpense,
   updateFixedExpense,
   deleteFixedExpense,
-  onFixedExpensesChange
+  onFixedExpensesChange,
+  saveFamilyFixedExpense,
+  updateFamilyFixedExpense,
+  deleteFamilyFixedExpense,
+  onFamilyFixedExpensesChange
 } from '../firebase/databaseService';
 import { STORAGE_KEYS, loadFromStorage } from '../utils';
 
 /**
  * 고정지출 관리 커스텀 훅 (Firebase 사용)
  * SRP: 고정지출 상태 및 CRUD 로직만 담당
+ * 가족 모드와 개인 모드를 모두 지원
  */
-export const useFixedExpenses = (currentUser) => {
+export const useFixedExpenses = (currentUser, familyInfo) => {
   const [fixedExpenses, setFixedExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddFixed, setShowAddFixed] = useState(false);
@@ -29,6 +34,8 @@ export const useFixedExpenses = (currentUser) => {
 
   /**
    * Firebase에서 데이터 로드 및 실시간 리스너 설정
+   * 가족 모드: families/{familyId}/fixedExpenses
+   * 개인 모드: users/{userId}/fixedExpenses
    */
   useEffect(() => {
     if (!currentUser?.firebaseId) {
@@ -36,18 +43,25 @@ export const useFixedExpenses = (currentUser) => {
       return;
     }
 
-    console.log('📥 Firebase에서 고정지출 로드 중...');
+    // 가족 모드인지 개인 모드인지 확인
+    const isFamilyMode = familyInfo && familyInfo.id;
+    const dataId = isFamilyMode ? familyInfo.id : currentUser.firebaseId;
+    const mode = isFamilyMode ? '가족 공유' : '개인';
 
-    // 실시간 리스너 설정
-    const unsubscribe = onFixedExpensesChange(
-      currentUser.firebaseId,
+    console.log(`📥 Firebase에서 고정지출 로드 중... (${mode} 모드)`);
+
+    // 실시간 리스너 설정 (가족 모드 or 개인 모드)
+    const listenerFunction = isFamilyMode ? onFamilyFixedExpensesChange : onFixedExpensesChange;
+
+    const unsubscribe = listenerFunction(
+      dataId,
       (firebaseFixed) => {
-        console.log(`✅ 고정지출 ${firebaseFixed.length}건 로드됨`);
+        console.log(`✅ 고정지출 ${firebaseFixed.length}건 로드됨 (${mode} 모드)`);
 
         // Firebase 데이터가 비어있으면 LocalStorage에서 마이그레이션
         if (firebaseFixed.length === 0) {
           const localFixed = loadFromStorage(STORAGE_KEYS.FIXED_EXPENSES, []);
-          if (localFixed.length > 0) {
+          if (localFixed.length > 0 && !isFamilyMode) { // 개인 모드일 때만 마이그레이션
             console.log(`🔄 LocalStorage에서 ${localFixed.length}건 마이그레이션 시작...`);
             migrateLocalFixedExpenses(localFixed);
           } else {
@@ -63,7 +77,7 @@ export const useFixedExpenses = (currentUser) => {
 
     // 클린업: 컴포넌트 언마운트 시 리스너 제거
     return () => unsubscribe();
-  }, [currentUser?.firebaseId]);
+  }, [currentUser?.firebaseId, familyInfo?.id]);
 
   /**
    * LocalStorage 데이터를 Firebase로 마이그레이션
@@ -84,7 +98,7 @@ export const useFixedExpenses = (currentUser) => {
   };
 
   /**
-   * 고정지출 추가
+   * 고정지출 추가 (가족 모드/개인 모드 자동 선택)
    */
   const handleAddFixedExpense = async (formData) => {
     try {
@@ -96,13 +110,14 @@ export const useFixedExpenses = (currentUser) => {
         monthlyIncrease: parseInt(formData.monthlyIncrease) || 0
       };
 
-      // Firebase에 저장
-      const savedId = await saveFixedExpense(
-        currentUser.firebaseId,
-        newFixed
-      );
+      const isFamilyMode = familyInfo && familyInfo.id;
 
-      console.log('✅ 고정지출 추가 성공:', savedId);
+      // 가족 모드 or 개인 모드로 저장
+      const savedId = isFamilyMode
+        ? await saveFamilyFixedExpense(familyInfo.id, newFixed)
+        : await saveFixedExpense(currentUser.firebaseId, newFixed);
+
+      console.log('✅ 고정지출 추가 성공:', savedId, `(${isFamilyMode ? '가족 공유' : '개인'} 모드)`);
       // 실시간 리스너가 자동으로 UI 업데이트
     } catch (error) {
       console.error('❌ 고정지출 추가 실패:', error);
@@ -111,7 +126,7 @@ export const useFixedExpenses = (currentUser) => {
   };
 
   /**
-   * 고정지출 수정
+   * 고정지출 수정 (가족 모드/개인 모드 자동 선택)
    */
   const handleUpdateFixedExpense = async (id, formData) => {
     try {
@@ -124,14 +139,16 @@ export const useFixedExpenses = (currentUser) => {
         monthlyIncrease: parseInt(formData.monthlyIncrease) || 0
       };
 
-      // Firebase에 업데이트
-      await updateFixedExpense(
-        currentUser.firebaseId,
-        id,
-        updatedFixed
-      );
+      const isFamilyMode = familyInfo && familyInfo.id;
 
-      console.log('✅ 고정지출 수정 성공:', id);
+      // 가족 모드 or 개인 모드로 업데이트
+      if (isFamilyMode) {
+        await updateFamilyFixedExpense(familyInfo.id, id, updatedFixed);
+      } else {
+        await updateFixedExpense(currentUser.firebaseId, id, updatedFixed);
+      }
+
+      console.log('✅ 고정지출 수정 성공:', id, `(${isFamilyMode ? '가족 공유' : '개인'} 모드)`);
       // 실시간 리스너가 자동으로 UI 업데이트
     } catch (error) {
       console.error('❌ 고정지출 수정 실패:', error);
@@ -140,13 +157,20 @@ export const useFixedExpenses = (currentUser) => {
   };
 
   /**
-   * 고정지출 삭제
+   * 고정지출 삭제 (가족 모드/개인 모드 자동 선택)
    */
   const handleDeleteFixedExpense = async (id) => {
     try {
-      // Firebase에서 삭제
-      await deleteFixedExpense(currentUser.firebaseId, id);
-      console.log('✅ 고정지출 삭제 성공:', id);
+      const isFamilyMode = familyInfo && familyInfo.id;
+
+      // 가족 모드 or 개인 모드로 삭제
+      if (isFamilyMode) {
+        await deleteFamilyFixedExpense(familyInfo.id, id);
+      } else {
+        await deleteFixedExpense(currentUser.firebaseId, id);
+      }
+
+      console.log('✅ 고정지출 삭제 성공:', id, `(${isFamilyMode ? '가족 공유' : '개인'} 모드)`);
       // 실시간 리스너가 자동으로 UI 업데이트
     } catch (error) {
       console.error('❌ 고정지출 삭제 실패:', error);
@@ -155,7 +179,7 @@ export const useFixedExpenses = (currentUser) => {
   };
 
   /**
-   * 고정지출 활성화/비활성화 토글
+   * 고정지출 활성화/비활성화 토글 (가족 모드/개인 모드 자동 선택)
    */
   const handleToggleActive = async (id) => {
     try {
@@ -165,14 +189,16 @@ export const useFixedExpenses = (currentUser) => {
         isActive: !existingFixed.isActive
       };
 
-      // Firebase에 업데이트
-      await updateFixedExpense(
-        currentUser.firebaseId,
-        id,
-        updatedFixed
-      );
+      const isFamilyMode = familyInfo && familyInfo.id;
 
-      console.log('✅ 고정지출 활성화 토글 성공:', id);
+      // 가족 모드 or 개인 모드로 업데이트
+      if (isFamilyMode) {
+        await updateFamilyFixedExpense(familyInfo.id, id, updatedFixed);
+      } else {
+        await updateFixedExpense(currentUser.firebaseId, id, updatedFixed);
+      }
+
+      console.log('✅ 고정지출 활성화 토글 성공:', id, `(${isFamilyMode ? '가족 공유' : '개인'} 모드)`);
       // 실시간 리스너가 자동으로 UI 업데이트
     } catch (error) {
       console.error('❌ 고정지출 토글 실패:', error);

@@ -35,6 +35,8 @@ export default function App() {
   const {
     isAuthenticated,
     currentUser,
+    familyInfo,
+    pendingInvitations,
     loading: authLoading,
     handleLogin,
     handleLogout
@@ -55,11 +57,12 @@ export default function App() {
     handleSubmitTransaction,
     resetTransactionForm,
     registerFixedExpense
-  } = useTransactions(currentUser);
+  } = useTransactions(currentUser, familyInfo);
 
   // ===== 3. 고정지출 상태 (useFixedExpenses 훅 사용) =====
   const {
     fixedExpenses,
+    loading: fixedExpensesLoading,
     fixedForm,
     showAddFixed,
     editingFixed,
@@ -71,7 +74,7 @@ export default function App() {
     handleToggleActive,
     handleSubmitFixed,
     resetFixedForm
-  } = useFixedExpenses();
+  } = useFixedExpenses(currentUser, familyInfo);
 
   // ===== 4. 뷰 및 날짜 상태 =====
   const [currentView, setCurrentView] = useState('calendar');
@@ -352,6 +355,119 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
+  // ===== 가족 관리 함수들 =====
+  const handleCreateFamily = async (familyName) => {
+    try {
+      const { createFamily } = await import('./firebase/databaseService');
+      const familyId = await createFamily(
+        currentUser.firebaseId,
+        currentUser.name,
+        familyName
+      );
+      console.log('✅ 가족 생성 완료:', familyId);
+      alert(`🎉 "${familyName}" 가족 가계부가 생성되었습니다!`);
+
+      // 페이지 새로고침으로 가족 정보 로드
+      window.location.reload();
+    } catch (error) {
+      console.error('❌ 가족 생성 실패:', error);
+      alert('가족 생성에 실패했습니다.');
+    }
+  };
+
+  const handleInviteMember = async (email) => {
+    if (!familyInfo || !currentUser) return;
+
+    try {
+      const { createInvitation } = await import('./firebase/databaseService');
+
+      // 초대 생성
+      await createInvitation(
+        familyInfo.id,
+        familyInfo.name,
+        currentUser.email || 'unknown@example.com',
+        currentUser.name,
+        email
+      );
+
+      console.log('✅ 초대 생성 완료:', email);
+      alert(`🎉 ${email}로 초대를 보냈습니다!\n\n해당 이메일로 로그인하면 초대를 수락할 수 있습니다.`);
+    } catch (error) {
+      console.error('❌ 초대 실패:', error);
+      alert('초대에 실패했습니다.');
+    }
+  };
+
+  const handleLeaveFamily = async () => {
+    if (!familyInfo) return;
+
+    const confirmed = window.confirm(
+      `⚠️ 가족 가계부에서 탈퇴하시겠습니까?\n\n` +
+      `가족: ${familyInfo.name}\n\n` +
+      `탈퇴 후에는 개인 가계부 모드로 전환됩니다.\n` +
+      `가족 공유 데이터는 유지되지만 접근할 수 없게 됩니다.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      const { ref, database, remove } = await import('./firebase/config');
+
+      // users/{userId}/familyId 삭제
+      const userFamilyRef = ref(database, `users/${currentUser.firebaseId}/familyId`);
+      await remove(userFamilyRef);
+
+      // families/{familyId}/members/{userId} 삭제
+      const memberRef = ref(database, `families/${familyInfo.id}/members/${currentUser.firebaseId}`);
+      await remove(memberRef);
+
+      console.log('✅ 가족 탈퇴 완료');
+      alert('가족 가계부에서 탈퇴했습니다.');
+
+      // 페이지 새로고침으로 개인 모드로 전환
+      window.location.reload();
+    } catch (error) {
+      console.error('❌ 가족 탈퇴 실패:', error);
+      alert('가족 탈퇴에 실패했습니다.');
+    }
+  };
+
+  // ===== 초대 관련 함수들 =====
+  const handleAcceptInvitation = async (invitationId) => {
+    try {
+      const { acceptInvitation } = await import('./firebase/databaseService');
+
+      const familyId = await acceptInvitation(
+        invitationId,
+        currentUser.firebaseId,
+        currentUser.name
+      );
+
+      console.log('✅ 초대 수락 완료:', familyId);
+      alert('🎉 가족 가계부에 참여했습니다!');
+
+      // 페이지 새로고침으로 가족 모드로 전환
+      window.location.reload();
+    } catch (error) {
+      console.error('❌ 초대 수락 실패:', error);
+      alert('초대 수락에 실패했습니다.');
+    }
+  };
+
+  const handleRejectInvitation = async (invitationId) => {
+    try {
+      const { rejectInvitation } = await import('./firebase/databaseService');
+
+      await rejectInvitation(invitationId);
+
+      console.log('✅ 초대 거절 완료:', invitationId);
+      alert('초대를 거절했습니다.');
+    } catch (error) {
+      console.error('❌ 초대 거절 실패:', error);
+      alert('초대 거절에 실패했습니다.');
+    }
+  };
+
   // ===== 인증 로딩 중 =====
   if (authLoading) {
     return (
@@ -370,12 +486,12 @@ export default function App() {
   }
 
   // ===== 데이터 로딩 중 =====
-  if (transactionsLoading) {
+  if (transactionsLoading || fixedExpensesLoading) {
     return (
       <div className="min-h-screen bg-animated flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-700 font-medium">거래 내역 불러오는 중...</p>
+          <p className="text-gray-700 font-medium">데이터 불러오는 중...</p>
         </div>
       </div>
     );
@@ -388,6 +504,9 @@ export default function App() {
       <Header
         user={currentUser}
         onLogout={handleLogout}
+        pendingInvitations={pendingInvitations}
+        onAcceptInvitation={handleAcceptInvitation}
+        onRejectInvitation={handleRejectInvitation}
       />
 
       <div className="flex">
@@ -457,6 +576,11 @@ export default function App() {
               backupData={backupData}
               onShowBackupModal={setShowBackupModal}
               onDownloadBackup={downloadBackup}
+              currentUser={currentUser}
+              familyInfo={familyInfo}
+              onCreateFamily={handleCreateFamily}
+              onInviteMember={handleInviteMember}
+              onLeaveFamily={handleLeaveFamily}
             />
           )}
         </main>

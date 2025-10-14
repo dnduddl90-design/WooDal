@@ -13,7 +13,13 @@
       "Bash(npx kill-port:*)",
       "Bash(firebase --version)",
       "Bash(firebase login:*)",
-      "Bash(npm run build)"
+      "Bash(npm run build)",
+      "Bash(firebase deploy:*)",
+      "Bash(npx firebase-tools deploy:*)",
+      "Bash(curl:*)",
+      "Bash(cat:*)",
+      "WebFetch(domain:woodal-budget.web.app)",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []

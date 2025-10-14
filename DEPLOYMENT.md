@@ -1,6 +1,32 @@
 # 🚀 배포 가이드
 
-## Firebase Hosting 배포 방법
+**프로젝트**: 우영♥달림 커플 가계부
+**배포 URL**: https://woodal-budget.web.app
+**Firebase 프로젝트**: woodal-budget
+
+---
+
+## ⚡ 빠른 배포 (3단계)
+
+```bash
+# 1. 빌드
+npm run build
+
+# 2. 배포
+firebase deploy --only hosting
+
+# 3. 완료! URL 접속
+# https://woodal-budget.web.app
+```
+
+**원 라이너 (한 번에)**:
+```bash
+npm run build && firebase deploy --only hosting
+```
+
+---
+
+## Firebase Hosting 배포 방법 (상세)
 
 ### 1단계: Firebase 로그인
 
@@ -173,15 +199,22 @@ Firebase Performance Monitoring 활성화
 
 ## 🆘 문제 해결
 
-### 빌드 실패
+### 문제 1: `firebase: command not found`
+**증상**: firebase 명령어를 찾을 수 없다는 오류
+
+**해결**:
 ```bash
-# node_modules 재설치
-rm -rf node_modules package-lock.json
-npm install
-npm run build
+# npx로 실행
+npx firebase-tools deploy --only hosting
+
+# 또는 전역 설치
+npm install -g firebase-tools
 ```
 
-### 배포 실패
+### 문제 2: `Error: Failed to authenticate`
+**증상**: 인증 실패 오류
+
+**해결**:
 ```bash
 # Firebase 로그인 재시도
 firebase logout
@@ -189,10 +222,33 @@ firebase login
 firebase deploy --only hosting
 ```
 
-### 환경 변수 오류
+### 문제 3: 빌드 실패
+**증상**: `npm run build` 실패
+
+**해결**:
+```bash
+# node_modules 재설치
+rm -rf node_modules package-lock.json
+npm install
+npm run build
+```
+
+### 문제 4: 환경 변수 오류
+**증상**: Firebase 설정 오류
+
+**해결**:
 `.env` 파일이 제대로 설정되어 있는지 확인:
 - 모든 `REACT_APP_` 접두사가 있는지
 - Firebase 설정 값이 올바른지
+
+### 문제 5: 포트 3000 이미 사용 중
+**증상**: 개발 서버가 실행 중이라는 오류
+
+**해결**:
+```bash
+# 포트 3000 종료
+npx kill-port 3000
+```
 
 ---
 

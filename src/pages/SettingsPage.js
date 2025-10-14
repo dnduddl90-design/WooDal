@@ -25,7 +25,10 @@ export const SettingsPage = ({
   familyInfo,
   onCreateFamily,
   onInviteMember,
-  onLeaveFamily
+  onLeaveFamily,
+  // 테마 관련 props
+  theme,
+  onChangeTheme
 }) => {
   const [showFamilyModal, setShowFamilyModal] = useState(false);
   const [familyName, setFamilyName] = useState('');
@@ -46,37 +49,41 @@ export const SettingsPage = ({
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-6 animate-fade-in pb-20 sm:pb-6">
       {/* 헤더 */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold gradient-text">설정</h2>
-        <div className="flex space-x-3">
+      <div className="flex justify-between items-center gap-2">
+        <h2 className="text-lg sm:text-2xl font-bold gradient-text">설정</h2>
+        <div className="flex space-x-2 sm:space-x-3">
           <Button
             variant="success"
             icon={Download}
             onClick={onExportData}
+            className="text-xs sm:text-sm"
           >
-            내보내기
+            <span className="hidden sm:inline">내보내기</span>
+            <span className="sm:hidden text-xs">내보내기</span>
           </Button>
           <Button
             variant="danger"
             icon={Trash2}
             onClick={onResetData}
+            className="text-xs sm:text-sm"
           >
-            초기화
+            <span className="hidden sm:inline">초기화</span>
+            <span className="sm:hidden text-xs">초기화</span>
           </Button>
         </div>
       </div>
 
       {/* 가족 가계부 설정 */}
       {familyInfo ? (
-        <div className="glass-effect rounded-xl p-6 shadow-lg">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-800 flex items-center">
-              <Users className="mr-2" size={20} />
-              가족 가계부
+        <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h3 className="text-base sm:text-lg font-bold text-gray-800 flex items-center">
+              <Users className="mr-2" size={18} />
+              <span className="sm:inline">가족 가계부</span>
             </h3>
-            <span className="px-3 py-1 bg-green-100 text-green-700 text-sm font-medium rounded-full">
+            <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-green-100 text-green-700 text-xs sm:text-sm font-medium rounded-full">
               공유 중
             </span>
           </div>
@@ -126,7 +133,7 @@ export const SettingsPage = ({
           </div>
         </div>
       ) : (
-        <div className="glass-effect rounded-xl p-6 shadow-lg">
+        <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-bold text-gray-800 flex items-center">
               <Users className="mr-2" size={20} />
@@ -164,21 +171,21 @@ export const SettingsPage = ({
       )}
 
       {/* 설정 그리드 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
         {/* 기본 설정 */}
-        <div className="glass-effect rounded-xl p-6 shadow-lg">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">기본 설정</h3>
+        <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
+          <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">기본 설정</h3>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 테마
               </label>
               <select
-                value={settings.theme}
-                onChange={(e) => onUpdateSettings({ theme: e.target.value })}
+                value={theme}
+                onChange={(e) => onChangeTheme(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
               >
-                <option value="default">기본</option>
+                <option value="light">라이트 (기본)</option>
                 <option value="dark">다크</option>
                 <option value="colorful">컬러풀</option>
               </select>
@@ -216,8 +223,8 @@ export const SettingsPage = ({
         </div>
 
         {/* 예산 설정 */}
-        <div className="glass-effect rounded-xl p-6 shadow-lg">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">예산 설정</h3>
+        <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
+          <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">예산 설정</h3>
           <div className="space-y-4">
             <Input
               label="월 예산"
@@ -268,8 +275,8 @@ export const SettingsPage = ({
         </div>
 
         {/* 알림 설정 */}
-        <div className="glass-effect rounded-xl p-6 shadow-lg">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">알림 설정</h3>
+        <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
+          <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">알림 설정</h3>
           <div className="space-y-4">
             {[
               { key: 'budgetAlert', label: '예산 초과 알림', desc: '예산을 초과하면 알림을 받습니다' },
@@ -305,8 +312,8 @@ export const SettingsPage = ({
         </div>
 
         {/* 백업 설정 */}
-        <div className="glass-effect rounded-xl p-6 shadow-lg">
-          <h3 className="text-lg font-bold text-gray-800 mb-4">백업 설정</h3>
+        <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
+          <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">백업 설정</h3>
           <div className="space-y-4">
             <div className="flex items-start justify-between p-3 bg-gray-50 rounded-lg">
               <div className="flex-1">
@@ -390,9 +397,9 @@ export const SettingsPage = ({
       </div>
 
       {/* 앱 정보 */}
-      <div className="glass-effect rounded-xl p-6 shadow-lg">
-        <h3 className="text-lg font-bold text-gray-800 mb-4">앱 정보</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
+        <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">앱 정보</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <p className="text-2xl font-bold text-blue-600">{transactions.length}</p>
             <p className="text-sm text-gray-600 mt-1">총 거래 수</p>

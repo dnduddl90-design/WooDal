@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 // Hooks
-import { useAuth, useTransactions, useFixedExpenses } from './hooks';
+import { useAuth, useTransactions, useFixedExpenses, useTheme } from './hooks';
 
 // Pages
 import {
@@ -41,6 +41,9 @@ export default function App() {
     handleLogin,
     handleLogout
   } = useAuth();
+
+  // ===== 테마 관리 (useTheme 훅 사용) =====
+  const { theme, changeTheme } = useTheme();
 
   // ===== 2. 거래 내역 상태 (useTransactions 훅 사용) =====
   const {
@@ -96,7 +99,6 @@ export default function App() {
   // ===== 6. 설정 상태 (localStorage에서 불러오기) =====
   const [settings, setSettings] = useState(() => {
     return loadFromStorage(STORAGE_KEYS.SETTINGS, {
-      theme: 'default',
       currency: 'KRW',
       dateFormat: 'ko-KR',
       budget: {
@@ -170,34 +172,6 @@ export default function App() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated]); // 로그인 시에만 실행
-
-  // ===== 테마 적용 =====
-  useEffect(() => {
-    const root = document.documentElement;
-
-    // 모든 테마 클래스 제거
-    document.body.classList.remove('dark-theme', 'colorful-theme');
-
-    if (settings.theme === 'dark') {
-      root.style.setProperty('--bg-primary', '#1a1a2e');
-      root.style.setProperty('--bg-secondary', '#16213e');
-      root.style.setProperty('--text-primary', '#eee');
-      root.style.setProperty('--text-secondary', '#aaa');
-      document.body.classList.add('dark-theme');
-    } else if (settings.theme === 'colorful') {
-      root.style.setProperty('--bg-primary', '#ffeaa7');
-      root.style.setProperty('--bg-secondary', '#fdcb6e');
-      root.style.setProperty('--text-primary', '#2d3436');
-      root.style.setProperty('--text-secondary', '#636e72');
-      document.body.classList.add('colorful-theme');
-    } else {
-      // 기본 테마
-      root.style.removeProperty('--bg-primary');
-      root.style.removeProperty('--bg-secondary');
-      root.style.removeProperty('--text-primary');
-      root.style.removeProperty('--text-secondary');
-    }
-  }, [settings.theme]);
 
   // ===== 검색 관련 함수들 =====
   const performSearch = () => {
@@ -517,7 +491,7 @@ export default function App() {
         />
 
         {/* 메인 컨텐츠 */}
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-4 sm:p-8">
           {currentView === 'calendar' && (
             <CalendarPage
               currentDate={currentDate}
@@ -581,6 +555,8 @@ export default function App() {
               onCreateFamily={handleCreateFamily}
               onInviteMember={handleInviteMember}
               onLeaveFamily={handleLeaveFamily}
+              theme={theme}
+              onChangeTheme={changeTheme}
             />
           )}
         </main>

@@ -20,7 +20,7 @@ export const Input = ({
 }) => {
   const inputClasses = `w-full px-4 py-2 border rounded-xl transition-all duration-200 ${
     error ? 'border-red-500' : 'border-gray-300'
-  } ${disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white'} ${className}`;
+  } ${disabled ? 'bg-gray-100/50 cursor-not-allowed' : 'bg-white/80 backdrop-blur-sm'} ${className}`;
 
   return (
     <div className="w-full">

@@ -22,10 +22,10 @@ export const Button = ({
   // variant별 스타일 (OCP - 확장 가능)
   const variantClasses = {
     primary: 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-lg',
-    secondary: 'bg-gray-200 text-gray-700 hover:bg-gray-300',
-    danger: 'bg-red-500 text-white hover:bg-red-600',
-    success: 'bg-green-500 text-white hover:bg-green-600',
-    outline: 'border-2 border-blue-500 text-blue-500 hover:bg-blue-50'
+    secondary: 'bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white/90 border border-gray-200 shadow-md',
+    danger: 'bg-gradient-to-r from-red-500 to-pink-600 text-white hover:from-red-600 hover:to-pink-700 shadow-lg',
+    success: 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-lg',
+    outline: 'border-2 border-purple-500 text-purple-600 hover:bg-purple-50 bg-white/50 backdrop-blur-sm'
   };
 
   // size별 스타일 (OCP - 확장 가능)

@@ -2,21 +2,35 @@
 
 2인 공유 가계부 애플리케이션 - SOLID 원칙 기반 React 프로젝트
 
+**🌐 배포 URL**: https://woodal-budget.web.app
+**📱 모바일 최적화** | **🔥 Firebase 연동** | **✨ 실시간 동기화**
+
 ## 📋 프로젝트 소개
 
-우영달림 가계부는 두 명의 사용자가 함께 사용할 수 있는 가계부 애플리케이션입니다.
-SOLID 원칙을 준수하여 유지보수와 확장이 용이하도록 설계되었습니다.
+우영달림 가계부는 커플/부부가 함께 사용할 수 있는 실시간 동기화 가계부 애플리케이션입니다.
+SOLID 원칙을 준수하여 유지보수와 확장이 용이하도록 설계되었으며, Firebase를 통해 실시간 데이터 공유를 지원합니다.
 
 ### ✨ 주요 기능
 
-- 👤 사용자별 거래 내역 관리 (우영 / 달림)
+**인증 & 공유**
+- 🔐 Google 로그인 (Firebase Authentication)
+- 👨‍👩‍👧‍👦 가족 가계부 생성 및 공유
+- 📧 이메일 초대 시스템
+- 🔄 실시간 데이터 동기화
+
+**거래 관리**
+- 👤 사용자별 거래 내역 관리
 - 📅 달력 기반 일별 수입/지출 관리
 - 💳 다양한 결제 수단 지원 (현금, 신용카드, 체크카드, 계좌이체 등)
 - 🏷️ 카테고리별 거래 분류 (식비, 교통, 쇼핑, 의료, 주거 등)
-- 🔄 고정 지출 관리 (월세, 구독료 등)
-- 📊 통계 및 요약 대시보드
+- 🔄 고정 지출 자동 등록 (월세, 구독료 등)
 - 🔍 거래 내역 검색 및 필터링
+
+**통계 & 설정**
+- 📊 월별 통계 및 요약 대시보드
+- 💰 카테고리별 지출 분석
 - ⚙️ 사용자 설정 관리
+- 📱 모바일 반응형 UI
 
 ## 🏗️ SOLID 원칙 기반 아키텍처
 
@@ -66,19 +80,43 @@ src/
 
 ## 🛠️ 기술 스택
 
+**Frontend**
 - **React** 19.2.0 - UI 라이브러리
-- **Lucide React** - 아이콘
-- **Tailwind CSS** - 스타일링
+- **Lucide React** 0.545.0 - 아이콘
+- **Tailwind CSS** (CDN) - 스타일링
 - **JavaScript** - 프로그래밍 언어
+
+**Backend & Infrastructure**
+- **Firebase Authentication** - Google 로그인
+- **Firebase Realtime Database** - 실시간 데이터 동기화
+- **Firebase Hosting** - 정적 웹 호스팅
+
+**Build & Development**
 - **Create React App** - 빌드 도구
+- **Git** - 버전 관리
 
 ### 향후 계획
 
-- Firebase (인증, Firestore DB, 호스팅)
+- Firebase Security Rules 설정
+- PWA 전환 (오프라인 지원)
 - TypeScript 마이그레이션
 - Jest/React Testing Library (테스트)
 
 ## 🚀 시작하기
+
+### 환경 변수 설정
+
+`.env` 파일 생성 및 Firebase 설정:
+
+```env
+REACT_APP_FIREBASE_API_KEY=your_api_key
+REACT_APP_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+REACT_APP_FIREBASE_DATABASE_URL=https://your_project.firebasedatabase.app
+REACT_APP_FIREBASE_PROJECT_ID=your_project
+REACT_APP_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+REACT_APP_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+REACT_APP_FIREBASE_APP_ID=your_app_id
+```
 
 ### 설치
 
@@ -94,17 +132,31 @@ npm start
 
 브라우저에서 [http://localhost:3000](http://localhost:3000)을 열어 확인하세요.
 
-### 프로덕션 빌드
+### 프로덕션 빌드 및 배포
 
 ```bash
+# 빌드
 npm run build
+
+# Firebase 배포
+firebase deploy --only hosting
+
+# 원 라이너
+npm run build && firebase deploy --only hosting
 ```
+
+**배포 가이드**: [DEPLOYMENT.md](./DEPLOYMENT.md) 참고
 
 ## 📚 주요 문서
 
-- [claude.md](./claude.md) - 프로젝트 전체 설계 문서
+### 개발 가이드
+- [CLAUDE.md](./CLAUDE.md) - 프로젝트 전체 설계 문서 및 개발 가이드
 - [SOLID-GUIDE.md](./SOLID-GUIDE.md) - SOLID 원칙 개발 가이드 (필수)
 - [SOLID.md](./SOLID.md) - SOLID 원칙 설명
+
+### 개발 일지 & 배포
+- [개발일지.md](./개발일지.md) - 전체 개발 과정 기록 (Phase 1-7)
+- [DEPLOYMENT.md](./DEPLOYMENT.md) - Firebase Hosting 배포 가이드
 
 ## 🎨 디자인 시스템
 
@@ -184,25 +236,44 @@ import { Modal } from './components/common';
 
 ## 📈 프로젝트 상태
 
-### Phase 1 (완료 ✅)
-- [x] 상수 분리
-- [x] 유틸리티 함수 분리
-- [x] 서비스 레이어 생성
-- [x] 커스텀 훅 생성
-- [x] 공통 컴포넌트 생성
+### 완료된 Phase (Phase 1-7) ✅
 
-### Phase 2 (진행 예정)
-- [ ] 레이아웃 컴포넌트 분리
-- [ ] 폼 컴포넌트 분리
-- [ ] 페이지 컴포넌트 분리
-- [ ] 컨텍스트 API 추가
-- [ ] App.js 리팩토링
+- ✅ **Phase 1**: SOLID 리팩토링 (100%)
+  - 상수, 유틸리티, 서비스, 훅, 컴포넌트 분리
 
-### Phase 3 (향후 계획)
-- [ ] Firebase 통합
+- ✅ **Phase 2**: Firebase Authentication (100%)
+  - Google 로그인 구현
+
+- ✅ **Phase 3**: Firebase Realtime Database (100%)
+  - 실시간 데이터 동기화
+  - LocalStorage → Firebase 자동 마이그레이션
+
+- ✅ **Phase 4**: 공유 가계부 기능 (100%)
+  - 가족 데이터 구조 설계
+  - 개인/공유 모드 자동 전환
+
+- ✅ **Phase 5**: 가족 관리 UI (100%)
+  - 가족 생성, 탈퇴 기능
+
+- ✅ **Phase 6**: 이메일 초대 시스템 (100%)
+  - 초대 생성, 수락/거절 기능
+  - Header 초대 알림 UI
+
+- ✅ **Phase 7**: 모바일 반응형 (100%)
+  - 모든 페이지 모바일 최적화
+  - 프로덕션 빌드 및 배포 준비
+
+### 다음 단계 (Phase 8 예정)
+
+- [ ] Firebase Security Rules 설정
+- [ ] PWA 전환 (오프라인 지원)
+- [ ] 성능 최적화
 - [ ] TypeScript 마이그레이션
-- [ ] 유닛 테스트
-- [ ] E2E 테스트
+- [ ] 테스트 코드 작성
+
+**전체 진행률**: 약 99%
+**총 개발 시간**: 약 14시간
+**현재 상태**: 프로덕션 배포 가능
 
 ## 🤝 개발 가이드라인
 
@@ -222,14 +293,28 @@ import { Modal } from './components/common';
 
 이 프로젝트는 개인 프로젝트입니다.
 
-## 👥 개발자
+## 👥 개발 정보
 
-- **작성일**: 2025-10-13
+- **시작일**: 2025-10-13
+- **완료일**: 2025-10-14
 - **개발**: Claude Code와 함께
-- **상태**: Phase 1 완료, Phase 2 진행 중
+- **상태**: Phase 7 완료 (프로덕션 배포 가능)
+- **배포 URL**: https://woodal-budget.web.app
 
 ---
 
-**🎯 다음 단계**: Phase 2 리팩토링 (레이아웃, 폼, 페이지 컴포넌트 분리)
+## 📞 배포 방법
 
-자세한 내용은 [SOLID-GUIDE.md](./SOLID-GUIDE.md)의 "다음 작업 가이드" 섹션을 참고하세요.
+```bash
+# 빠른 배포
+npm run build && firebase deploy --only hosting
+```
+
+**상세 가이드**: [DEPLOYMENT.md](./DEPLOYMENT.md)
+
+---
+
+**🎯 프로젝트 완성도**: 99%
+**다음 작업**: Firebase Security Rules 설정 및 PWA 전환
+
+자세한 개발 과정은 [개발일지.md](./개발일지.md)를 참고하세요.

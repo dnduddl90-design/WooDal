@@ -46,22 +46,24 @@ export const SearchPage = ({
   stats.netAmount = stats.incomeTotal - stats.expenseTotal;
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-6 animate-fade-in pb-20 sm:pb-6">
       {/* 헤더 */}
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold gradient-text">내역 검색</h2>
+      <div className="flex justify-between items-center gap-2">
+        <h2 className="text-lg sm:text-2xl font-bold gradient-text">내역 검색</h2>
         <Button
           variant="secondary"
           icon={X}
           onClick={onResetSearch}
+          className="text-xs sm:text-sm"
         >
-          초기화
+          <span className="hidden sm:inline">초기화</span>
+          <span className="sm:hidden">초기화</span>
         </Button>
       </div>
 
       {/* 검색 패널 */}
-      <div className="glass-effect rounded-xl p-6 shadow-lg">
-        <div className="space-y-4">
+      <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
+        <div className="space-y-3 sm:space-y-4">
           {/* 텍스트 검색 */}
           <div>
             <Input
@@ -75,12 +77,12 @@ export const SearchPage = ({
           </div>
 
           {/* 필터 그리드 */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
             {/* 타입 필터 */}
             <select
               value={searchFilters.type}
               onChange={(e) => onSearchFiltersChange({ ...searchFilters, type: e.target.value })}
-              className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              className="px-2 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
             >
               <option value="all">전체</option>
               <option value="income">수입</option>
@@ -91,12 +93,12 @@ export const SearchPage = ({
             <select
               value={searchFilters.category}
               onChange={(e) => onSearchFiltersChange({ ...searchFilters, category: e.target.value })}
-              className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              className="px-2 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
             >
               <option value="all">모든 카테고리</option>
               {getAllCategories().map(cat => (
                 <option key={cat.id} value={cat.id}>
-                  {cat.name} ({cat.type === 'income' ? '수입' : '지출'})
+                  {cat.name}
                 </option>
               ))}
             </select>
@@ -105,7 +107,7 @@ export const SearchPage = ({
             <select
               value={searchFilters.user}
               onChange={(e) => onSearchFiltersChange({ ...searchFilters, user: e.target.value })}
-              className="px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              className="px-2 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
             >
               <option value="all">모든 사용자</option>
               {Object.values(USERS).map(user => (
@@ -120,13 +122,14 @@ export const SearchPage = ({
               variant="primary"
               icon={Search}
               onClick={onPerformSearch}
+              className="text-xs sm:text-sm"
             >
               검색
             </Button>
           </div>
 
           {/* 날짜 범위 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <Input
               label="시작 날짜"
               type="date"
@@ -142,7 +145,7 @@ export const SearchPage = ({
           </div>
 
           {/* 금액 범위 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
             <Input
               label="최소 금액"
               type="number"
@@ -163,28 +166,28 @@ export const SearchPage = ({
 
       {/* 검색 결과 통계 */}
       {searchResults.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="glass-effect rounded-xl p-4 shadow-lg">
-            <p className="text-sm text-gray-600 mb-1">수입</p>
-            <p className="text-lg font-bold text-green-600">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+          <div className="glass-effect rounded-xl p-3 sm:p-4 shadow-lg">
+            <p className="text-xs sm:text-sm text-gray-600 mb-1">수입</p>
+            <p className="text-sm sm:text-lg font-bold text-green-600 truncate">
               {stats.incomeCount}건 / {formatCurrency(stats.incomeTotal)}원
             </p>
           </div>
-          <div className="glass-effect rounded-xl p-4 shadow-lg">
-            <p className="text-sm text-gray-600 mb-1">지출</p>
-            <p className="text-lg font-bold text-red-600">
+          <div className="glass-effect rounded-xl p-3 sm:p-4 shadow-lg">
+            <p className="text-xs sm:text-sm text-gray-600 mb-1">지출</p>
+            <p className="text-sm sm:text-lg font-bold text-red-600 truncate">
               {stats.expenseCount}건 / {formatCurrency(stats.expenseTotal)}원
             </p>
           </div>
-          <div className="glass-effect rounded-xl p-4 shadow-lg">
-            <p className="text-sm text-gray-600 mb-1">전체</p>
-            <p className="text-lg font-bold text-gray-800">
+          <div className="glass-effect rounded-xl p-3 sm:p-4 shadow-lg">
+            <p className="text-xs sm:text-sm text-gray-600 mb-1">전체</p>
+            <p className="text-sm sm:text-lg font-bold text-gray-800">
               {stats.totalCount}건
             </p>
           </div>
-          <div className="glass-effect rounded-xl p-4 shadow-lg">
-            <p className="text-sm text-gray-600 mb-1">차액</p>
-            <p className={`text-lg font-bold ${
+          <div className="glass-effect rounded-xl p-3 sm:p-4 shadow-lg">
+            <p className="text-xs sm:text-sm text-gray-600 mb-1">차액</p>
+            <p className={`text-sm sm:text-lg font-bold truncate ${
               stats.netAmount >= 0 ? 'text-blue-600' : 'text-red-600'
             }`}>
               {stats.netAmount >= 0 ? '+' : ''}{formatCurrency(stats.netAmount)}원
@@ -194,24 +197,24 @@ export const SearchPage = ({
       )}
 
       {/* 검색 결과 */}
-      <div className="glass-effect rounded-xl p-6 shadow-lg">
-        <h3 className="text-lg font-bold text-gray-800 mb-4">
+      <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
+        <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">
           검색 결과 {searchResults.length > 0 && `(${searchResults.length}건)`}
         </h3>
 
         {searchResults.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="text-6xl mb-4">
+          <div className="text-center py-8 sm:py-12">
+            <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">
               {searchQuery || Object.values(searchFilters).some(v => v !== 'all' && v !== '') ? '🔍' : '🔎'}
             </div>
-            <p className="text-gray-500">
+            <p className="text-sm sm:text-base text-gray-500">
               {searchQuery || Object.values(searchFilters).some(v => v !== 'all' && v !== '')
                 ? '검색 결과가 없습니다'
                 : '검색을 시작해보세요'}
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {searchResults.map(transaction => {
               const category = CATEGORIES[transaction.type]?.find(c => c.id === transaction.category);
               const Icon = category?.icon;
@@ -221,28 +224,28 @@ export const SearchPage = ({
               return (
                 <div
                   key={transaction.id}
-                  className="p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all duration-200 card-hover"
+                  className="p-3 sm:p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all duration-200 card-hover"
                 >
-                  <div className="flex items-start justify-between">
+                  <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
                     {/* 왼쪽: 정보 */}
-                    <div className="flex items-start space-x-4 flex-1">
+                    <div className="flex items-start space-x-2 sm:space-x-4 flex-1 min-w-0 w-full sm:w-auto">
                       {/* 아이콘 */}
-                      <div className={`p-3 rounded-lg ${category?.color || 'bg-gray-100 text-gray-600'}`}>
-                        {Icon && <Icon size={24} />}
+                      <div className={`p-2 sm:p-3 rounded-lg flex-shrink-0 ${category?.color || 'bg-gray-100 text-gray-600'}`}>
+                        {Icon && <Icon size={20} className="sm:w-6 sm:h-6" />}
                       </div>
 
                       {/* 상세 정보 */}
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <h4 className="text-lg font-bold text-gray-800">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-1 sm:space-x-2 mb-1">
+                          <h4 className="text-base sm:text-lg font-bold text-gray-800 truncate">
                             {category?.name || '기타'}
                           </h4>
                           {transaction.subcategory && (
-                            <span className="text-sm text-gray-500">
+                            <span className="text-xs sm:text-sm text-gray-500 truncate">
                               • {transaction.subcategory}
                             </span>
                           )}
-                          <span className={`px-2 py-0.5 rounded text-xs font-medium ${
+                          <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium flex-shrink-0 ${
                             transaction.type === 'income'
                               ? 'bg-green-100 text-green-700'
                               : 'bg-red-100 text-red-700'
@@ -251,13 +254,13 @@ export const SearchPage = ({
                           </span>
                         </div>
 
-                        <p className={`text-xl font-bold mb-2 ${
+                        <p className={`text-lg sm:text-xl font-bold mb-1 sm:mb-2 truncate ${
                           transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
                         }`}>
                           {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}원
                         </p>
 
-                        <div className="flex items-center space-x-3 text-sm text-gray-600">
+                        <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-gray-600">
                           <span>📅 {transaction.date}</span>
                           <span>👤 {user?.name || '알 수 없음'}</span>
                           {paymentMethod && (
@@ -266,7 +269,7 @@ export const SearchPage = ({
                         </div>
 
                         {transaction.memo && (
-                          <p className="text-sm text-gray-500 mt-2">
+                          <p className="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2 line-clamp-2">
                             📝 {transaction.memo}
                           </p>
                         )}
@@ -274,13 +277,14 @@ export const SearchPage = ({
                     </div>
 
                     {/* 오른쪽: 액션 버튼들 */}
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-1 sm:space-x-2 w-full sm:w-auto justify-end sm:justify-start">
                       <Button
                         variant="secondary"
                         size="sm"
                         icon={Edit2}
                         onClick={() => onEditTransaction(transaction)}
                         title="수정"
+                        className="flex-1 sm:flex-none"
                       />
                       <Button
                         variant="danger"
@@ -292,6 +296,7 @@ export const SearchPage = ({
                           }
                         }}
                         title="삭제"
+                        className="flex-1 sm:flex-none"
                       />
                     </div>
                   </div>

@@ -35,6 +35,7 @@ export default function App() {
   const {
     isAuthenticated,
     currentUser,
+    loading: authLoading,
     handleLogin,
     handleLogout
   } = useAuth();
@@ -42,6 +43,7 @@ export default function App() {
   // ===== 2. 거래 내역 상태 (useTransactions 훅 사용) =====
   const {
     transactions,
+    loading: transactionsLoading,
     transactionForm,
     showAddTransaction,
     isEditMode,
@@ -51,7 +53,8 @@ export default function App() {
     startEditTransaction,
     handleDeleteTransaction,
     handleSubmitTransaction,
-    resetTransactionForm
+    resetTransactionForm,
+    registerFixedExpense
   } = useTransactions(currentUser);
 
   // ===== 3. 고정지출 상태 (useFixedExpenses 훅 사용) =====
@@ -118,6 +121,80 @@ export default function App() {
   useEffect(() => {
     saveToStorage(STORAGE_KEYS.SETTINGS, settings);
   }, [settings]);
+
+  // ===== 고정지출 자동 등록 로직 =====
+  /**
+   * 특정 월의 고정지출을 자동으로 등록
+   * 현재 날짜가 autoRegisterDate를 지났고, 아직 등록되지 않은 경우에만 등록
+   */
+  const autoRegisterFixedExpenses = () => {
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonth = today.getMonth();
+    const currentDay = today.getDate();
+
+    let registeredCount = 0;
+
+    fixedExpenses.forEach(fixed => {
+      if (!fixed.isActive) return; // 비활성 고정지출은 무시
+
+      // 등록 날짜가 현재 날짜보다 이전인 경우
+      if (fixed.autoRegisterDate <= currentDay) {
+        const registerDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(fixed.autoRegisterDate).padStart(2, '0')}`;
+
+        // 이미 해당 고정지출이 해당 날짜에 등록되었는지 확인
+        const alreadyRegistered = transactions.some(
+          t => t.fixedExpenseId === fixed.id && t.date === registerDate
+        );
+
+        if (!alreadyRegistered) {
+          registerFixedExpense(fixed, registerDate);
+          registeredCount++;
+        }
+      }
+    });
+
+    return registeredCount;
+  };
+
+  // 앱 로드 시 1회 실행 (로그인 후에만)
+  useEffect(() => {
+    if (isAuthenticated && fixedExpenses.length > 0) {
+      const count = autoRegisterFixedExpenses();
+      if (count > 0) {
+        console.log(`✅ 고정지출 ${count}건이 자동 등록되었습니다.`);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]); // 로그인 시에만 실행
+
+  // ===== 테마 적용 =====
+  useEffect(() => {
+    const root = document.documentElement;
+
+    // 모든 테마 클래스 제거
+    document.body.classList.remove('dark-theme', 'colorful-theme');
+
+    if (settings.theme === 'dark') {
+      root.style.setProperty('--bg-primary', '#1a1a2e');
+      root.style.setProperty('--bg-secondary', '#16213e');
+      root.style.setProperty('--text-primary', '#eee');
+      root.style.setProperty('--text-secondary', '#aaa');
+      document.body.classList.add('dark-theme');
+    } else if (settings.theme === 'colorful') {
+      root.style.setProperty('--bg-primary', '#ffeaa7');
+      root.style.setProperty('--bg-secondary', '#fdcb6e');
+      root.style.setProperty('--text-primary', '#2d3436');
+      root.style.setProperty('--text-secondary', '#636e72');
+      document.body.classList.add('colorful-theme');
+    } else {
+      // 기본 테마
+      root.style.removeProperty('--bg-primary');
+      root.style.removeProperty('--bg-secondary');
+      root.style.removeProperty('--text-primary');
+      root.style.removeProperty('--text-secondary');
+    }
+  }, [settings.theme]);
 
   // ===== 검색 관련 함수들 =====
   const performSearch = () => {
@@ -208,17 +285,58 @@ export default function App() {
   const importData = (jsonStr) => {
     try {
       const importObj = JSON.parse(jsonStr);
-      if (importObj.transactions) {
-        alert('데이터 가져오기는 개발 중입니다.');
+
+      // 데이터 유효성 검사
+      if (!importObj.transactions || !Array.isArray(importObj.transactions)) {
+        alert('❌ 유효하지 않은 데이터 형식입니다.\n거래 내역을 찾을 수 없습니다.');
+        return;
       }
+
+      if (!importObj.fixedExpenses || !Array.isArray(importObj.fixedExpenses)) {
+        alert('❌ 유효하지 않은 데이터 형식입니다.\n고정지출 내역을 찾을 수 없습니다.');
+        return;
+      }
+
+      // 확인 다이얼로그
+      const confirmed = window.confirm(
+        `📥 데이터 가져오기\n\n` +
+        `거래 내역: ${importObj.transactions.length}건\n` +
+        `고정지출: ${importObj.fixedExpenses.length}건\n` +
+        `백업 날짜: ${new Date(importObj.exportDate).toLocaleString('ko-KR')}\n\n` +
+        `⚠️ 현재 데이터는 모두 삭제되고 백업 데이터로 대체됩니다.\n계속하시겠습니까?`
+      );
+
+      if (!confirmed) return;
+
+      // 데이터 저장
+      saveToStorage(STORAGE_KEYS.TRANSACTIONS, importObj.transactions);
+      saveToStorage(STORAGE_KEYS.FIXED_EXPENSES, importObj.fixedExpenses);
+
+      if (importObj.settings) {
+        saveToStorage(STORAGE_KEYS.SETTINGS, importObj.settings);
+      }
+
+      alert('✅ 데이터를 성공적으로 가져왔습니다!\n\n페이지를 새로고침합니다.');
+      window.location.reload();
+
     } catch (error) {
-      alert('잘못된 데이터 형식입니다.');
+      console.error('Import error:', error);
+      alert('❌ 데이터 가져오기 실패\n\n잘못된 JSON 형식이거나 파일이 손상되었습니다.');
     }
   };
 
   const resetAllData = () => {
     if (window.confirm('⚠️ 정말로 모든 데이터를 초기화하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.')) {
-      alert('데이터 초기화는 개발 중입니다.');
+      // 모든 localStorage 데이터 삭제
+      const success = clearAllStorage();
+
+      if (success) {
+        alert('✅ 모든 데이터가 초기화되었습니다.\n\n페이지를 새로고침합니다.');
+        // 페이지 새로고침으로 초기 상태로 복원
+        window.location.reload();
+      } else {
+        alert('❌ 데이터 초기화 중 오류가 발생했습니다.');
+      }
     }
   };
 
@@ -234,9 +352,33 @@ export default function App() {
     URL.revokeObjectURL(url);
   };
 
+  // ===== 인증 로딩 중 =====
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-pink-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
   // ===== 로그인하지 않은 경우 =====
   if (!isAuthenticated) {
     return <LoginPage onLogin={handleLogin} />;
+  }
+
+  // ===== 데이터 로딩 중 =====
+  if (transactionsLoading) {
+    return (
+      <div className="min-h-screen bg-animated flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-700 font-medium">거래 내역 불러오는 중...</p>
+        </div>
+      </div>
+    );
   }
 
   // ===== 메인 앱 레이아웃 =====
@@ -274,6 +416,7 @@ export default function App() {
               currentDate={currentDate}
               onDateChange={setCurrentDate}
               transactions={transactions}
+              settings={settings}
             />
           )}
 

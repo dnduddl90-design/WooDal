@@ -1,30 +1,30 @@
 import React, { useState } from 'react';
-import { Heart, Eye, EyeOff } from 'lucide-react';
+import { Heart, LogIn } from 'lucide-react';
 import { Button } from '../components/common';
+import { signInWithGoogle } from '../firebase';
 
 /**
  * 로그인 페이지 컴포넌트
+ * Firebase Google 인증 사용
  * SRP: 로그인 UI만 담당
  * DIP: Props를 통해 로그인 핸들러 주입받음
  */
 export const LoginPage = ({ onLogin }) => {
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = () => {
-    if (password === '1234') {
-      onLogin();
+  const handleGoogleLogin = async () => {
+    try {
+      setLoading(true);
       setError('');
-      setPassword('');
-    } else {
-      setError('비밀번호가 틀렸습니다. (기본 비밀번호: 1234)');
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      handleSubmit();
+      const user = await signInWithGoogle();
+      console.log('✅ Google 로그인 성공:', user.email);
+      onLogin(user);
+    } catch (error) {
+      console.error('❌ Google 로그인 실패:', error);
+      setError('로그인에 실패했습니다. 다시 시도해주세요.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -44,44 +44,47 @@ export const LoginPage = ({ onLogin }) => {
           <p className="text-gray-600">부부 가계부</p>
         </div>
 
-        {/* 로그인 폼 */}
-        <div className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              비밀번호
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                placeholder="비밀번호를 입력하세요"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 transition-colors"
-              >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-              </button>
-            </div>
-            {error && (
-              <p className="mt-2 text-sm text-red-600 animate-slide-in">
-                {error}
-              </p>
-            )}
-          </div>
+        {/* 로그인 안내 */}
+        <div className="mb-6 text-center">
+          <p className="text-gray-600 text-sm">
+            Google 계정으로 로그인하여<br />
+            우영/달림 부부 가계부를 사용하세요
+          </p>
+        </div>
 
+        {/* Google 로그인 버튼 */}
+        <div className="space-y-4">
           <Button
             variant="primary"
             size="lg"
-            onClick={handleSubmit}
-            className="w-full"
+            onClick={handleGoogleLogin}
+            disabled={loading}
+            className="w-full flex items-center justify-center space-x-2"
           >
-            로그인
+            {loading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>로그인 중...</span>
+              </>
+            ) : (
+              <>
+                <LogIn size={20} />
+                <span>Google 계정으로 로그인</span>
+              </>
+            )}
           </Button>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm animate-slide-in">
+              {error}
+            </div>
+          )}
+        </div>
+
+        {/* 안내 문구 */}
+        <div className="mt-6 text-center text-xs text-gray-500">
+          <p>🔒 안전한 Firebase 인증을 사용합니다</p>
+          <p className="mt-1">로그인하면 실시간 동기화가 가능합니다</p>
         </div>
       </div>
     </div>

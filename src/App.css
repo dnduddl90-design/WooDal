@@ -21,7 +21,8 @@
 }
 
 /* 앱 전체 컨테이너 - 애니메이션 배경 */
-.App {
+.App,
+.bg-animated {
   min-height: 100vh;
   background: linear-gradient(270deg, #667eea, #764ba2, #f093fb, #667eea);
   background-size: 800% 800%;
@@ -418,12 +419,87 @@ input:focus, textarea:focus, select:focus {
   }
 }
 
-/* 다크모드 대응 */
-@media (prefers-color-scheme: dark) {
-  .glass-effect {
-    background: rgba(30, 30, 30, 0.95);
-    border: 2px solid rgba(255, 255, 255, 0.15);
-  }
+/* 다크 테마 */
+body.dark-theme {
+  background: #1a1a2e !important;
+}
+
+body.dark-theme .bg-animated,
+body.dark-theme .App {
+  background: linear-gradient(270deg, #1a1a2e, #16213e, #0f3460, #1a1a2e) !important;
+  background-size: 800% 800% !important;
+  animation: gradientShift 20s ease infinite !important;
+}
+
+body.dark-theme .glass-effect {
+  background: rgba(30, 30, 50, 0.85) !important;
+  border: 2px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow:
+    0 8px 32px 0 rgba(0, 0, 0, 0.6),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+}
+
+body.dark-theme .text-gray-700,
+body.dark-theme .text-gray-800 {
+  color: #e0e0e0 !important;
+}
+
+body.dark-theme .text-gray-600 {
+  color: #aaa !important;
+}
+
+body.dark-theme .text-gray-500 {
+  color: #888 !important;
+}
+
+body.dark-theme .bg-gray-50 {
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+
+body.dark-theme .bg-gray-100 {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+body.dark-theme .border-gray-200,
+body.dark-theme .border-gray-300 {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* 컬러풀 테마 */
+body.colorful-theme {
+  background: #ffeaa7 !important;
+}
+
+body.colorful-theme .bg-animated,
+body.colorful-theme .App {
+  background: linear-gradient(270deg, #ffeaa7, #fdcb6e, #fab1a0, #ffeaa7) !important;
+  background-size: 800% 800% !important;
+  animation: gradientShift 20s ease infinite !important;
+}
+
+body.colorful-theme .glass-effect {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border: 2px solid rgba(253, 203, 110, 0.5) !important;
+  box-shadow:
+    0 8px 32px 0 rgba(253, 203, 110, 0.4),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.3) !important;
+}
+
+body.colorful-theme .text-gray-700,
+body.colorful-theme .text-gray-800 {
+  color: #2d3436 !important;
+}
+
+body.colorful-theme .text-gray-600 {
+  color: #636e72 !important;
+}
+
+body.colorful-theme .gradient-text {
+  background: linear-gradient(90deg, #fd79a8, #fdcb6e, #00b894, #fd79a8) !important;
+  background-size: 300% 100% !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
 }
 
 /* 선택 영역 스타일 - 그라데이션 */

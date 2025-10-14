@@ -12,7 +12,8 @@ import { Button } from '../components/common';
 export const StatisticsPage = ({
   currentDate,
   onDateChange,
-  transactions = []
+  transactions = [],
+  settings = { budget: { monthly: '' } }
 }) => {
   // 월 이동 핸들러
   const handlePrevMonth = () => {
@@ -235,6 +236,24 @@ export const StatisticsPage = ({
           </div>
         )}
       </div>
+
+      {/* 예산 초과 알림 */}
+      {settings.budget.monthly && currentExpense > parseInt(settings.budget.monthly) && settings.notifications?.budgetAlert && (
+        <div className="glass-effect rounded-xl p-6 shadow-lg bg-gradient-to-r from-red-100 to-orange-100 border-2 border-red-400 animate-pulse">
+          <h3 className="text-lg font-bold text-red-700 mb-3">
+            🚨 예산 초과 경고!
+          </h3>
+          <p className="text-gray-800 mb-2">
+            이번 달 지출이 설정한 예산을 <span className="font-bold text-red-600">
+              {formatCurrency(currentExpense - parseInt(settings.budget.monthly))}원
+            </span> 초과했습니다!
+          </p>
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-red-300">
+            <span className="text-sm text-gray-700">예산: {formatCurrency(parseInt(settings.budget.monthly))}원</span>
+            <span className="text-sm font-bold text-red-600">지출: {formatCurrency(currentExpense)}원</span>
+          </div>
+        </div>
+      )}
 
       {/* 재정 건강 알림 */}
       {currentMonthData.length > 0 && (

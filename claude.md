@@ -1,350 +1,205 @@
-# 커플 가계부 (우영 ♥ 달림)
+# CLAUDE.md
 
-React로 만든 부부/커플을 위한 실시간 동기화 가계부 애플리케이션입니다.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## 🎯 프로젝트 개요
+## Project Overview
 
-### 목표
-부부가 함께 사용하는 실시간 동기화 가계부 웹앱
+**우영달림 가계부** - A couples' expense tracking React application built with SOLID principles. This is a shared budget app for two users (우영 & 달림) to track income/expenses together.
 
-### 기술스택
-- **Frontend**: React 19.2.0
-- **Backend**: Firebase (실시간 데이터베이스)
-- **Styling**: Tailwind CSS + 커스텀 CSS
-- **Icons**: Lucide React
-- **인증**: Google 계정 기반
+**Tech Stack**: React 19.2.0, Tailwind CSS (via CDN), Lucide React icons
+**Storage**: LocalStorage (Firebase integration planned)
+**Language**: Korean UI, JavaScript codebase
 
-### 사용자
-- **주 관리자(우영)**: 전체 관리 권한
-- **와이프(달림)**: 본인 입력 내역 등록 및 전체 열람
-
-## 📅 개발 로드맵
-
-1. **✅ 완료 (Claude 웹 인터페이스)**: 기본 웹버전 완성
-2. **🔄 진행중 (Claude Code)**: 웹버전 고도화 및 Firebase 연동
-3. **🔮 향후 계획**: React Native로 모바일 앱 확장
-
-## 🗂️ 가계부 카테고리 구조
-
-### 지출 카테고리
-- 🍔 **식비**: 외식, 장보기, 배달
-- 🚗 **교통비**: 대중교통, 주유, 택시
-- 🏠 **생활용품**: 마트, 약국, 청소용품
-- ❤️ **의료비**: 병원, 약값, 건강검진
-- ☕ **문화생활**: 영화, 책, 취미
-- 👗 **의류미용**: 옷, 화장품, 미용실
-- 📱 **통신비**: 휴대폰, 인터넷
-- 🎁 **용돈선물**: 선물, 용돈
-- 📦 **기타**: 기타 지출
-
-### 수입 카테고리
-- 💰 **급여**: 우영, 달림
-- 📈 **부수입**: 투자, 부업
-- 📦 **기타**: 기타 수입
-
-### 고정지출 관리
-- 매월 반복되는 지출 등록 (월세, 통신비 등)
-- 특정 날짜 자동 반영
-- 활성화/비활성화 토글
-
-## 🖥️ 주요 기능
-
-### 1. 로그인 시스템
-- 비밀번호 기반 인증
-- 비밀번호 표시/숨김 토글
-- 사용자별 아바타 및 색상
-
-### 2. 가계부 관리 (CRUD)
-- ➕ 수입/지출 추가, 수정, 삭제
-- 📅 날짜별 거래 내역 관리
-- 🏷️ 카테고리 및 하위 카테고리 분류
-- 💳 결제 수단 선택 (현금, 신용카드, 체크카드, 계좌이체, 기타)
-- 📝 메모 기능
-- 👥 사용자별 거래 구분
-
-### 3. 달력 뷰
-- 📅 월별 달력에 일별 지출/수입 요약 표시
-- 🎯 오늘 날짜 하이라이트
-- 🔴🔵 색상으로 지출/수입 구분
-- 각 날짜별 간략 표시 (아이콘 포함)
-- 월 이동 네비게이션
-- 날짜 클릭으로 빠른 입력
-
-### 4. 통계 기능
-- 📊 월별 수입/지출 통계
-- 📈 카테고리별 지출 분석
-- 👥 사용자별 지출 현황
-- 💰 총 수입/지출/잔액 표시
-- 기간 필터링
-
-### 5. 고정지출 관리
-- 🔄 매월 반복되는 지출 등록
-- ⏰ 특정 날짜에 자동 반영
-- ✅ 활성화/비활성화 토글
-- 수정 및 삭제 기능
-
-### 6. 검색 기능
-- 🔍 거래 내역 검색
-- 📅 날짜 범위 필터
-- 🏷️ 카테고리 필터
-- 👤 사용자 필터
-- 💳 결제수단 필터
-
-### 7. 설정
-- 🎨 테마 설정 (기본, 다크, 라이트)
-- 💾 데이터 백업 (JSON 다운로드)
-- 📥 데이터 복원 (JSON 업로드)
-- 🗑️ 전체 데이터 초기화
-- 🔐 로그아웃
-
-## 🚀 시작하기
-
-### 설치 및 실행
+## Development Commands
 
 ```bash
-# 의존성 설치
+# Install dependencies
 npm install
 
-# 개발 서버 실행 (http://localhost:3000)
+# Start development server (http://localhost:3000)
 npm start
 
-# 프로덕션 빌드
+# Build for production
 npm run build
+
+# Run tests
+npm test
 ```
 
-### 필수 패키지
+## Architecture Overview
 
-```json
-{
-  "react": "^19.2.0",
-  "react-dom": "^19.2.0",
-  "react-scripts": "5.0.1",
-  "lucide-react": "^0.545.0"
-}
-```
+This project follows **SOLID principles** strictly. The codebase has been refactored from a monolithic 2000+ line App.js into a modular architecture.
 
-## 📁 프로젝트 구조
+### Directory Structure
 
 ```
-my-react-app/
-├── public/
-│   ├── index.html          # HTML 템플릿 (Tailwind CDN 포함)
-│   └── ...
-├── src/
-│   ├── App.js              # 메인 컴포넌트 (2177줄)
-│   ├── App.css             # 커스텀 애니메이션 및 스타일
-│   ├── index.js            # 진입점
-│   ├── index.css           # 글로벌 스타일
-│   └── ...
-├── package.json
-├── claude.md               # 프로젝트 문서
-└── README.md
+src/
+├── constants/          # Application constants (categories, users, payment methods)
+├── utils/              # Pure utility functions (date, format, storage)
+├── services/           # Business logic layer (TransactionService)
+├── hooks/              # Custom React hooks (useAuth, useTransactions, useFixedExpenses)
+├── components/
+│   ├── common/         # Reusable UI components (Button, Input, Modal)
+│   ├── forms/          # Form components (TransactionForm, FixedExpenseForm)
+│   └── layout/         # Layout components (Header, Sidebar)
+├── pages/              # Page components (LoginPage, CalendarPage, etc.)
+└── App.js              # Main app orchestration
 ```
 
-## 🎨 디자인 특징
+### Key Architecture Patterns
 
-### 애니메이션 효과
-- **그라데이션 배경**: 보라색-핑크색이 흐르는 동적 배경 (20초 주기)
-- **페이드인**: 부드럽게 나타나는 효과 (0.6s)
-- **슬라이드인**: 좌우에서 슬라이드 (0.5s)
-- **스케일업**: 회전하며 확대 (0.5s)
-- **바운스**: 통통 튀는 효과 (2s 무한 반복)
-- **플로팅**: 떠다니는 효과 (3s 무한 반복)
-- **펄스**: 맥박처럼 뛰는 효과 (2.5s 무한 반복)
-- **스파클**: 반짝이는 효과 (1.5s 무한 반복)
+1. **State Management**: Custom hooks manage domain-specific state
+   - `useAuth()` - Authentication state and login/logout
+   - `useTransactions()` - Transaction CRUD operations
+   - `useFixedExpenses()` - Fixed expense management
 
-### 글래스모피즘 (Glassmorphism)
-- 투명한 유리 같은 카드 디자인
-- 20px 블러 효과 + 180% 채도
-- 2px 흰색 테두리
-- 다중 그림자 효과
-- 호버 시 그라데이션 테두리 애니메이션
+2. **Business Logic**: Centralized in service layer
+   - `TransactionService` - Static methods for transaction operations
+   - All filtering, calculation, and validation logic lives here
+   - Components never contain business logic
 
-### 호버 효과
-- **카드**: 8px 위로 떠오름 + 1.02배 확대 + 그라데이션 테두리
-- **버튼**: 물결 효과 (400px 원형 확산) + 그림자 증가
-- **아이콘**: 1.2배 확대 + 15도 회전 + 빛나는 효과
-- **입력 필드**: 2px 위로 이동 + 보라색 글로우
+3. **Data Flow**: Unidirectional props flow
+   - App.js orchestrates all state via hooks
+   - Props are passed down to page components
+   - Page components pass data to presentational components
 
-### 색상 팔레트
-```css
---primary-gradient: #667eea → #764ba2
---secondary-gradient: #f093fb → #f5576c
---success-gradient: #4facfe → #00f2fe
---warm-gradient: #fa709a → #fee140
---emerald-gradient: #0ba360 → #3cba92
---sunset-gradient: #ff6a88 → #ff99ac
---ocean-gradient: #2e3192 → #1bffff
---fire-gradient: #f83600 → #fe8c00
-```
+4. **Storage**: LocalStorage abstraction
+   - `storageUtils.js` provides save/load/clear operations
+   - Storage keys defined in `STORAGE_KEYS` constant
+   - All data persisted automatically via useEffect
 
-### 커스텀 스크롤바
-- 12px 너비
-- 3색 그라데이션 (보라-핑크)
-- 호버 시 색상 반전
-- 부드러운 그림자
+### Data Models
 
-## 📊 데이터 구조
-
-### 거래 내역 (Transaction)
+**Transaction**:
 ```javascript
 {
-  id: Number,              // 고유 ID (타임스탬프)
-  type: String,            // 'income' | 'expense'
-  category: String,        // 카테고리 ID
-  subcategory: String,     // 하위 카테고리 (선택)
-  amount: Number,          // 금액
-  paymentMethod: String,   // 결제 수단
-  memo: String,            // 메모 (선택)
-  date: String,            // 날짜 (YYYY-MM-DD)
-  userId: String           // 사용자 ID (user1, user2)
+  id: Number,              // Timestamp-based unique ID
+  type: 'income' | 'expense',
+  category: String,        // Category ID from CATEGORIES
+  subcategory: String,     // Optional subcategory
+  amount: Number,
+  paymentMethod: String,   // From PAYMENT_METHODS
+  memo: String,            // Optional
+  date: String,            // 'YYYY-MM-DD'
+  userId: String           // 'user1' or 'user2'
 }
 ```
 
-### 고정지출 (Fixed Expense)
+**Fixed Expense**:
 ```javascript
 {
-  id: Number,              // 고유 ID (타임스탬프)
-  name: String,            // 이름
-  category: String,        // 카테고리 ID
-  amount: Number,          // 금액
-  day: Number,             // 날짜 (1-31)
-  memo: String,            // 메모 (선택)
-  isActive: Boolean        // 활성화 여부
+  id: Number,
+  name: String,
+  category: String,
+  amount: Number,
+  day: Number,             // Day of month (1-31)
+  memo: String,
+  isActive: Boolean        // Toggle for active/inactive
 }
 ```
 
-### 사용자 정보
+## Important Implementation Details
+
+### SOLID Principles Adherence
+
+This project **strictly follows SOLID principles**. See `SOLID-GUIDE.md` for detailed guidelines.
+
+**Key rules**:
+- One file = one responsibility (files should be < 200 lines)
+- Extend via props/variants, don't modify existing code
+- Business logic in services, never in components
+- Import only what you need from index.js exports
+- Components depend on abstractions (hooks/services), not implementations
+
+### Component Conventions
+
+**Button Component** (OCP example):
 ```javascript
-{
-  user1: {
-    id: 'user1',
-    name: '우영',
-    avatar: '👨',
-    role: 'admin',
-    color: 'bg-blue-500'
-  },
-  user2: {
-    id: 'user2',
-    name: '달림',
-    avatar: '👩',
-    role: 'user',
-    color: 'bg-pink-500'
-  }
-}
+<Button variant="primary|secondary|danger" size="sm|md|lg" icon={LucideIcon}>
+  Text
+</Button>
 ```
 
-## 💡 사용 팁
+**Import Order**:
+```javascript
+// 1. React
+import React, { useState } from 'react';
+// 2. External libraries
+import { X, Plus } from 'lucide-react';
+// 3. Constants
+import { CATEGORIES } from '../constants';
+// 4. Utils/Services
+import { TransactionService } from '../services';
+// 5. Hooks
+import { useAuth } from '../hooks';
+// 6. Components
+import { Button, Modal } from '../components/common';
+```
 
-1. **빠른 입력**: 달력에서 날짜를 클릭하면 해당 날짜로 거래 추가
-2. **수정**: 거래 내역을 클릭하면 바로 수정 모드 전환
-3. **필터링**: 통계 페이지에서 기간과 카테고리 선택으로 상세 분석
-4. **백업**: 정기적으로 데이터 백업 (설정 > 데이터 백업)
-5. **고정지출**: 월세, 통신비 등 매월 발생하는 지출을 등록하면 자동 반영
-6. **숫자 입력**: 숫자패드와 직접 입력 모두 지원
+### Styling
 
-## 🐛 알려진 이슈 및 제한사항
+- **Tailwind CSS** via CDN in `public/index.html`
+- Custom animations in `src/App.css` (glassmorphism, gradients)
+- Gradient background with 20s animation cycle
+- Purple-pink color scheme (`#667eea → #764ba2`)
 
-- ⚠️ 현재 데이터는 **브라우저 로컬 스토리지**에만 저장됩니다
-- ⚠️ 브라우저 초기화 시 데이터 손실 가능 (백업 필수)
-- ⚠️ Firebase 연동 미완료 (실시간 동기화 불가)
-- ⚠️ 모바일 최적화 개선 필요
+### User Roles
 
-## 🔮 향후 개발 계획
+- **user1 (우영)**: Admin role, full access
+- **user2 (달림)**: User role, can add own transactions and view all
 
-### 우선순위 높음
-- [ ] **Firebase 연동**: 실시간 데이터베이스 + Google 인증
-- [ ] **실시간 동기화**: 부부간 실시간 데이터 공유
-- [ ] **대출 증가 기능**: 초기금액부터 월/일/년 단위로 자동 증가
-- [ ] **권한 관리**: 주 관리자 vs 일반 사용자 권한 구분
+## Key Files to Understand
 
-### 우선순위 중간
-- [ ] **고급 차트**: 그래프 및 시각화 개선
-- [ ] **예산 관리**: 카테고리별 예산 설정 및 알림
-- [ ] **모바일 최적화**: 반응형 디자인 개선
-- [ ] **PWA 변환**: 오프라인 지원 및 설치 가능
-- [ ] **영수증 첨부**: 이미지 업로드 기능
+- `SOLID-GUIDE.md` - **MUST READ** for all development
+- `claude.md` - Detailed project documentation (Korean)
+- `README.md` - Project overview and SOLID architecture
+- `src/App.js` - Main orchestration, shows how everything connects
+- `src/hooks/` - Understanding hooks is key to understanding state flow
+- `src/services/transactionService.js` - Core business logic
 
-### 우선순위 낮음
-- [ ] **다중 사용자 확장**: 3명 이상 지원
-- [ ] **React Native 앱**: 네이티브 모바일 앱 개발
-- [ ] **데이터 분석**: AI 기반 지출 패턴 분석
-- [ ] **음성 입력**: 음성으로 거래 추가
+## Development Guidelines
 
-## 💡 Firebase 준비사항
+### Adding New Features
 
-### 필요한 것
-- Google 계정 (Firebase Console 접속용)
-- Firebase 프로젝트 생성
-- 무료 Spark 플랜 사용 예정
+1. Check `SOLID-GUIDE.md` for the appropriate checklist
+2. Determine correct folder: constants/utils/services/hooks/components
+3. Create file with single responsibility
+4. Add export to corresponding `index.js`
+5. Keep files under 200 lines, functions under 30 lines
 
-### 활용 서비스
-- **Realtime Database**: 실시간 데이터 저장 및 동기화
-- **Authentication**: Google 계정 기반 로그인
-- **Hosting**: 웹앱 배포
+### Code Review Checklist
 
-## ❓ 개발 전 결정 필요사항 (체크리스트)
+Before committing, verify:
+- [ ] SOLID principles followed (SRP, OCP, LSP, ISP, DIP)
+- [ ] No business logic in components
+- [ ] Proper import order maintained
+- [ ] No direct localStorage access (use storageUtils)
+- [ ] Props documented if > 3 props
+- [ ] Korean UI text for user-facing content
 
-- [x] 지출/수입 세부 카테고리 분류
-- [x] 카테고리 선택 UI 방식
-- [x] 결제수단 구분 여부
-- [x] 메모 기능 포함 여부
-- [x] 달력 색상 구분 방식
-- [ ] 대출 증가 로직 상세 (이자 계산 방식)
-- [x] 고정지출 자동 등록 날짜
-- [ ] 와이프 권한 범위 (타인 내역 조회/수정)
-- [x] 검색 기능 필요성
-- [ ] 예산 설정 기능 및 권한
+## Known Issues & Limitations
 
-## 📝 개발 히스토리
+- Data stored in localStorage only (no backend yet)
+- Firebase integration is planned but not implemented
+- Mobile optimization needs improvement
+- No TypeScript (migration planned)
+- No unit tests yet (planned for Phase 3)
 
-### 2025-10-13 (Claude Code)
-- ✅ 프로젝트 초기 설정 및 오류 해결
-- ✅ lucide-react 패키지 설치
-- ✅ eslint 경고 제거 (unused variables)
-- ✅ 한글 폰트 적용 (Noto Sans KR)
-- ✅ HTML 메타 정보 한글화
-- ✅ Tailwind CSS CDN 추가 및 설정
-- ✅ App.css 전면 개편 (화려한 애니메이션)
-- ✅ index.css 글로벌 스타일 개선
-- ✅ 그라데이션 배경 애니메이션 (20초 주기)
-- ✅ 글래스모피즘 효과 강화
-- ✅ 카드/버튼 호버 효과 개선
-- ✅ 커스텀 스크롤바 (그라데이션)
-- ✅ 입력 필드 포커스 효과 강화
-- ✅ 다양한 애니메이션 추가 (페이드인, 슬라이드, 바운스 등)
-- ✅ 카테고리 아이콘 호버 효과 (회전 + 확대)
-- ✅ 툴팁 스타일 개선
-- ✅ 반응형 디자인 최적화
-- ✅ 프로젝트 문서화 (claude.md)
+## Future Plans (Priority Order)
 
-### 이전 (Claude 웹 인터페이스)
-- ✅ React 프로젝트 생성
-- ✅ 로그인 시스템 구현
-- ✅ 가계부 CRUD 기능 완성
-- ✅ 달력 뷰 구현
-- ✅ 통계 페이지 구현
-- ✅ 고정지출 관리 기능
-- ✅ 검색 및 필터 기능
-- ✅ 데이터 백업/복원 기능
-- ✅ 기본 UI/UX 구현
+1. **High**: Firebase integration (Realtime Database, Auth, Hosting)
+2. **High**: Real-time sync between two users
+3. **Medium**: Budget management with alerts
+4. **Medium**: PWA conversion for offline support
+5. **Low**: TypeScript migration, comprehensive testing
 
-## 👥 팀
+## Context for Development
 
-- 👨 **우영** (주 관리자, 개발자)
-- 👩 **달림** (사용자)
-- 🤖 **Claude** (AI 어시스턴트)
+This app was initially built as a monolithic 2177-line `App.js` using Claude web interface. It has been refactored using Claude Code to follow SOLID principles. The refactoring is in **Phase 1 complete, Phase 2 in progress** (see `SOLID-GUIDE.md` for phases).
 
-## 📄 라이선스
-
-이 프로젝트는 개인 사용 목적으로 제작되었습니다.
-
-## 🙏 감사의 말
-
-이 프로젝트는 Anthropic의 Claude와 함께 개발되었습니다.
-
----
-
-**Made with ❤️ by 우영 & 달림**
-
-**🤖 Powered by Claude (Anthropic)**
+When making changes:
+- Preserve the existing SOLID architecture
+- Keep Korean language in UI elements
+- Maintain the glassmorphism visual style
+- Consult `SOLID-GUIDE.md` for any structural questions
+- Test in browser at localhost:3000 after changes

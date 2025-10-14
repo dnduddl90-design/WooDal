@@ -1,16 +1,20 @@
 import { useState, useEffect } from 'react';
 import { TransactionService } from '../services/transactionService';
-import { STORAGE_KEYS, loadFromStorage, saveToStorage } from '../utils';
+import {
+  saveTransaction,
+  updateTransaction,
+  deleteTransaction,
+  onTransactionsChange
+} from '../firebase/databaseService';
+import { STORAGE_KEYS, loadFromStorage } from '../utils';
 
 /**
- * 거래 내역 관리 커스텀 훅
+ * 거래 내역 관리 커스텀 훅 (Firebase 사용)
  * SRP: 거래 내역 상태 및 CRUD 로직만 담당
  */
 export const useTransactions = (currentUser) => {
-  // localStorage에서 초기 데이터 불러오기
-  const [transactions, setTransactions] = useState(() => {
-    return loadFromStorage(STORAGE_KEYS.TRANSACTIONS, []);
-  });
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState(null);
@@ -25,34 +29,124 @@ export const useTransactions = (currentUser) => {
   });
 
   /**
+   * Firebase에서 데이터 로드 및 실시간 리스너 설정
+   */
+  useEffect(() => {
+    if (!currentUser?.firebaseId) {
+      setLoading(false);
+      return;
+    }
+
+    console.log('📥 Firebase에서 거래 내역 로드 중...');
+
+    // 실시간 리스너 설정
+    const unsubscribe = onTransactionsChange(
+      currentUser.firebaseId,
+      (firebaseTransactions) => {
+        console.log(`✅ 거래 내역 ${firebaseTransactions.length}건 로드됨`);
+
+        // Firebase 데이터가 비어있으면 LocalStorage에서 마이그레이션
+        if (firebaseTransactions.length === 0) {
+          const localTransactions = loadFromStorage(STORAGE_KEYS.TRANSACTIONS, []);
+          if (localTransactions.length > 0) {
+            console.log(`🔄 LocalStorage에서 ${localTransactions.length}건 마이그레이션 시작...`);
+            migrateLocalTransactions(localTransactions);
+          } else {
+            setTransactions([]);
+            setLoading(false);
+          }
+        } else {
+          setTransactions(firebaseTransactions);
+          setLoading(false);
+        }
+      }
+    );
+
+    // 클린업: 컴포넌트 언마운트 시 리스너 제거
+    return () => unsubscribe();
+  }, [currentUser?.firebaseId]);
+
+  /**
+   * LocalStorage 데이터를 Firebase로 마이그레이션
+   */
+  const migrateLocalTransactions = async (localTransactions) => {
+    try {
+      for (const transaction of localTransactions) {
+        await saveTransaction(currentUser.firebaseId, transaction);
+      }
+      console.log('✅ 마이그레이션 완료!');
+      setLoading(false);
+    } catch (error) {
+      console.error('❌ 마이그레이션 실패:', error);
+      // 실패 시 로컬 데이터 사용
+      setTransactions(localTransactions);
+      setLoading(false);
+    }
+  };
+
+  /**
    * 거래 추가
    */
-  const handleAddTransaction = (formData) => {
-    const newTransaction = TransactionService.createTransaction(
-      formData,
-      currentUser?.id
-    );
-    setTransactions(prev => [...prev, newTransaction]);
+  const handleAddTransaction = async (formData) => {
+    try {
+      const newTransaction = TransactionService.createTransaction(
+        formData,
+        currentUser?.id
+      );
+
+      // Firebase에 저장
+      const savedId = await saveTransaction(
+        currentUser.firebaseId,
+        newTransaction
+      );
+
+      console.log('✅ 거래 추가 성공:', savedId);
+      // 실시간 리스너가 자동으로 UI 업데이트
+    } catch (error) {
+      console.error('❌ 거래 추가 실패:', error);
+      alert('거래 추가에 실패했습니다.');
+    }
   };
 
   /**
    * 거래 수정
    */
-  const handleUpdateTransaction = (id, formData) => {
-    setTransactions(prev =>
-      prev.map(t =>
-        t.id === id
-          ? TransactionService.updateTransaction(t, formData)
-          : t
-      )
-    );
+  const handleUpdateTransaction = async (id, formData) => {
+    try {
+      const existingTransaction = transactions.find(t => t.id === id);
+      const updatedTransaction = TransactionService.updateTransaction(
+        existingTransaction,
+        formData
+      );
+
+      // Firebase에 업데이트
+      await updateTransaction(
+        currentUser.firebaseId,
+        id,
+        updatedTransaction
+      );
+
+      console.log('✅ 거래 수정 성공:', id);
+      // 실시간 리스너가 자동으로 UI 업데이트
+    } catch (error) {
+      console.error('❌ 거래 수정 실패:', error);
+      alert('거래 수정에 실패했습니다.');
+    }
   };
 
   /**
    * 거래 삭제
    */
-  const handleDeleteTransaction = (id) => {
-    setTransactions(prev => prev.filter(t => t.id !== id));
+  const handleDeleteTransaction = async (id) => {
+    try {
+      // Firebase에서 삭제
+      await deleteTransaction(currentUser.firebaseId, id);
+      console.log('✅ 거래 삭제 성공:', id);
+      // 실시간 리스너가 자동으로 UI 업데이트
+    } catch (error) {
+      console.error('❌ 거래 삭제 실패:', error);
+      alert('거래 삭제에 실패했습니다.');
+    }
   };
 
   /**
@@ -132,13 +226,37 @@ export const useTransactions = (currentUser) => {
     return TransactionService.filterByDate(transactions, day, month, year);
   };
 
-  // transactions가 변경될 때마다 localStorage에 저장
-  useEffect(() => {
-    saveToStorage(STORAGE_KEYS.TRANSACTIONS, transactions);
-  }, [transactions]);
+  /**
+   * 고정지출을 실제 거래로 등록
+   */
+  const registerFixedExpense = async (fixedExpense, date) => {
+    const newTransaction = {
+      id: Date.now() + Math.random(), // 고유 ID 보장
+      type: 'expense',
+      category: fixedExpense.category,
+      subcategory: `고정지출: ${fixedExpense.name}`,
+      amount: fixedExpense.amount,
+      paymentMethod: fixedExpense.paymentMethod || '',
+      memo: `[자동등록] ${fixedExpense.memo || ''}`.trim(),
+      date: date,
+      userId: currentUser?.id || 'user1',
+      isFromFixedExpense: true,
+      fixedExpenseId: fixedExpense.id
+    };
+
+    try {
+      await saveTransaction(currentUser.firebaseId, newTransaction);
+      console.log('✅ 고정지출 자동 등록 성공');
+      return newTransaction;
+    } catch (error) {
+      console.error('❌ 고정지출 등록 실패:', error);
+      return null;
+    }
+  };
 
   return {
     transactions,
+    loading,
     setTransactions,
     showAddTransaction,
     setShowAddTransaction,
@@ -153,6 +271,7 @@ export const useTransactions = (currentUser) => {
     startAddTransaction,
     resetTransactionForm,
     handleSubmitTransaction,
-    getDayTransactions
+    getDayTransactions,
+    registerFixedExpense
   };
 };

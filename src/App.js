@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 // Hooks
-import { useAuth, useTransactions, useFixedExpenses, useTheme } from './hooks';
+import { useAuth, useTransactions, useFixedExpenses, useSettings, useTheme } from './hooks';
 
 // Pages
 import {
@@ -20,7 +20,7 @@ import { Header, Sidebar } from './components/layout';
 import { TransactionForm, FixedExpenseForm } from './components/forms';
 
 // Utils
-import { STORAGE_KEYS, loadFromStorage, saveToStorage, clearAllStorage } from './utils';
+import { STORAGE_KEYS, saveToStorage, clearAllStorage } from './utils';
 
 /**
  * 메인 애플리케이션 컴포넌트
@@ -79,11 +79,14 @@ export default function App() {
     resetFixedForm
   } = useFixedExpenses(currentUser, familyInfo);
 
-  // ===== 4. 뷰 및 날짜 상태 =====
+  // ===== 4. 설정 상태 (useSettings 훅 사용) =====
+  const { settings, updateSettings } = useSettings(currentUser);
+
+  // ===== 5. 뷰 및 날짜 상태 =====
   const [currentView, setCurrentView] = useState('calendar');
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  // ===== 5. 검색 상태 =====
+  // ===== 6. 검색 상태 =====
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFilters, setSearchFilters] = useState({
     type: 'all',
@@ -96,36 +99,63 @@ export default function App() {
   });
   const [searchResults, setSearchResults] = useState([]);
 
-  // ===== 6. 설정 상태 (localStorage에서 불러오기) =====
-  const [settings, setSettings] = useState(() => {
-    return loadFromStorage(STORAGE_KEYS.SETTINGS, {
-      currency: 'KRW',
-      dateFormat: 'ko-KR',
-      budget: {
-        monthly: '',
-        categories: {
-          food: '', transport: '', living: '', medical: '',
-          culture: '', fashion: '', communication: ''
-        }
-      },
-      notifications: {
-        budgetAlert: true,
-        dailyReminder: false,
-        weeklyReport: true
-      },
-      backup: {
-        autoBackup: true,
-        backupFrequency: 'weekly'
-      }
-    });
-  });
+  // ===== 7. 백업 모달 상태 =====
   const [showBackupModal, setShowBackupModal] = useState(false);
   const [backupData, setBackupData] = useState('');
 
-  // settings가 변경될 때마다 localStorage에 저장
+  // ===== 8. PWA 설치 프롬프트 상태 =====
+  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
+
+  // PWA 설치 프롬프트 이벤트 감지
   useEffect(() => {
-    saveToStorage(STORAGE_KEYS.SETTINGS, settings);
-  }, [settings]);
+    const handleBeforeInstallPrompt = (e) => {
+      // 기본 설치 배너 방지
+      e.preventDefault();
+      // 나중에 사용하기 위해 이벤트 저장
+      setDeferredPrompt(e);
+      // 커스텀 설치 버튼 표시
+      setShowInstallPrompt(true);
+      console.log('[PWA] 앱 설치 가능');
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+    // 이미 설치된 경우 감지
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      console.log('[PWA] 앱이 이미 설치되어 있습니다.');
+      setShowInstallPrompt(false);
+    }
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    };
+  }, []);
+
+  // PWA 설치 함수
+  const handleInstallPWA = async () => {
+    if (!deferredPrompt) {
+      alert('이 브라우저에서는 앱 설치가 지원되지 않습니다.');
+      return;
+    }
+
+    // 설치 프롬프트 표시
+    deferredPrompt.prompt();
+
+    // 사용자 선택 대기
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`[PWA] 사용자 선택: ${outcome}`);
+
+    if (outcome === 'accepted') {
+      console.log('[PWA] 앱 설치 수락');
+      setShowInstallPrompt(false);
+    } else {
+      console.log('[PWA] 앱 설치 거절');
+    }
+
+    // 프롬프트는 한 번만 사용 가능
+    setDeferredPrompt(null);
+  };
 
   // ===== 고정지출 자동 등록 로직 =====
   /**
@@ -242,10 +272,6 @@ export default function App() {
   };
 
   // ===== 설정 관련 함수들 =====
-  const updateSettings = (newSettings) => {
-    setSettings(prev => ({ ...prev, ...newSettings }));
-  };
-
   const exportData = () => {
     const exportObj = {
       transactions,
@@ -352,20 +378,27 @@ export default function App() {
   const handleInviteMember = async (email) => {
     if (!familyInfo || !currentUser) return;
 
+    // 이메일 유효성 검사
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !trimmedEmail.includes('@')) {
+      alert('❌ 유효한 이메일 주소를 입력해주세요.');
+      return;
+    }
+
     try {
       const { createInvitation } = await import('./firebase/databaseService');
 
-      // 초대 생성
+      // 초대 생성 (이메일은 소문자로 정규화)
       await createInvitation(
         familyInfo.id,
         familyInfo.name,
-        currentUser.email || 'unknown@example.com',
+        (currentUser.email || 'unknown@example.com').toLowerCase(),
         currentUser.name,
-        email
+        trimmedEmail.toLowerCase()
       );
 
-      console.log('✅ 초대 생성 완료:', email);
-      alert(`🎉 ${email}로 초대를 보냈습니다!\n\n해당 이메일로 로그인하면 초대를 수락할 수 있습니다.`);
+      console.log('✅ 초대 생성 완료:', trimmedEmail.toLowerCase());
+      alert(`🎉 ${trimmedEmail}로 초대를 보냈습니다!\n\n해당 이메일로 Google 로그인하면 자동으로 초대를 확인할 수 있습니다.`);
     } catch (error) {
       console.error('❌ 초대 실패:', error);
       alert('초대에 실패했습니다.');
@@ -481,6 +514,8 @@ export default function App() {
         pendingInvitations={pendingInvitations}
         onAcceptInvitation={handleAcceptInvitation}
         onRejectInvitation={handleRejectInvitation}
+        showInstallButton={showInstallPrompt}
+        onInstallPWA={handleInstallPWA}
       />
 
       <div className="flex">

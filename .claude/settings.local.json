@@ -19,7 +19,8 @@
       "Bash(curl:*)",
       "Bash(cat:*)",
       "WebFetch(domain:woodal-budget.web.app)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

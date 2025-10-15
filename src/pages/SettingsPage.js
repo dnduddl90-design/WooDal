@@ -80,27 +80,27 @@ export const SettingsPage = ({
         <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
           <div className="flex items-center justify-between mb-3 sm:mb-4">
             <h3 className="text-base sm:text-lg font-bold text-gray-800 flex items-center">
-              <Users className="mr-2" size={18} />
-              <span className="sm:inline">가족 가계부</span>
+              <Users className="mr-2" size={16} />
+              <span>가족 가계부</span>
             </h3>
             <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-green-100 text-green-700 text-xs sm:text-sm font-medium rounded-full">
               공유 중
             </span>
           </div>
 
-          <div className="space-y-4">
-            <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
-              <p className="text-sm font-medium text-gray-700 mb-2">가족 이름</p>
-              <p className="text-lg font-bold text-gray-900">{familyInfo.name}</p>
+          <div className="space-y-2 sm:space-y-4">
+            <div className="p-2.5 sm:p-4 bg-blue-50 rounded-lg">
+              <p className="text-xs sm:text-sm font-medium text-gray-700 mb-0.5 sm:mb-1">가족 이름</p>
+              <p className="text-sm sm:text-lg font-bold text-gray-900">{familyInfo.name}</p>
             </div>
 
             <div>
-              <p className="text-sm font-medium text-gray-700 mb-2">가족 구성원</p>
-              <div className="space-y-2">
+              <p className="text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">가족 구성원</p>
+              <div className="space-y-1.5 sm:space-y-2">
                 {Object.values(familyInfo.members || {}).map(member => (
-                  <div key={member.userId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={member.userId} className="flex items-center justify-between p-2.5 sm:p-3 bg-gray-50 rounded-lg">
                     <div>
-                      <p className="font-medium text-gray-800">{member.name}</p>
+                      <p className="font-medium text-gray-800 text-sm">{member.name}</p>
                       <p className="text-xs text-gray-600">{member.role === 'admin' ? '관리자' : '멤버'}</p>
                     </div>
                     {member.userId === currentUser?.firebaseId && (
@@ -111,12 +111,12 @@ export const SettingsPage = ({
               </div>
             </div>
 
-            <div className="border-t border-gray-200 pt-4 space-y-3">
+            <div className="border-t border-gray-200 pt-2 sm:pt-4 space-y-1.5 sm:space-y-3">
               <Button
                 variant="primary"
                 icon={UserPlus}
                 onClick={() => setShowFamilyModal(true)}
-                className="w-full"
+                className="w-full text-sm"
               >
                 가족 초대하기
               </Button>
@@ -125,7 +125,7 @@ export const SettingsPage = ({
                 variant="danger"
                 icon={LogOut}
                 onClick={onLeaveFamily}
-                className="w-full"
+                className="w-full text-sm"
               >
                 가족 탈퇴하기
               </Button>
@@ -134,24 +134,24 @@ export const SettingsPage = ({
         </div>
       ) : (
         <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-gray-800 flex items-center">
-              <Users className="mr-2" size={20} />
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h3 className="text-base sm:text-lg font-bold text-gray-800 flex items-center">
+              <Users className="mr-2" size={16} />
               가족 가계부
             </h3>
-            <span className="px-3 py-1 bg-gray-100 text-gray-700 text-sm font-medium rounded-full">
+            <span className="px-2 sm:px-3 py-0.5 sm:py-1 bg-gray-100 text-gray-700 text-xs sm:text-sm font-medium rounded-full">
               개인 모드
             </span>
           </div>
 
-          <div className="space-y-4">
-            <p className="text-gray-600 text-sm">
+          <div className="space-y-2 sm:space-y-4">
+            <p className="text-gray-600 text-xs sm:text-sm">
               가족과 함께 가계부를 공유하고 실시간으로 함께 관리하세요.
             </p>
 
-            <div className="p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm font-medium text-blue-900 mb-2">가족 가계부 기능</p>
-              <ul className="text-sm text-blue-800 space-y-1">
+            <div className="p-2.5 sm:p-4 bg-blue-50 rounded-lg">
+              <p className="text-xs sm:text-sm font-medium text-blue-900 mb-1.5 sm:mb-2">가족 가계부 기능</p>
+              <ul className="text-xs sm:text-sm text-blue-800 space-y-0.5 sm:space-y-1">
                 <li>• 실시간 거래 내역 공유</li>
                 <li>• 함께하는 예산 관리</li>
                 <li>• 고정지출 자동 등록</li>
@@ -162,7 +162,7 @@ export const SettingsPage = ({
               variant="primary"
               icon={Users}
               onClick={() => setShowFamilyModal(true)}
-              className="w-full"
+              className="w-full text-sm"
             >
               가족 만들기
             </Button>
@@ -171,84 +171,58 @@ export const SettingsPage = ({
       )}
 
       {/* 설정 그리드 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
         {/* 기본 설정 */}
-        <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
+        <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg max-h-[50vh] overflow-y-auto">
           <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">기본 설정</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                테마
-              </label>
-              <select
-                value={theme}
-                onChange={(e) => onChangeTheme(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-              >
-                <option value="light">라이트 (기본)</option>
-                <option value="dark">다크</option>
-                <option value="colorful">컬러풀</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                통화
-              </label>
-              <select
-                value={settings.currency}
-                onChange={(e) => onUpdateSettings({ currency: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-              >
-                <option value="KRW">한국 원 (₩)</option>
-                <option value="USD">미국 달러 ($)</option>
-                <option value="EUR">유로 (€)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                날짜 형식
-              </label>
-              <select
-                value={settings.dateFormat}
-                onChange={(e) => onUpdateSettings({ dateFormat: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-              >
-                <option value="ko-KR">한국식 (YYYY-MM-DD)</option>
-                <option value="en-US">미국식 (MM/DD/YYYY)</option>
-              </select>
-            </div>
+          <div>
+            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+              테마
+            </label>
+            <select
+              value={theme}
+              onChange={(e) => onChangeTheme(e.target.value)}
+              className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+            >
+              <option value="light">라이트 (기본)</option>
+              <option value="dark">다크</option>
+              <option value="colorful">컬러풀</option>
+            </select>
           </div>
         </div>
 
         {/* 예산 설정 */}
-        <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
+        <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg max-h-[50vh] overflow-y-auto">
           <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">예산 설정</h3>
-          <div className="space-y-4">
-            <Input
-              label="월 예산"
-              type="number"
-              value={settings.budget.monthly}
-              onChange={(e) => onUpdateSettings({
-                budget: { ...settings.budget, monthly: e.target.value }
-              })}
-              placeholder="0"
-            />
+          <div className="space-y-2 sm:space-y-3">
+            <div>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                월 예산
+              </label>
+              <input
+                type="number"
+                value={settings.budget.monthly}
+                onChange={(e) => onUpdateSettings({
+                  budget: { ...settings.budget, monthly: e.target.value }
+                })}
+                placeholder="0"
+                className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              />
+            </div>
 
-            <div className="border-t border-gray-200 pt-4">
-              <p className="text-sm font-medium text-gray-700 mb-3">
+            <div className="border-t border-gray-200 pt-1.5 sm:pt-2">
+              <p className="text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
                 카테고리별 예산
               </p>
-              <div className="space-y-3 max-h-64 overflow-y-auto">
+              <div className="space-y-1.5 max-h-[20vh] sm:max-h-[25vh] overflow-y-auto pr-1">
                 {CATEGORIES.expense.map(category => {
                   const Icon = category.icon;
                   return (
-                    <div key={category.id} className="flex items-center space-x-3">
-                      <div className={`p-2 rounded-lg ${category.color}`}>
-                        <Icon size={16} />
+                    <div key={category.id} className="flex items-center gap-1.5">
+                      <div className={`p-1 rounded ${category.color} flex-shrink-0`}>
+                        <Icon size={12} />
                       </div>
-                      <span className="text-sm font-medium text-gray-700 min-w-[80px]">
+                      <span className="text-xs font-medium text-gray-700 min-w-[50px] flex-shrink-0">
                         {category.name}
                       </span>
                       <input
@@ -264,7 +238,7 @@ export const SettingsPage = ({
                           }
                         })}
                         placeholder="0"
-                        className="flex-1 px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                        className="flex-1 min-w-0 px-2 py-1 border border-gray-300 rounded text-xs focus:ring-1 focus:ring-blue-500 focus:border-transparent transition-all"
                       />
                     </div>
                   );
@@ -275,19 +249,16 @@ export const SettingsPage = ({
         </div>
 
         {/* 알림 설정 */}
-        <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
+        <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg max-h-[50vh] overflow-y-auto">
           <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">알림 설정</h3>
-          <div className="space-y-4">
+          <div className="space-y-2">
             {[
               { key: 'budgetAlert', label: '예산 초과 알림', desc: '예산을 초과하면 알림을 받습니다' },
               { key: 'dailyReminder', label: '일일 기록 알림', desc: '매일 저녁 거래 기록을 알림합니다' },
               { key: 'weeklyReport', label: '주간 리포트', desc: '매주 월요일 지난 주 요약을 받습니다' }
             ].map(({ key, label, desc }) => (
-              <div key={key} className="flex items-start justify-between p-3 bg-gray-50 rounded-lg">
-                <div className="flex-1">
-                  <p className="font-medium text-gray-800">{label}</p>
-                  <p className="text-sm text-gray-600 mt-1">{desc}</p>
-                </div>
+              <div key={key} className="flex items-center justify-between p-2 sm:p-2.5 bg-gray-50 rounded-lg gap-2">
+                <p className="font-medium text-gray-800 text-xs flex-1 min-w-0">{label}</p>
                 <button
                   type="button"
                   onClick={() => onUpdateSettings({
@@ -296,13 +267,13 @@ export const SettingsPage = ({
                       [key]: !settings.notifications[key]
                     }
                   })}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
                     settings.notifications[key] ? 'bg-blue-600' : 'bg-gray-300'
                   }`}
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      settings.notifications[key] ? 'translate-x-6' : 'translate-x-1'
+                    className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                      settings.notifications[key] ? 'translate-x-5' : 'translate-x-0.5'
                     }`}
                   />
                 </button>
@@ -312,16 +283,11 @@ export const SettingsPage = ({
         </div>
 
         {/* 백업 설정 */}
-        <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
+        <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg max-h-[50vh] overflow-y-auto">
           <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">백업 설정</h3>
-          <div className="space-y-4">
-            <div className="flex items-start justify-between p-3 bg-gray-50 rounded-lg">
-              <div className="flex-1">
-                <p className="font-medium text-gray-800">자동 백업</p>
-                <p className="text-sm text-gray-600 mt-1">
-                  데이터를 자동으로 백업합니다
-                </p>
-              </div>
+          <div className="space-y-2 sm:space-y-3">
+            <div className="flex items-center justify-between p-2 sm:p-2.5 bg-gray-50 rounded-lg gap-2">
+              <p className="font-medium text-gray-800 text-xs flex-1 min-w-0">자동 백업</p>
               <button
                 type="button"
                 onClick={() => onUpdateSettings({
@@ -330,13 +296,13 @@ export const SettingsPage = ({
                     autoBackup: !settings.backup.autoBackup
                   }
                 })}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
                   settings.backup.autoBackup ? 'bg-blue-600' : 'bg-gray-300'
                 }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    settings.backup.autoBackup ? 'translate-x-6' : 'translate-x-1'
+                  className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
+                    settings.backup.autoBackup ? 'translate-x-5' : 'translate-x-0.5'
                   }`}
                 />
               </button>
@@ -344,7 +310,7 @@ export const SettingsPage = ({
 
             {settings.backup.autoBackup && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   백업 주기
                 </label>
                 <select
@@ -355,7 +321,7 @@ export const SettingsPage = ({
                       backupFrequency: e.target.value
                     }
                   })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                  className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                 >
                   <option value="daily">매일</option>
                   <option value="weekly">매주</option>
@@ -364,21 +330,21 @@ export const SettingsPage = ({
               </div>
             )}
 
-            <div className="border-t border-gray-200 pt-4 space-y-3">
+            <div className="border-t border-gray-200 pt-1.5 sm:pt-2 space-y-1.5 sm:space-y-2">
               <Button
                 variant="primary"
                 icon={Save}
                 onClick={onExportData}
-                className="w-full"
+                className="w-full text-xs sm:text-sm py-2"
               >
                 지금 백업하기
               </Button>
 
               <div>
                 <label htmlFor="import-file" className="block">
-                  <div className="w-full px-4 py-2 border-2 border-dashed border-gray-300 rounded-xl text-center cursor-pointer hover:border-blue-500 transition-colors">
-                    <Upload className="inline-block mr-2" size={20} />
-                    <span className="text-sm font-medium text-gray-700">
+                  <div className="w-full px-2.5 sm:px-3 py-1.5 sm:py-2 border-2 border-dashed border-gray-300 rounded-xl text-center cursor-pointer hover:border-blue-500 transition-colors">
+                    <Upload className="inline-block mr-1" size={16} />
+                    <span className="text-xs sm:text-sm font-medium text-gray-700">
                       파일에서 가져오기
                     </span>
                   </div>
@@ -399,7 +365,7 @@ export const SettingsPage = ({
       {/* 앱 정보 */}
       <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
         <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">앱 정보</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-4">
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <p className="text-2xl font-bold text-blue-600">{transactions.length}</p>
             <p className="text-sm text-gray-600 mt-1">총 거래 수</p>

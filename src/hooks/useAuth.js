@@ -33,7 +33,7 @@ export const useAuth = () => {
         const user = {
           id: 'user1', // 기존 LocalStorage 데이터 호환을 위해 고정
           firebaseId: firebaseUser.uid, // Firebase UID는 별도 저장
-          email: firebaseUser.email,
+          email: firebaseUser.email.toLowerCase(), // 이메일은 항상 소문자로 저장 (초대 매칭용)
           name: displayName, // 깔끔한 이름만 표시
           avatar: '👨', // 고정 아바타 (나중에 커스터마이징 가능)
           role: 'admin' // 로그인한 사람은 관리자로 설정
@@ -78,10 +78,12 @@ export const useAuth = () => {
   useEffect(() => {
     if (!currentUser?.email) return;
 
-    console.log('📬 초대 리스너 시작:', currentUser.email);
+    // 이메일을 소문자로 정규화 (대소문자 매칭 문제 해결)
+    const normalizedEmail = currentUser.email.toLowerCase();
+    console.log('📬 초대 리스너 시작:', normalizedEmail);
 
     // 실시간 초대 리스너 설정
-    const unsubscribe = onInvitationsChange(currentUser.email, (invitations) => {
+    const unsubscribe = onInvitationsChange(normalizedEmail, (invitations) => {
       setPendingInvitations(invitations);
       if (invitations.length > 0) {
         console.log(`📩 대기 중인 초대 ${invitations.length}건 발견`);

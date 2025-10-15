@@ -75,7 +75,7 @@ export const TransactionForm = ({
         <Input
           label="날짜"
           type="date"
-          value={formData.date}
+          value={formData.date || new Date().toISOString().split('T')[0]}
           onChange={(e) => onFormChange({ ...formData, date: e.target.value })}
           required
         />

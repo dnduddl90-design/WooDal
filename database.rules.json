@@ -1,0 +1,28 @@
+{
+  "rules": {
+    "users": {
+      "$userId": {
+        ".read": "$userId === auth.uid",
+        ".write": "$userId === auth.uid"
+      }
+    },
+    "families": {
+      "$familyId": {
+        ".read": "root.child('families').child($familyId).child('members').child(auth.uid).exists()",
+        ".write": "root.child('families').child($familyId).child('members').child(auth.uid).exists()",
+        "members": {
+          "$memberId": {
+            ".write": "root.child('families').child($familyId).child('members').child(auth.uid).child('role').val() === 'admin' || $memberId === auth.uid"
+          }
+        }
+      }
+    },
+    "invitations": {
+      ".read": "auth != null",
+      "$invitationId": {
+        ".write": "auth != null && (!data.exists() || data.child('inviterEmail').val() === auth.token.email || data.child('inviteeEmail').val() === auth.token.email)",
+        ".validate": "newData.hasChildren(['id', 'familyId', 'familyName', 'inviterEmail', 'inviterName', 'inviteeEmail', 'status', 'createdAt'])"
+      }
+    }
+  }
+}

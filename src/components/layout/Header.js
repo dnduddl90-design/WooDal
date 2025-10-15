@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LogOut, Bell, Check, X } from 'lucide-react';
+import { LogOut, Bell, Check, X, Download } from 'lucide-react';
 import { Button } from '../common';
 
 /**
@@ -12,7 +12,9 @@ export const Header = ({
   onLogout,
   pendingInvitations = [],
   onAcceptInvitation,
-  onRejectInvitation
+  onRejectInvitation,
+  showInstallButton = false,
+  onInstallPWA
 }) => {
   const [showInvitations, setShowInvitations] = useState(false);
 
@@ -36,6 +38,28 @@ export const Header = ({
 
         {/* 우측 버튼들 */}
         <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+          {/* PWA 설치 버튼 */}
+          {showInstallButton && (
+            <Button
+              variant="primary"
+              size="sm"
+              icon={Download}
+              onClick={onInstallPWA}
+              className="hidden sm:flex animate-pulse"
+            >
+              앱 설치
+            </Button>
+          )}
+          {showInstallButton && (
+            <button
+              onClick={onInstallPWA}
+              className="sm:hidden p-2 rounded-full bg-blue-500 hover:bg-blue-600 transition-colors animate-pulse"
+              title="앱 설치"
+            >
+              <Download size={18} className="text-white" />
+            </button>
+          )}
+
           {/* 초대 알림 */}
           {pendingInvitations.length > 0 && (
             <div className="relative">

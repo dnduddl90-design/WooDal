@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
 import { USERS } from '../constants';
 import { getDaysInMonth, getFirstDayOfMonth, formatCurrency } from '../utils';
@@ -19,86 +19,49 @@ export const CalendarPage = ({
   onDeleteTransaction
 }) => {
   // 모바일에서 현재 보고 있는 날짜 (1-31)
-  const today = new Date();
-  const initialDay = currentDate.getFullYear() === today.getFullYear() &&
-                     currentDate.getMonth() === today.getMonth()
-                     ? today.getDate()
-                     : 1;
+  const today = useMemo(() => new Date(), []);
+  const initialDay = useMemo(() =>
+    currentDate.getFullYear() === today.getFullYear() &&
+    currentDate.getMonth() === today.getMonth()
+      ? today.getDate()
+      : 1,
+    [currentDate, today]
+  );
   const [currentDay, setCurrentDay] = useState(initialDay);
-  // 특정 날짜의 거래 내역 가져오기
-  const getDayTransactions = (day, month, year) => {
+
+  // 특정 날짜의 거래 내역 가져오기 (useCallback으로 메모이제이션)
+  const getDayTransactions = useCallback((day, month, year) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     return transactions.filter(t => t.date === dateStr);
-  };
+  }, [transactions]);
 
-  // 특정 날짜의 고정지출 가져오기
-  const getFixedExpensesForDay = (day) => {
+  // 특정 날짜의 고정지출 가져오기 (useCallback으로 메모이제이션)
+  const getFixedExpensesForDay = useCallback((day) => {
     return fixedExpenses.filter(expense =>
       expense.isActive && expense.autoRegisterDate === day
     );
-  };
+  }, [fixedExpenses]);
 
-  // 해당 월의 일별 데이터 생성 (모바일 리스트 뷰용)
-  const getDailyData = () => {
-    const daysInMonth = getDaysInMonth(currentDate);
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
-    const dailyData = [];
 
-    for (let day = 1; day <= daysInMonth; day++) {
-      const dayTransactions = getDayTransactions(day, month, year);
-      const fixedExpensesForDay = getFixedExpensesForDay(day);
-      const today = new Date();
-      const isToday =
-        day === today.getDate() &&
-        month === today.getMonth() &&
-        year === today.getFullYear();
-
-      const allItems = [
-        ...dayTransactions,
-        ...fixedExpensesForDay.map(f => ({...f, type: 'fixed'}))
-      ];
-
-      // 총액 계산
-      const totalIncome = allItems
-        .filter(item => item.type === 'income')
-        .reduce((sum, item) => sum + item.amount, 0);
-      const totalExpense = allItems
-        .filter(item => item.type === 'expense' || item.type === 'fixed')
-        .reduce((sum, item) => sum + item.amount, 0);
-
-      dailyData.push({
-        day,
-        isToday,
-        items: allItems,
-        totalIncome,
-        totalExpense,
-        dayOfWeek: new Date(year, month, day).getDay()
-      });
-    }
-
-    return dailyData;
-  };
-
-  // 월 이동 핸들러
-  const handlePrevMonth = () => {
+  // 월 이동 핸들러 (useCallback으로 최적화)
+  const handlePrevMonth = useCallback(() => {
     const newDate = new Date(currentDate);
     newDate.setMonth(newDate.getMonth() - 1);
     onDateChange(newDate);
-  };
+  }, [currentDate, onDateChange]);
 
-  const handleNextMonth = () => {
+  const handleNextMonth = useCallback(() => {
     const newDate = new Date(currentDate);
     newDate.setMonth(newDate.getMonth() + 1);
     onDateChange(newDate);
-  };
+  }, [currentDate, onDateChange]);
 
-  const handleToday = () => {
+  const handleToday = useCallback(() => {
     onDateChange(new Date());
-  };
+  }, [onDateChange]);
 
-  // 달력 렌더링
-  const renderCalendar = () => {
+  // 달력 렌더링 (useMemo로 최적화)
+  const calendarDays = useMemo(() => {
     const daysInMonth = getDaysInMonth(currentDate);
     const firstDay = getFirstDayOfMonth(currentDate);
     const days = [];
@@ -207,14 +170,14 @@ export const CalendarPage = ({
     }
 
     return days;
-  };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDate, getDayTransactions, getFixedExpensesForDay, onEditTransaction, onDeleteTransaction]);
 
-  // 모바일 하루 뷰 렌더링 (가로 스와이프)
-  const renderMobileDayView = () => {
+  // 모바일 하루 뷰 데이터 계산 (useMemo로 최적화)
+  const mobileDayData = useMemo(() => {
     const daysInMonth = getDaysInMonth(currentDate);
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-    const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
 
     const dayTransactions = getDayTransactions(currentDay, month, year);
     const fixedExpensesForDay = getFixedExpensesForDay(currentDay);
@@ -238,28 +201,54 @@ export const CalendarPage = ({
 
     const dayOfWeek = new Date(year, month, currentDay).getDay();
 
-    const handlePrevDay = () => {
-      if (currentDay > 1) {
-        setCurrentDay(currentDay - 1);
-      }
+    return {
+      daysInMonth,
+      year,
+      month,
+      dayTransactions,
+      fixedExpensesForDay,
+      isToday,
+      allItems,
+      totalIncome,
+      totalExpense,
+      dayOfWeek
     };
+  }, [currentDate, currentDay, getDayTransactions, getFixedExpensesForDay]);
 
-    const handleNextDay = () => {
-      if (currentDay < daysInMonth) {
-        setCurrentDay(currentDay + 1);
-      }
-    };
+  // 모바일 하루 이동 핸들러 (useCallback으로 최적화)
+  const handlePrevDay = useCallback(() => {
+    if (currentDay > 1) {
+      setCurrentDay(currentDay - 1);
+    }
+  }, [currentDay]);
 
-    const handleToday = () => {
-      if (isToday) return;
+  const handleNextDay = useCallback(() => {
+    const daysInMonth = getDaysInMonth(currentDate);
+    if (currentDay < daysInMonth) {
+      setCurrentDay(currentDay + 1);
+    }
+  }, [currentDay, currentDate]);
 
-      const now = new Date();
-      if (currentDate.getFullYear() !== now.getFullYear() ||
-          currentDate.getMonth() !== now.getMonth()) {
-        onDateChange(now);
-      }
-      setCurrentDay(now.getDate());
-    };
+  const handleTodayDay = useCallback(() => {
+    const now = new Date();
+    const isAlreadyToday =
+      currentDay === now.getDate() &&
+      currentDate.getMonth() === now.getMonth() &&
+      currentDate.getFullYear() === now.getFullYear();
+
+    if (isAlreadyToday) return;
+
+    if (currentDate.getFullYear() !== now.getFullYear() ||
+        currentDate.getMonth() !== now.getMonth()) {
+      onDateChange(now);
+    }
+    setCurrentDay(now.getDate());
+  }, [currentDay, currentDate, onDateChange]);
+
+  // 모바일 하루 뷰 렌더링
+  const renderMobileDayView = () => {
+    const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
+    const { daysInMonth, allItems, totalIncome, totalExpense, dayOfWeek, isToday } = mobileDayData;
 
     return (
       <div className="space-y-4 relative">
@@ -301,7 +290,7 @@ export const CalendarPage = ({
             )}
             {!isToday && (
               <button
-                onClick={handleToday}
+                onClick={handleTodayDay}
                 className="inline-block mt-1 text-xs px-3 py-1 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-colors"
               >
                 오늘로 이동
@@ -466,7 +455,7 @@ export const CalendarPage = ({
             ))}
 
             {/* 날짜 셀들 */}
-            {renderCalendar()}
+            {calendarDays}
           </div>
         </div>
       </div>

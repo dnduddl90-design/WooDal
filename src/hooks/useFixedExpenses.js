@@ -77,6 +77,7 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
 
     // 클린업: 컴포넌트 언마운트 시 리스너 제거
     return () => unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser?.firebaseId, familyInfo?.id]);
 
   /**

@@ -78,6 +78,7 @@ export const useTransactions = (currentUser, familyInfo) => {
 
     // 클린업: 컴포넌트 언마운트 시 리스너 제거
     return () => unsubscribe();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser?.firebaseId, familyInfo?.id]);
 
   /**
@@ -252,37 +253,25 @@ export const useTransactions = (currentUser, familyInfo) => {
 
   /**
    * 고정지출을 실제 거래로 등록 (가족 모드/개인 모드 자동 선택)
+   * @param {Object} transaction - 이미 생성된 거래 객체 (createTransactionFromFixed에서 생성)
+   * @param {String} date - 등록 날짜 (사용하지 않음, 이미 transaction에 포함)
    */
-  const registerFixedExpense = async (fixedExpense, date) => {
-    const newTransaction = {
-      id: Date.now() + Math.random(), // 고유 ID 보장
-      type: 'expense',
-      category: fixedExpense.category,
-      subcategory: `고정지출: ${fixedExpense.name}`,
-      amount: fixedExpense.amount,
-      paymentMethod: fixedExpense.paymentMethod || '',
-      memo: `[자동등록] ${fixedExpense.memo || ''}`.trim(),
-      date: date,
-      userId: currentUser?.id || 'user1',
-      isFromFixedExpense: true,
-      fixedExpenseId: fixedExpense.id
-    };
-
+  const registerFixedExpense = async (transaction, date) => {
     try {
       const isFamilyMode = familyInfo && familyInfo.id;
 
       // 가족 모드 or 개인 모드로 저장
       if (isFamilyMode) {
-        await saveFamilyTransaction(familyInfo.id, newTransaction);
+        await saveFamilyTransaction(familyInfo.id, transaction);
       } else {
-        await saveTransaction(currentUser.firebaseId, newTransaction);
+        await saveTransaction(currentUser.firebaseId, transaction);
       }
 
       console.log('✅ 고정지출 자동 등록 성공', `(${isFamilyMode ? '가족 공유' : '개인'} 모드)`);
-      return newTransaction;
+      return transaction;
     } catch (error) {
       console.error('❌ 고정지출 등록 실패:', error);
-      return null;
+      throw error;
     }
   };
 

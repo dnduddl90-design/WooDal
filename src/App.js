@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 // Hooks
 import { useAuth, useTransactions, useFixedExpenses, useSettings, useTheme } from './hooks';
+
+// Services
+import { autoRegisterFixedExpenses } from './services/autoRegisterService';
 
 // Pages
 import {
@@ -160,53 +163,25 @@ export default function App() {
   };
 
   // ===== 고정지출 자동 등록 로직 =====
-  /**
-   * 특정 월의 고정지출을 자동으로 등록
-   * 현재 날짜가 autoRegisterDate를 지났고, 아직 등록되지 않은 경우에만 등록
-   */
-  const autoRegisterFixedExpenses = () => {
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth();
-    const currentDay = today.getDate();
-
-    let registeredCount = 0;
-
-    fixedExpenses.forEach(fixed => {
-      if (!fixed.isActive) return; // 비활성 고정지출은 무시
-
-      // 등록 날짜가 현재 날짜보다 이전인 경우
-      if (fixed.autoRegisterDate <= currentDay) {
-        const registerDate = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(fixed.autoRegisterDate).padStart(2, '0')}`;
-
-        // 이미 해당 고정지출이 해당 날짜에 등록되었는지 확인
-        const alreadyRegistered = transactions.some(
-          t => t.fixedExpenseId === fixed.id && t.date === registerDate
-        );
-
-        if (!alreadyRegistered) {
-          registerFixedExpense(fixed, registerDate);
-          registeredCount++;
-        }
-      }
-    });
-
-    return registeredCount;
-  };
-
-  // 앱 로드 시 1회 실행 (로그인 후에만)
   useEffect(() => {
-    if (isAuthenticated && fixedExpenses.length > 0) {
-      const count = autoRegisterFixedExpenses();
-      if (count > 0) {
-        console.log(`✅ 고정지출 ${count}건이 자동 등록되었습니다.`);
-      }
+    // 로그인 및 데이터 로드 완료 후 자동 등록 체크
+    if (isAuthenticated && currentUser && fixedExpenses.length > 0 && !transactionsLoading) {
+      autoRegisterFixedExpenses(
+        fixedExpenses,
+        transactions,
+        currentUser.id,
+        registerFixedExpense
+      ).then(count => {
+        if (count > 0) {
+          alert(`🎉 ${count}건의 고정지출이 자동으로 등록되었습니다!`);
+        }
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated]); // 로그인 시에만 실행
+  }, [isAuthenticated, currentUser?.id, fixedExpenses.length]); // 로그인 및 고정지출 변경 시 실행
 
-  // ===== 검색 관련 함수들 =====
-  const performSearch = () => {
+  // ===== 검색 관련 함수들 (useCallback으로 최적화) =====
+  const performSearch = useCallback(() => {
     let results = [...transactions];
 
     // 텍스트 검색
@@ -257,9 +232,9 @@ export default function App() {
     results.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     setSearchResults(results);
-  };
+  }, [transactions, searchQuery, searchFilters]);
 
-  const resetSearch = () => {
+  const resetSearch = useCallback(() => {
     setSearchQuery('');
     setSearchFilters({
       type: 'all',
@@ -271,10 +246,10 @@ export default function App() {
       user: 'all'
     });
     setSearchResults([]);
-  };
+  }, []);
 
-  // ===== 설정 관련 함수들 =====
-  const exportData = () => {
+  // ===== 설정 관련 함수들 (useCallback으로 최적화) =====
+  const exportData = useCallback(() => {
     const exportObj = {
       transactions,
       fixedExpenses,
@@ -285,9 +260,9 @@ export default function App() {
     const dataStr = JSON.stringify(exportObj, null, 2);
     setBackupData(dataStr);
     setShowBackupModal(true);
-  };
+  }, [transactions, fixedExpenses, settings]);
 
-  const importData = (jsonStr) => {
+  const importData = useCallback((jsonStr) => {
     try {
       const importObj = JSON.parse(jsonStr);
 
@@ -328,9 +303,9 @@ export default function App() {
       console.error('Import error:', error);
       alert('❌ 데이터 가져오기 실패\n\n잘못된 JSON 형식이거나 파일이 손상되었습니다.');
     }
-  };
+  }, []);
 
-  const resetAllData = () => {
+  const resetAllData = useCallback(() => {
     if (window.confirm('⚠️ 정말로 모든 데이터를 초기화하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.')) {
       // 모든 localStorage 데이터 삭제
       const success = clearAllStorage();
@@ -343,9 +318,9 @@ export default function App() {
         alert('❌ 데이터 초기화 중 오류가 발생했습니다.');
       }
     }
-  };
+  }, []);
 
-  const downloadBackup = () => {
+  const downloadBackup = useCallback(() => {
     const blob = new Blob([backupData], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -355,10 +330,10 @@ export default function App() {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  };
+  }, [backupData]);
 
-  // ===== 가족 관리 함수들 =====
-  const handleCreateFamily = async (familyName) => {
+  // ===== 가족 관리 함수들 (useCallback으로 최적화) =====
+  const handleCreateFamily = useCallback(async (familyName) => {
     try {
       const { createFamily } = await import('./firebase/databaseService');
       const familyId = await createFamily(
@@ -375,9 +350,9 @@ export default function App() {
       console.error('❌ 가족 생성 실패:', error);
       alert('가족 생성에 실패했습니다.');
     }
-  };
+  }, [currentUser]);
 
-  const handleInviteMember = async (email) => {
+  const handleInviteMember = useCallback(async (email) => {
     if (!familyInfo || !currentUser) return;
 
     // 이메일 유효성 검사
@@ -405,9 +380,9 @@ export default function App() {
       console.error('❌ 초대 실패:', error);
       alert('초대에 실패했습니다.');
     }
-  };
+  }, [familyInfo, currentUser]);
 
-  const handleLeaveFamily = async () => {
+  const handleLeaveFamily = useCallback(async () => {
     if (!familyInfo) return;
 
     const confirmed = window.confirm(
@@ -439,10 +414,10 @@ export default function App() {
       console.error('❌ 가족 탈퇴 실패:', error);
       alert('가족 탈퇴에 실패했습니다.');
     }
-  };
+  }, [familyInfo, currentUser]);
 
-  // ===== 초대 관련 함수들 =====
-  const handleAcceptInvitation = async (invitationId) => {
+  // ===== 초대 관련 함수들 (useCallback으로 최적화) =====
+  const handleAcceptInvitation = useCallback(async (invitationId) => {
     try {
       const { acceptInvitation } = await import('./firebase/databaseService');
 
@@ -461,9 +436,9 @@ export default function App() {
       console.error('❌ 초대 수락 실패:', error);
       alert('초대 수락에 실패했습니다.');
     }
-  };
+  }, [currentUser]);
 
-  const handleRejectInvitation = async (invitationId) => {
+  const handleRejectInvitation = useCallback(async (invitationId) => {
     try {
       const { rejectInvitation } = await import('./firebase/databaseService');
 
@@ -475,7 +450,7 @@ export default function App() {
       console.error('❌ 초대 거절 실패:', error);
       alert('초대 거절에 실패했습니다.');
     }
-  };
+  }, []);
 
   // ===== 인증 로딩 중 =====
   if (authLoading) {

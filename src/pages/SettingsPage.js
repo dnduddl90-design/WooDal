@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { Download, Trash2, Upload, Save, Users, UserPlus, Mail, LogOut } from 'lucide-react';
-import { CATEGORIES } from '../constants';
+import { Download, Trash2, Upload, Save, Users, UserPlus, Mail, LogOut, Smile } from 'lucide-react';
+import { CATEGORIES, DEFAULT_AVATARS } from '../constants';
 import { Button, Input, Modal } from '../components/common';
+import { AvatarPicker } from '../components/forms';
 
 /**
  * 설정 페이지 컴포넌트
@@ -28,9 +29,13 @@ export const SettingsPage = ({
   onLeaveFamily,
   // 테마 관련 props
   theme,
-  onChangeTheme
+  onChangeTheme,
+  // 아바타 관련 props
+  userAvatar,
+  onChangeAvatar
 }) => {
   const [showFamilyModal, setShowFamilyModal] = useState(false);
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [familyName, setFamilyName] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
   const handleFileImport = (e) => {
@@ -175,19 +180,45 @@ export const SettingsPage = ({
         {/* 기본 설정 */}
         <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg max-h-[50vh] overflow-y-auto">
           <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">기본 설정</h3>
-          <div>
-            <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-              테마
-            </label>
-            <select
-              value={theme}
-              onChange={(e) => onChangeTheme(e.target.value)}
-              className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-            >
-              <option value="light">라이트 (기본)</option>
-              <option value="dark">다크</option>
-              <option value="colorful">컬러풀</option>
-            </select>
+          <div className="space-y-4">
+            {/* 아바타 설정 */}
+            <div>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                내 아바타
+              </label>
+              <div className="flex items-center gap-3">
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center text-3xl shadow-md">
+                  {userAvatar || DEFAULT_AVATARS.user1}
+                </div>
+                <Button
+                  variant="secondary"
+                  icon={Smile}
+                  onClick={() => setShowAvatarPicker(true)}
+                  className="text-sm"
+                >
+                  변경하기
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                헤더에 표시될 아바타를 선택하세요
+              </p>
+            </div>
+
+            {/* 테마 설정 */}
+            <div>
+              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                테마
+              </label>
+              <select
+                value={theme}
+                onChange={(e) => onChangeTheme(e.target.value)}
+                className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              >
+                <option value="light">라이트 (기본)</option>
+                <option value="dark">다크</option>
+                <option value="colorful">컬러풀</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -534,6 +565,17 @@ export const SettingsPage = ({
             )}
           </div>
         </Modal>
+      )}
+
+      {/* 아바타 선택 모달 */}
+      {showAvatarPicker && (
+        <AvatarPicker
+          currentAvatar={userAvatar || DEFAULT_AVATARS.user1}
+          onSelect={(emoji) => {
+            onChangeAvatar(emoji);
+          }}
+          onClose={() => setShowAvatarPicker(false)}
+        />
       )}
     </div>
   );

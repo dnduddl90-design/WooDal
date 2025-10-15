@@ -558,3 +558,37 @@ export const rejectInvitation = async (invitationId) => {
     rejectedAt: new Date().toISOString()
   });
 };
+
+// ==================== 아바타 (Avatar) ====================
+
+/**
+ * 사용자 아바타 저장
+ * @param {string} userId - 사용자 ID
+ * @param {string} avatar - 아바타 이모지
+ */
+export const saveUserAvatar = async (userId, avatar) => {
+  const avatarRef = ref(database, `users/${userId}/avatar`);
+  await set(avatarRef, avatar);
+};
+
+/**
+ * 사용자 아바타 가져오기
+ * @param {string} userId - 사용자 ID
+ */
+export const getUserAvatar = async (userId) => {
+  const avatarRef = ref(database, `users/${userId}/avatar`);
+  const snapshot = await get(avatarRef);
+  return snapshot.exists() ? snapshot.val() : null;
+};
+
+/**
+ * 아바타 실시간 리스너
+ * @param {string} userId - 사용자 ID
+ * @param {Function} callback - 데이터 변경 시 호출될 함수
+ */
+export const onAvatarChange = (userId, callback) => {
+  const avatarRef = ref(database, `users/${userId}/avatar`);
+  return onValue(avatarRef, (snapshot) => {
+    callback(snapshot.exists() ? snapshot.val() : null);
+  });
+};

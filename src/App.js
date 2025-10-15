@@ -37,9 +37,11 @@ export default function App() {
     currentUser,
     familyInfo,
     pendingInvitations,
+    userAvatar,
     loading: authLoading,
     handleLogin,
-    handleLogout
+    handleLogout,
+    handleChangeAvatar
   } = useAuth();
 
   // ===== 테마 관리 (useTheme 훅 사용) =====
@@ -592,6 +594,8 @@ export default function App() {
               onLeaveFamily={handleLeaveFamily}
               theme={theme}
               onChangeTheme={changeTheme}
+              userAvatar={userAvatar}
+              onChangeAvatar={handleChangeAvatar}
             />
           )}
         </main>

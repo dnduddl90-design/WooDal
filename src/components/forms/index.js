@@ -4,3 +4,4 @@
  */
 export { TransactionForm } from './TransactionForm';
 export { FixedExpenseForm } from './FixedExpenseForm';
+export { AvatarPicker } from './AvatarPicker';

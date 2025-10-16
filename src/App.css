@@ -590,6 +590,23 @@ body.colorful-theme select:focus {
 
 /* ==================== 모바일 최적화 ==================== */
 
+/* 데스크톱 기본 스타일 (768px 초과) */
+.sidebar-desktop {
+  display: block;
+}
+
+.sidebar-mobile {
+  display: none;
+}
+
+.calendar-desktop {
+  display: block;
+}
+
+.calendar-mobile {
+  display: none;
+}
+
 /* 기본 텍스트 크기 증가 (모바일) */
 @media (max-width: 768px) {
   /* HTML 기본 폰트 크기 증가 */
@@ -627,8 +644,20 @@ body.colorful-theme select:focus {
   }
 
   /* 사이드바 숨기기 - 모바일에서는 전체 화면 사용 */
-  aside {
+  .sidebar-desktop {
     display: none !important;
+  }
+
+  .sidebar-mobile {
+    display: block !important;
+  }
+
+  .calendar-desktop {
+    display: none !important;
+  }
+
+  .calendar-mobile {
+    display: block !important;
   }
 
   /* 메인 컨텐츠 전체 너비 사용 + 하단 네비게이션 공간 확보 */

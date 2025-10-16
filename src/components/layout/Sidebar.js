@@ -25,7 +25,7 @@ export const Sidebar = ({ currentView, onViewChange }) => {
   return (
     <>
       {/* 데스크톱 사이드바 */}
-      <aside className="glass-effect w-64 border-r border-white border-opacity-20 flex-shrink-0 hidden md:block">
+      <aside className="glass-effect w-64 border-r border-white border-opacity-20 flex-shrink-0 sidebar-desktop">
         <nav className="p-4 space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -53,7 +53,7 @@ export const Sidebar = ({ currentView, onViewChange }) => {
       </aside>
 
       {/* 모바일 하단 네비게이션 */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 glass-effect border-t border-white border-opacity-20 z-50 safe-area-bottom">
+      <nav className="fixed bottom-0 left-0 right-0 glass-effect border-t border-white border-opacity-20 z-50 safe-area-bottom sidebar-mobile">
         <div className="flex justify-around items-center px-2 py-2">
           {menuItems.map((item) => {
             const Icon = item.icon;

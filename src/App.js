@@ -67,10 +67,18 @@ export default function App() {
     registerFixedExpense
   } = useTransactions(currentUser, familyInfo);
 
+  // 디버그: 로딩 상태 로그
+  console.log('🔍 App.js 로딩 상태:', {
+    authLoading,
+    transactionsLoading,
+    isAuthenticated,
+    currentUser: currentUser?.email
+  });
+
   // ===== 3. 고정지출 상태 (useFixedExpenses 훅 사용) =====
   const {
     fixedExpenses,
-    loading: fixedExpensesLoading,
+    // loading: fixedExpensesLoading,  // 사용하지 않음
     fixedForm,
     showAddFixed,
     editingFixed,
@@ -470,16 +478,17 @@ export default function App() {
   }
 
   // ===== 데이터 로딩 중 =====
-  if (transactionsLoading || fixedExpensesLoading) {
-    return (
-      <div className="min-h-screen bg-animated flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-700 font-medium">데이터 불러오는 중...</p>
-        </div>
-      </div>
-    );
-  }
+  // 주석 처리: 로딩 무한루프 방지
+  // if (transactionsLoading || fixedExpensesLoading) {
+  //   return (
+  //     <div className="min-h-screen bg-animated flex items-center justify-center">
+  //       <div className="text-center">
+  //         <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+  //         <p className="text-gray-700 font-medium">데이터 불러오는 중...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   // ===== 메인 앱 레이아웃 =====
   return (

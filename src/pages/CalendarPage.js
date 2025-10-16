@@ -436,12 +436,12 @@ export const CalendarPage = ({
       </div>
 
       {/* 모바일: 하루씩 보기 (가로 스와이프) */}
-      <div className="block sm:hidden">
+      <div className="calendar-mobile">
         {renderMobileDayView()}
       </div>
 
       {/* 데스크톱: 달력 그리드 */}
-      <div className="hidden sm:block">
+      <div className="calendar-desktop">
         <div className="glass-effect rounded-xl sm:rounded-2xl shadow-lg overflow-hidden">
           <div className="grid grid-cols-7 gap-0">
             {/* 요일 헤더 */}

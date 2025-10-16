@@ -75,12 +75,13 @@ export const useAuth = () => {
       firebaseId: firebaseUser.uid, // Firebase UID는 별도 저장
       email: firebaseUser.email.toLowerCase(), // 이메일은 항상 소문자로 저장 (초대 매칭용)
       name: displayName, // 깔끔한 이름만 표시
-      avatar: userAvatar, // 아바타 (커스터마이징 가능)
+      avatar: userAvatar || DEFAULT_AVATARS.user1, // 아바타 (커스터마이징 가능)
       role: 'admin' // 로그인한 사람은 관리자로 설정
     };
 
     setCurrentUser(user);
     console.log('👤 사용자 정보 업데이트:', user);
+    console.log('👤 현재 userAvatar:', userAvatar);
   }, [firebaseUser, userAvatar]);
 
   /**

@@ -38,6 +38,10 @@ export const SettingsPage = ({
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [familyName, setFamilyName] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
+
+  // 디버그: 아바타 props 확인
+  console.log('[SettingsPage] userAvatar:', userAvatar);
+  console.log('[SettingsPage] onChangeAvatar:', typeof onChangeAvatar);
   const handleFileImport = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -182,43 +186,47 @@ export const SettingsPage = ({
           <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">기본 설정</h3>
           <div className="space-y-4">
             {/* 아바타 설정 */}
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                내 아바타
-              </label>
-              <div className="flex items-center gap-3">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center text-3xl shadow-md">
-                  {userAvatar || DEFAULT_AVATARS.user1}
+            {onChangeAvatar && (
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                  내 아바타
+                </label>
+                <div className="flex items-center gap-3">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center text-3xl shadow-md">
+                    {userAvatar || DEFAULT_AVATARS.user1}
+                  </div>
+                  <Button
+                    variant="secondary"
+                    icon={Smile}
+                    onClick={() => setShowAvatarPicker(true)}
+                    className="text-sm"
+                  >
+                    변경하기
+                  </Button>
                 </div>
-                <Button
-                  variant="secondary"
-                  icon={Smile}
-                  onClick={() => setShowAvatarPicker(true)}
-                  className="text-sm"
-                >
-                  변경하기
-                </Button>
+                <p className="text-xs text-gray-500 mt-2">
+                  헤더에 표시될 아바타를 선택하세요
+                </p>
               </div>
-              <p className="text-xs text-gray-500 mt-2">
-                헤더에 표시될 아바타를 선택하세요
-              </p>
-            </div>
+            )}
 
             {/* 테마 설정 */}
-            <div>
-              <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                테마
-              </label>
-              <select
-                value={theme}
-                onChange={(e) => onChangeTheme(e.target.value)}
-                className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-              >
-                <option value="light">라이트 (기본)</option>
-                <option value="dark">다크</option>
-                <option value="colorful">컬러풀</option>
-              </select>
-            </div>
+            {onChangeTheme && (
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                  테마
+                </label>
+                <select
+                  value={theme || 'light'}
+                  onChange={(e) => onChangeTheme(e.target.value)}
+                  className="w-full px-3 sm:px-4 py-2 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+                >
+                  <option value="light">라이트 (기본)</option>
+                  <option value="dark">다크</option>
+                  <option value="colorful">컬러풀</option>
+                </select>
+              </div>
+            )}
           </div>
         </div>
 

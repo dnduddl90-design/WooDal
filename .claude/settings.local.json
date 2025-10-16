@@ -23,7 +23,10 @@
       "Bash(git add:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\nPhase 10: PWA 전환 완료 + 문서 정리\n\n✨ 주요 변경사항:\n- PWA Manifest 설정 (앱 이름, 테마, 아이콘)\n- Service Worker 구현 (오프라인 캐싱, 자동 업데이트)\n- 설치 프롬프트 UI 추가 (Header에 \"앱 설치\" 버튼)\n- Firebase Security Rules 배포\n- TransactionForm 날짜 기본값 수정\n\n📚 문서 추가:\n- PWA-설치-가이드.md (iOS/Android/Desktop 설치 방법)\n- 학습자료/01-PWA-자동업데이트.md\n- 학습자료/02-Git-자동화-전략.md\n- 개발일지 Phase 10 섹션 추가\n\n🔧 기술 스택:\n- Service Worker (오프라인 지원)\n- PWA Manifest (앱 메타데이터)\n- beforeinstallprompt 이벤트 (설치 프롬프트)\n\n📦 배포:\n- Firebase Hosting 배포 완료\n- 빌드 크기: 161.75 kB (gzip)\n\n🎉 Generated with Claude Code\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
       "Bash(git push:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(git log:*)",
+      "Bash(npx eslint:*)",
+      "Bash(if exist \"node_modules\\.cache\" rmdir /s /q \"node_modules\\.cache\")"
     ],
     "deny": [],
     "ask": []

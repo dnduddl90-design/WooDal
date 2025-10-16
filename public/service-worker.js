@@ -1,8 +1,8 @@
 /* eslint-disable no-restricted-globals */
 
-// 캐시 버전
-const CACHE_NAME = 'woodal-budget-v1';
-const RUNTIME_CACHE = 'woodal-runtime-v1';
+// 캐시 버전 - 배포할 때마다 버전 올리기!
+const CACHE_NAME = 'woodal-budget-v2';
+const RUNTIME_CACHE = 'woodal-runtime-v2';
 
 // 오프라인 시 캐시할 파일들
 const PRECACHE_URLS = [
@@ -68,42 +68,30 @@ self.addEventListener('fetch', (event) => {
   // API 요청이 아닌 경우 (HTML, JS, CSS, 이미지 등)
   if (request.method === 'GET' && !url.pathname.startsWith('/api')) {
     event.respondWith(
-      caches.match(request)
-        .then((cachedResponse) => {
-          // 캐시가 있으면 캐시 반환하면서 백그라운드에서 네트워크 요청
-          if (cachedResponse) {
-            // 백그라운드에서 최신 버전 가져오기
-            fetch(request).then((networkResponse) => {
-              if (networkResponse && networkResponse.status === 200) {
-                caches.open(RUNTIME_CACHE).then((cache) => {
-                  cache.put(request, networkResponse.clone());
-                });
-              }
-            }).catch(() => {
-              // 네트워크 실패는 무시 (이미 캐시 반환됨)
+      // 네트워크 우선 전략 - 항상 최신 버전 사용
+      fetch(request)
+        .then((networkResponse) => {
+          // 유효한 응답이면 캐시에 저장
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches.open(RUNTIME_CACHE).then((cache) => {
+              cache.put(request, responseToCache);
             });
-
-            return cachedResponse;
           }
-
-          // 캐시가 없으면 네트워크 요청
-          return fetch(request)
-            .then((networkResponse) => {
-              // 유효한 응답이면 캐시에 저장
-              if (networkResponse && networkResponse.status === 200) {
-                const responseToCache = networkResponse.clone();
-                caches.open(RUNTIME_CACHE).then((cache) => {
-                  cache.put(request, responseToCache);
-                });
-              }
-              return networkResponse;
-            })
-            .catch(() => {
-              // 오프라인이고 캐시도 없으면 기본 오프라인 페이지
-              if (request.destination === 'document') {
-                return caches.match('/index.html');
-              }
-            });
+          return networkResponse;
+        })
+        .catch(() => {
+          // 네트워크 실패 시에만 캐시 사용 (오프라인 대비)
+          return caches.match(request).then((cachedResponse) => {
+            if (cachedResponse) {
+              console.log('[Service Worker] Using cached version (offline):', request.url);
+              return cachedResponse;
+            }
+            // 오프라인이고 캐시도 없으면 기본 오프라인 페이지
+            if (request.destination === 'document') {
+              return caches.match('/index.html');
+            }
+          });
         })
     );
   }

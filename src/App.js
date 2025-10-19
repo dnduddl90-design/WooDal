@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 // Hooks
-import { useAuth, useTransactions, useFixedExpenses, useSettings, useTheme } from './hooks';
+import { useAuth, useTransactions, useFixedExpenses, useStocks, useSettings, useTheme } from './hooks';
 
 // Services
 import { autoRegisterFixedExpenses } from './services/autoRegisterService';
@@ -11,6 +11,7 @@ import {
   LoginPage,
   CalendarPage,
   StatisticsPage,
+  StockPage,
   FixedExpensePage,
   SearchPage,
   SettingsPage
@@ -92,7 +93,17 @@ export default function App() {
     resetFixedForm
   } = useFixedExpenses(currentUser, familyInfo);
 
-  // ===== 4. 설정 상태 (useSettings 훅 사용) =====
+  // ===== 4. 주식 상태 (useStocks 훅 사용) =====
+  const {
+    stocks,
+    loading: stocksLoading,
+    currentPrices,
+    handleAddStock,
+    handleDeleteStock,
+    refreshPrices
+  } = useStocks(currentUser);
+
+  // ===== 5. 설정 상태 (useSettings 훅 사용) =====
   const { settings, updateSettings } = useSettings(currentUser);
 
   // ===== 5. 뷰 및 날짜 상태 =====
@@ -531,6 +542,17 @@ export default function App() {
               onDateChange={setCurrentDate}
               transactions={transactions}
               settings={settings}
+            />
+          )}
+
+          {currentView === 'stocks' && (
+            <StockPage
+              stocks={stocks}
+              currentPrices={currentPrices}
+              loading={stocksLoading}
+              onAddStock={handleAddStock}
+              onDeleteStock={handleDeleteStock}
+              onRefreshPrices={refreshPrices}
             />
           )}
 

@@ -2,6 +2,7 @@ import React from 'react';
 import {
   Calendar,
   BarChart3,
+  TrendingUp,
   Repeat,
   Search,
   Settings
@@ -17,6 +18,7 @@ export const Sidebar = ({ currentView, onViewChange }) => {
   const menuItems = [
     { id: 'calendar', icon: Calendar, label: '달력', color: 'text-blue-600' },
     { id: 'statistics', icon: BarChart3, label: '통계', color: 'text-purple-600' },
+    { id: 'stocks', icon: TrendingUp, label: '주식', color: 'text-indigo-600' },
     { id: 'fixed', icon: Repeat, label: '고정지출', color: 'text-green-600' },
     { id: 'search', icon: Search, label: '검색', color: 'text-orange-600' },
     { id: 'settings', icon: Settings, label: '설정', color: 'text-gray-600' }

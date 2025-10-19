@@ -592,3 +592,83 @@ export const onAvatarChange = (userId, callback) => {
     callback(snapshot.exists() ? snapshot.val() : null);
   });
 };
+
+// ==================== 주식 (Stocks) ====================
+
+/**
+ * 모든 주식 가져오기
+ * @param {string} userId - 사용자 ID
+ */
+export const getStocks = async (userId) => {
+  const stocksRef = ref(database, getUserPath(userId, 'stocks'));
+  const snapshot = await get(stocksRef);
+
+  if (snapshot.exists()) {
+    const data = snapshot.val();
+    return Object.entries(data).map(([id, stock]) => ({
+      ...stock,
+      id
+    }));
+  }
+  return [];
+};
+
+/**
+ * 주식 저장
+ * @param {string} userId - 사용자 ID
+ * @param {Object} stock - 주식 객체
+ */
+export const saveStock = async (userId, stock) => {
+  const stocksRef = ref(database, getUserPath(userId, 'stocks'));
+  const newStockRef = push(stocksRef);
+  await set(newStockRef, stock);
+  return newStockRef.key;
+};
+
+/**
+ * 주식 수정
+ * @param {string} userId - 사용자 ID
+ * @param {string} stockId - 주식 ID
+ * @param {Object} updates - 수정할 데이터
+ */
+export const updateStock = async (userId, stockId, updates) => {
+  const stockRef = ref(
+    database,
+    getUserPath(userId, `stocks/${stockId}`)
+  );
+  await update(stockRef, updates);
+};
+
+/**
+ * 주식 삭제
+ * @param {string} userId - 사용자 ID
+ * @param {string} stockId - 주식 ID
+ */
+export const deleteStock = async (userId, stockId) => {
+  const stockRef = ref(
+    database,
+    getUserPath(userId, `stocks/${stockId}`)
+  );
+  await remove(stockRef);
+};
+
+/**
+ * 주식 실시간 리스너
+ * @param {string} userId - 사용자 ID
+ * @param {Function} callback - 데이터 변경 시 호출될 함수
+ */
+export const onStocksChange = (userId, callback) => {
+  const stocksRef = ref(database, getUserPath(userId, 'stocks'));
+  return onValue(stocksRef, (snapshot) => {
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      const stocks = Object.entries(data).map(([id, stock]) => ({
+        ...stock,
+        id
+      }));
+      callback(stocks);
+    } else {
+      callback([]);
+    }
+  });
+};

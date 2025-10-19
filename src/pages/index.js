@@ -5,6 +5,7 @@
 export { LoginPage } from './LoginPage';
 export { CalendarPage } from './CalendarPage';
 export { StatisticsPage } from './StatisticsPage';
+export { StockPage } from './StockPage';
 export { FixedExpensePage } from './FixedExpensePage';
 export { SearchPage } from './SearchPage';
 export { SettingsPage } from './SettingsPage';

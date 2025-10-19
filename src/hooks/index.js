@@ -5,5 +5,6 @@
 export { useAuth } from './useAuth';
 export { useTransactions } from './useTransactions';
 export { useFixedExpenses } from './useFixedExpenses';
+export { useStocks } from './useStocks';
 export { useSettings } from './useSettings';
 export { useTheme } from './useTheme';

@@ -155,8 +155,11 @@ npm run build && firebase deploy --only hosting
 - [SOLID.md](./SOLID.md) - SOLID 원칙 설명
 
 ### 개발 일지 & 배포
-- [개발일지.md](./개발일지.md) - 전체 개발 과정 기록 (Phase 1-7)
+- [개발일지.md](./개발일지.md) - 전체 개발 과정 기록 (Phase 1-13)
 - [DEPLOYMENT.md](./DEPLOYMENT.md) - Firebase Hosting 배포 가이드
+
+### Firebase 관리
+- [Firebase-데이터-관리-가이드.md](./Firebase-데이터-관리-가이드.md) - 데이터 저장, 요금제, 백업 전략 (⭐ 필독)
 
 ## 🎨 디자인 시스템
 
@@ -263,17 +266,24 @@ import { Modal } from './components/common';
   - 모든 페이지 모바일 최적화
   - 프로덕션 빌드 및 배포 준비
 
-### 다음 단계 (Phase 8 예정)
+- ✅ **Phase 13**: PC/모바일 달력 UX 개선 (100%)
+  - 반응형 달력 클릭 동작 분리
+  - 고정지출 기간 설정 기능
+  - 저축 카테고리 추가 및 통계 개선
+  - 주식 메뉴 숨김
 
-- [ ] Firebase Security Rules 설정
+### 다음 단계
+
+- [ ] 예산 관리 기능
+- [ ] 알림 시스템
 - [ ] PWA 전환 (오프라인 지원)
-- [ ] 성능 최적화
 - [ ] TypeScript 마이그레이션
 - [ ] 테스트 코드 작성
 
 **전체 진행률**: 약 99%
-**총 개발 시간**: 약 14시간
-**현재 상태**: 프로덕션 배포 가능
+**총 개발 시간**: 약 16시간
+**현재 상태**: 프로덕션 배포 중 (v1.0.13)
+**최종 업데이트**: 2025-10-20
 
 ## 🤝 개발 가이드라인
 
@@ -296,9 +306,10 @@ import { Modal } from './components/common';
 ## 👥 개발 정보
 
 - **시작일**: 2025-10-13
-- **완료일**: 2025-10-14
+- **최종 업데이트**: 2025-10-20
 - **개발**: Claude Code와 함께
-- **상태**: Phase 7 완료 (프로덕션 배포 가능)
+- **상태**: Phase 13 완료 (프로덕션 배포 중)
+- **버전**: v1.0.13
 - **배포 URL**: https://woodal-budget.web.app
 
 ---
@@ -314,7 +325,19 @@ npm run build && firebase deploy --only hosting
 
 ---
 
+## 💡 중요 안내
+
+### Firebase 데이터 관리
+데이터는 Firebase에 **영구적으로 저장**되며, 무료 한도(1GB)로 **수십 년간 사용 가능**합니다.
+자세한 내용은 [Firebase-데이터-관리-가이드.md](./Firebase-데이터-관리-가이드.md)를 참고하세요.
+
+### 정기 백업 권장
+- Firebase Console에서 월 1회 JSON 내보내기
+- 중요 작업 전 백업 필수
+
+---
+
 **🎯 프로젝트 완성도**: 99%
-**다음 작업**: Firebase Security Rules 설정 및 PWA 전환
+**다음 작업**: 예산 관리 기능 및 알림 시스템
 
 자세한 개발 과정은 [개발일지.md](./개발일지.md)를 참고하세요.

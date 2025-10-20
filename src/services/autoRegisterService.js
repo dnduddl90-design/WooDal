@@ -37,10 +37,40 @@ export const setLastCheckDate = (date) => {
 
 /**
  * 오늘이 고정지출 자동 등록일인지 확인
+ * 기간 제한 고정지출의 경우 startDate ~ endDate 범위 내인지도 체크
  */
 export const shouldAutoRegister = (fixedExpense, today = new Date()) => {
   const todayDate = today.getDate(); // 1-31
-  return fixedExpense.autoRegisterDate === todayDate && fixedExpense.isActive;
+
+  // 비활성화된 경우 등록하지 않음
+  if (!fixedExpense.isActive) {
+    return false;
+  }
+
+  // 오늘이 자동 등록일이 아니면 등록하지 않음
+  if (fixedExpense.autoRegisterDate !== todayDate) {
+    return false;
+  }
+
+  // 무기한 고정지출인 경우 등록
+  if (fixedExpense.isUnlimited !== false) {
+    return true;
+  }
+
+  // 기간 제한 고정지출인 경우 기간 체크
+  const todayStr = formatDate(today);
+
+  // startDate가 있으면 오늘이 시작일 이후인지 확인
+  if (fixedExpense.startDate && todayStr < fixedExpense.startDate) {
+    return false;
+  }
+
+  // endDate가 있으면 오늘이 종료일 이전인지 확인
+  if (fixedExpense.endDate && todayStr > fixedExpense.endDate) {
+    return false;
+  }
+
+  return true;
 };
 
 /**

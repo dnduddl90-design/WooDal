@@ -158,6 +158,17 @@ export const FixedExpensePage = ({
                             )}
                           </p>
                           <p>매월 {fixed.autoRegisterDate}일 자동 등록</p>
+                          {/* 기간 정보 표시 */}
+                          {fixed.isUnlimited === false && (fixed.startDate || fixed.endDate) && (
+                            <p className="text-blue-600 font-medium">
+                              📅 기간: {fixed.startDate || '시작'} ~ {fixed.endDate || '종료'}
+                            </p>
+                          )}
+                          {fixed.isUnlimited !== false && (
+                            <p className="text-green-600 font-medium">
+                              ♾️ 무기한
+                            </p>
+                          )}
                           <p className="truncate">카테고리: {category?.name || '기타'}</p>
                           {fixed.paymentMethod && (
                             <p className="truncate">결제 수단: {fixed.paymentMethod}</p>
@@ -219,6 +230,12 @@ export const FixedExpensePage = ({
             </p>
           </div>
           <div className="bg-white rounded-lg p-3 sm:p-4">
+            <p className="font-semibold text-sm sm:text-base text-gray-800 mb-1 sm:mb-2">📅 기간 설정</p>
+            <p className="text-xs sm:text-sm text-gray-600">
+              무기한 또는 기간 제한 고정지출을 설정할 수 있습니다.
+            </p>
+          </div>
+          <div className="bg-white rounded-lg p-3 sm:p-4">
             <p className="font-semibold text-sm sm:text-base text-gray-800 mb-1 sm:mb-2">📈 월 증가액</p>
             <p className="text-xs sm:text-sm text-gray-600">
               매달 일정 금액씩 증가하는 지출을 설정할 수 있습니다.
@@ -228,12 +245,6 @@ export const FixedExpensePage = ({
             <p className="font-semibold text-sm sm:text-base text-gray-800 mb-1 sm:mb-2">⏸️ 일시 중지</p>
             <p className="text-xs sm:text-sm text-gray-600">
               비활성화하면 자동 등록이 중지되지만 데이터는 유지됩니다.
-            </p>
-          </div>
-          <div className="bg-white rounded-lg p-3 sm:p-4">
-            <p className="font-semibold text-sm sm:text-base text-gray-800 mb-1 sm:mb-2">📊 통계 반영</p>
-            <p className="text-xs sm:text-sm text-gray-600">
-              활성 고정지출만 통계에 자동으로 포함됩니다.
             </p>
           </div>
         </div>

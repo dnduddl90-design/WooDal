@@ -1,4 +1,4 @@
-import { Coffee, Car, Home, Heart, ShoppingCart, Smartphone, MoreHorizontal, DollarSign, TrendingUp } from 'lucide-react';
+import { Coffee, Car, Home, Heart, ShoppingCart, Smartphone, MoreHorizontal, DollarSign, TrendingUp, Wallet } from 'lucide-react';
 
 /**
  * 가계부 카테고리 상수
@@ -61,6 +61,13 @@ export const CATEGORIES = {
       icon: Heart,
       color: 'bg-rose-100 text-rose-600 border-rose-200',
       subCategories: []
+    },
+    {
+      id: 'savings',
+      name: '저축',
+      icon: Wallet,
+      color: 'bg-teal-100 text-teal-600 border-teal-200',
+      subCategories: ['예금', '적금', '투자']
     },
     {
       id: 'other',

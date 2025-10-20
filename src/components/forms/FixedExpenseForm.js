@@ -93,6 +93,62 @@ export const FixedExpenseForm = ({
           </p>
         </div>
 
+        {/* 기간 설정 */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            <div>
+              <p className="font-medium text-gray-800">무기한 고정지출</p>
+              <p className="text-sm text-gray-600">
+                종료일 없이 계속 사용
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onFormChange({
+                ...formData,
+                isUnlimited: !formData.isUnlimited,
+                startDate: formData.isUnlimited ? new Date().toISOString().split('T')[0] : '',
+                endDate: ''
+              })}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                formData.isUnlimited ? 'bg-blue-600' : 'bg-gray-300'
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  formData.isUnlimited ? 'translate-x-6' : 'translate-x-1'
+                }`}
+              />
+            </button>
+          </div>
+
+          {!formData.isUnlimited && (
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="시작일"
+                type="date"
+                value={formData.startDate || ''}
+                onChange={(e) => onFormChange({ ...formData, startDate: e.target.value })}
+                required={!formData.isUnlimited}
+              />
+              <Input
+                label="종료일"
+                type="date"
+                value={formData.endDate || ''}
+                onChange={(e) => onFormChange({ ...formData, endDate: e.target.value })}
+                min={formData.startDate}
+                required={!formData.isUnlimited}
+              />
+            </div>
+          )}
+
+          {!formData.isUnlimited && (
+            <p className="text-sm text-gray-500">
+              설정한 기간 동안만 자동으로 거래가 등록됩니다
+            </p>
+          )}
+        </div>
+
         {/* 월 증가액 */}
         <Input
           label="월 증가액 (선택)"

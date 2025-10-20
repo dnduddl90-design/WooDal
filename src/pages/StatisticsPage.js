@@ -59,17 +59,32 @@ export const StatisticsPage = ({
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const currentExpense = currentMonthData
+  // 저축 카테고리 지출 계산
+  const currentSavings = currentMonthData
+    .filter(t => t.type === 'expense' && t.category === 'savings')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  // 총 지출 (저축 포함)
+  const currentExpenseTotal = currentMonthData
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
+
+  // 실제 소비 지출 (저축 제외)
+  const currentExpense = currentExpenseTotal - currentSavings;
 
   const previousIncome = previousMonthData
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  const previousExpense = previousMonthData
+  const previousSavings = previousMonthData
+    .filter(t => t.type === 'expense' && t.category === 'savings')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const previousExpenseTotal = previousMonthData
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
+
+  const previousExpense = previousExpenseTotal - previousSavings;
 
   // 카테고리별 지출 계산
   const expensesByCategory = currentMonthData
@@ -84,7 +99,9 @@ export const StatisticsPage = ({
   // 변화율 계산
   const incomeChange = previousIncome > 0 ? ((currentIncome - previousIncome) / previousIncome) * 100 : 0;
   const expenseChange = previousExpense > 0 ? ((currentExpense - previousExpense) / previousExpense) * 100 : 0;
-  const savingChange = currentIncome - currentExpense;
+
+  // 저축 = 저축 카테고리 금액 (실제로 저축한 금액)
+  const savingChange = currentSavings;
   const savingRate = currentIncome > 0 ? (savingChange / currentIncome) * 100 : 0;
 
   // 최근 6개월 데이터 계산 (월별 비교)
@@ -102,13 +119,15 @@ export const StatisticsPage = ({
     });
 
     const income = monthData.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-    const expense = monthData.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+    const savings = monthData.filter(t => t.type === 'expense' && t.category === 'savings').reduce((sum, t) => sum + t.amount, 0);
+    const expenseTotal = monthData.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+    const expense = expenseTotal - savings;
 
     last6Months.push({
       month: `${targetMonth + 1}월`,
       income,
       expense,
-      saving: income - expense
+      saving: savings
     });
   }
 
@@ -428,29 +447,34 @@ export const StatisticsPage = ({
       {/* 재정 건강 알림 */}
       {currentMonthData.length > 0 && (
         <div className={`glass-effect rounded-xl p-4 sm:p-6 shadow-lg ${
-          savingChange >= 0
+          currentIncome >= currentExpenseTotal
             ? 'bg-gradient-to-r from-green-50 to-blue-50'
             : 'bg-gradient-to-r from-red-50 to-orange-50'
         }`}>
           <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">
             💡 이번 달 가계 분석
           </h3>
-          {savingChange >= 0 ? (
+          {currentIncome >= currentExpenseTotal ? (
             <div>
               <p className="text-sm sm:text-base text-gray-700 mb-2">
                 🎉 훌륭합니다! 이번 달 <span className="font-bold text-green-600">
                   {formatCurrency(savingChange)}원
                 </span>을 저축했습니다.
               </p>
-              <p className="text-xs sm:text-sm text-gray-600">
+              <p className="text-xs sm:text-sm text-gray-600 mb-2">
                 저축률 {savingRate.toFixed(1)}%를 달성했습니다. 계속 이런 습관을 유지하세요!
               </p>
+              {currentIncome > currentExpenseTotal && (
+                <p className="text-xs sm:text-sm text-blue-600">
+                  추가로 <span className="font-semibold">{formatCurrency(currentIncome - currentExpenseTotal)}원</span>의 여유 자금이 있습니다.
+                </p>
+              )}
             </div>
           ) : (
             <div>
               <p className="text-sm sm:text-base text-gray-700 mb-2">
                 ⚠️ 이번 달 지출이 수입을 <span className="font-bold text-red-600">
-                  {formatCurrency(Math.abs(savingChange))}원
+                  {formatCurrency(currentExpenseTotal - currentIncome)}원
                 </span> 초과했습니다.
               </p>
               <p className="text-xs sm:text-sm text-gray-600">

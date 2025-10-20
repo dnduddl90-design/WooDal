@@ -29,7 +29,10 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
     monthlyIncrease: '',
     paymentMethod: '',
     memo: '',
-    isActive: true
+    isActive: true,
+    isUnlimited: true,
+    startDate: '',
+    endDate: ''
   });
 
   /**
@@ -227,7 +230,10 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
       monthlyIncrease: '',
       paymentMethod: '',
       memo: '',
-      isActive: true
+      isActive: true,
+      isUnlimited: true,
+      startDate: '',
+      endDate: ''
     });
     setShowAddFixed(true);
   };
@@ -245,7 +251,10 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
       monthlyIncrease: (fixed.monthlyIncrease || '').toString(),
       paymentMethod: fixed.paymentMethod || '',
       memo: fixed.memo || '',
-      isActive: fixed.isActive
+      isActive: fixed.isActive,
+      isUnlimited: fixed.isUnlimited !== false, // 기본값 true
+      startDate: fixed.startDate || '',
+      endDate: fixed.endDate || ''
     });
     setShowAddFixed(true);
   };
@@ -262,7 +271,10 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
       monthlyIncrease: '',
       paymentMethod: '',
       memo: '',
-      isActive: true
+      isActive: true,
+      isUnlimited: true,
+      startDate: '',
+      endDate: ''
     });
     setEditingFixed(null);
   };

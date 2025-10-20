@@ -1,8 +1,8 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
-import { USERS } from '../constants';
+import { USERS, CATEGORIES } from '../constants';
 import { getDaysInMonth, getFirstDayOfMonth, formatCurrency } from '../utils';
-import { Button } from '../components/common';
+import { Button, Modal } from '../components/common';
 
 /**
  * 달력 페이지 컴포넌트
@@ -29,6 +29,21 @@ export const CalendarPage = ({
   );
   const [currentDay, setCurrentDay] = useState(initialDay);
 
+  // 날짜 상세 모달 상태
+  const [selectedDayData, setSelectedDayData] = useState(null);
+  const [showDayModal, setShowDayModal] = useState(false);
+
+  // 화면 크기 감지 (640px = sm breakpoint)
+  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 640);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktop(window.innerWidth >= 640);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // 특정 날짜의 거래 내역 가져오기 (useCallback으로 메모이제이션)
   const getDayTransactions = useCallback((day, month, year) => {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -37,10 +52,33 @@ export const CalendarPage = ({
 
   // 특정 날짜의 고정지출 가져오기 (useCallback으로 메모이제이션)
   const getFixedExpensesForDay = useCallback((day) => {
-    return fixedExpenses.filter(expense =>
-      expense.isActive && expense.autoRegisterDate === day
-    );
-  }, [fixedExpenses]);
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+    return fixedExpenses.filter(expense => {
+      // 비활성화되거나 날짜가 맞지 않으면 제외
+      if (!expense.isActive || expense.autoRegisterDate !== day) {
+        return false;
+      }
+
+      // 무기한 고정지출은 항상 표시
+      if (expense.isUnlimited !== false) {
+        return true;
+      }
+
+      // 기간제 고정지출은 기간 내에만 표시
+      if (expense.startDate && dateStr < expense.startDate) {
+        return false;
+      }
+
+      if (expense.endDate && dateStr > expense.endDate) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [fixedExpenses, currentDate]);
 
 
   // 월 이동 핸들러 (useCallback으로 최적화)
@@ -93,9 +131,21 @@ export const CalendarPage = ({
       days.push(
         <div
           key={day}
-          className={`h-16 sm:h-24 border border-gray-200 p-0.5 sm:p-1 hover:bg-gray-50 transition-colors ${
+          className={`h-16 sm:h-24 border border-gray-200 p-0.5 sm:p-1 hover:bg-gray-50 transition-colors cursor-pointer ${
             isToday ? 'ring-2 ring-blue-500' : ''
           }`}
+          onClick={() => {
+            // 데스크톱 모드: 항상 모달 열기
+            if (isDesktop && allItems.length > 0) {
+              setSelectedDayData({ day, month, year, allItems });
+              setShowDayModal(true);
+            }
+            // 모바일 모드: 3개 이상일 때만 모달 열기 (기존 동작)
+            else if (!isDesktop && allItems.length > 2) {
+              setSelectedDayData({ day, month, year, allItems });
+              setShowDayModal(true);
+            }
+          }}
         >
           <div className="text-xs sm:text-sm font-medium mb-0.5 sm:mb-1">{day}</div>
           {allItems.length > 0 ? (
@@ -110,8 +160,10 @@ export const CalendarPage = ({
                   >
                     <div
                       className="flex items-center space-x-0.5 sm:space-x-1 flex-1 cursor-pointer min-w-0"
-                      onClick={() => {
-                        if (item.type !== 'fixed') {
+                      onClick={(e) => {
+                        // 모바일 모드에서만 직접 편집 허용
+                        if (!isDesktop && item.type !== 'fixed') {
+                          e.stopPropagation();
                           onEditTransaction(item);
                         }
                       }}
@@ -127,7 +179,7 @@ export const CalendarPage = ({
                         {formatCurrency(item.amount)}
                       </span>
                     </div>
-                    {item.type !== 'fixed' && (
+                    {item.type !== 'fixed' && !isDesktop && (
                       <button
                         type="button"
                         onClick={(e) => {
@@ -144,8 +196,8 @@ export const CalendarPage = ({
                 );
               })}
               {allItems.length > 2 && (
-                <div className="text-[10px] sm:text-xs text-gray-500">
-                  +{allItems.length - 2}
+                <div className="text-[10px] sm:text-xs text-blue-600 font-medium hover:text-blue-800 cursor-pointer">
+                  +{allItems.length - 2}개 더보기
                 </div>
               )}
             </div>
@@ -171,7 +223,7 @@ export const CalendarPage = ({
 
     return days;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentDate, getDayTransactions, getFixedExpensesForDay, onEditTransaction, onDeleteTransaction]);
+  }, [currentDate, getDayTransactions, getFixedExpensesForDay, onEditTransaction, onDeleteTransaction, isDesktop]);
 
   // 모바일 하루 뷰 데이터 계산 (useMemo로 최적화)
   const mobileDayData = useMemo(() => {
@@ -333,6 +385,24 @@ export const CalendarPage = ({
             <div className="divide-y divide-gray-100">
               {allItems.map((item, index) => {
                 const user = item.type === 'fixed' ? null : USERS[item.userId];
+
+                // 카테고리 한글명 찾기
+                let categoryName = item.category || item.name;
+                if (item.type === 'fixed' && item.category) {
+                  // 고정지출 카테고리
+                  const categoryObj = CATEGORIES.expense.find(cat => cat.id === item.category);
+                  if (categoryObj) {
+                    categoryName = categoryObj.name;
+                  }
+                } else if (item.type !== 'fixed' && item.category) {
+                  // 일반 거래 카테고리
+                  const categoryList = item.type === 'income' ? CATEGORIES.income : CATEGORIES.expense;
+                  const categoryObj = categoryList.find(cat => cat.id === item.category);
+                  if (categoryObj) {
+                    categoryName = categoryObj.name;
+                  }
+                }
+
                 return (
                   <div
                     key={index}
@@ -349,11 +419,11 @@ export const CalendarPage = ({
                         user ? user.color : 'bg-gray-500'
                       }`} />
                       <div className="flex-1 min-w-0">
-                        <div className="text-base font-medium text-gray-800 truncate">
-                          {item.category || item.name}
+                        <div className="text-base font-semibold text-gray-900 truncate">
+                          {categoryName}
                         </div>
                         {item.memo && (
-                          <div className="text-sm text-gray-500 truncate">
+                          <div className="text-sm text-gray-600 truncate mt-0.5">
                             {item.memo}
                           </div>
                         )}
@@ -392,14 +462,6 @@ export const CalendarPage = ({
           )}
         </div>
 
-        {/* 모바일 거래 추가 버튼 */}
-        <button
-          onClick={onAddTransaction}
-          className="fixed bottom-20 right-4 w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-200 flex items-center justify-center z-50"
-          title="거래 추가"
-        >
-          <Plus size={28} />
-        </button>
       </div>
     );
   };
@@ -460,14 +522,113 @@ export const CalendarPage = ({
         </div>
       </div>
 
-      {/* 거래 추가 버튼 (데스크톱용) */}
+      {/* 거래 추가 버튼 (항상 표시) */}
       <button
         onClick={onAddTransaction}
-        className="hidden sm:flex fixed bottom-8 right-8 w-16 h-16 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-200 items-center justify-center z-50"
+        className="fixed bottom-8 right-8 w-16 h-16 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-200 flex items-center justify-center"
+        style={{ zIndex: 9999 }}
         title="거래 추가"
       >
         <Plus size={32} />
       </button>
+
+      {/* 날짜 상세 모달 */}
+      {selectedDayData && (
+        <Modal
+          isOpen={showDayModal}
+          onClose={() => setShowDayModal(false)}
+          title={`${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월 ${selectedDayData.day}일`}
+          size="md"
+        >
+          <div className="space-y-3">
+            {selectedDayData.allItems.map((item, index) => {
+              const user = item.type === 'fixed' ? null : USERS[item.userId];
+
+              // 카테고리 한글명 찾기
+              let categoryName = item.category || item.name;
+              if (item.type === 'fixed' && item.category) {
+                const categoryObj = CATEGORIES.expense.find(cat => cat.id === item.category);
+                if (categoryObj) {
+                  categoryName = categoryObj.name;
+                }
+              } else if (item.type !== 'fixed' && item.category) {
+                const categoryList = item.type === 'income' ? CATEGORIES.income : CATEGORIES.expense;
+                const categoryObj = categoryList.find(cat => cat.id === item.category);
+                if (categoryObj) {
+                  categoryName = categoryObj.name;
+                }
+              }
+
+              return (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  onClick={() => {
+                    if (item.type !== 'fixed') {
+                      onEditTransaction(item);
+                      setShowDayModal(false);
+                    }
+                  }}
+                >
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
+                      item.type === 'fixed' ? 'bg-orange-500' :
+                      user ? user.color : 'bg-gray-500'
+                    }`} />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-semibold text-gray-900 truncate">
+                        {categoryName}
+                      </div>
+                      {item.memo && (
+                        <div className="text-xs text-gray-600 truncate">
+                          {item.memo}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-base font-bold ${
+                      item.type === 'expense' || item.type === 'fixed' ? 'text-red-600' : 'text-blue-600'
+                    }`}>
+                      {item.type === 'expense' || item.type === 'fixed' ? '-' : '+'}
+                      {formatCurrency(item.amount)}
+                    </span>
+                    {item.type !== 'fixed' && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onDeleteTransaction(item.id);
+                          setShowDayModal(false);
+                        }}
+                        className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
+                        title="삭제"
+                      >
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-2 gap-4">
+            <div className="text-center p-3 bg-blue-50 rounded-lg">
+              <div className="text-xs text-gray-600 mb-1">수입</div>
+              <div className="text-base font-bold text-blue-600">
+                +{formatCurrency(selectedDayData.allItems.filter(i => i.type === 'income').reduce((sum, i) => sum + i.amount, 0))}원
+              </div>
+            </div>
+            <div className="text-center p-3 bg-red-50 rounded-lg">
+              <div className="text-xs text-gray-600 mb-1">지출</div>
+              <div className="text-base font-bold text-red-600">
+                -{formatCurrency(selectedDayData.allItems.filter(i => i.type === 'expense' || i.type === 'fixed').reduce((sum, i) => sum + i.amount, 0))}원
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

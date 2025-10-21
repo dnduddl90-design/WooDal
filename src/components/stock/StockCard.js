@@ -90,18 +90,27 @@ export const StockCard = ({ stock, currentPrice, onDelete, onUpdatePrice, onEdit
           {holdings.map((holding, index) => {
             const accountType = ACCOUNT_TYPES[holding.account] || ACCOUNT_TYPES.GENERAL;
             return (
-              <div key={index} className="flex justify-between items-center text-xs bg-white p-2 rounded">
+              <div key={index} className="flex justify-between items-center text-xs bg-white p-2 rounded group/holding hover:bg-gray-50">
                 <div className="flex items-center gap-2">
                   <span className={`px-2 py-1 rounded ${accountType.color}`}>
                     {accountType.icon} {accountType.label}
                   </span>
                   <span className="text-gray-600">{holding.quantity}주</span>
                 </div>
-                <div className="text-right">
-                  <div className="text-gray-900 font-medium">
-                    @{holding.buyPrice.toLocaleString()}{market.currency}
+                <div className="flex items-center gap-2">
+                  <div className="text-right">
+                    <div className="text-gray-900 font-medium">
+                      @{holding.buyPrice.toLocaleString()}{market.currency}
+                    </div>
+                    <div className="text-gray-500 text-xs">{holding.buyDate}</div>
                   </div>
-                  <div className="text-gray-500 text-xs">{holding.buyDate}</div>
+                  <button
+                    onClick={() => onEdit(stock, index)}
+                    className="opacity-0 group-hover/holding:opacity-100 transition-opacity p-1 hover:bg-indigo-100 rounded"
+                    title="이 계좌 수정"
+                  >
+                    <Edit2 size={14} className="text-indigo-600" />
+                  </button>
                 </div>
               </div>
             );
@@ -195,11 +204,11 @@ export const StockCard = ({ stock, currentPrice, onDelete, onUpdatePrice, onEdit
       {/* 수정/삭제 버튼 */}
       <div className="grid grid-cols-2 gap-2">
         <button
-          onClick={() => onEdit(stock)}
+          onClick={() => onEdit(stock, null)}
           className="py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"
         >
           <Edit2 size={16} />
-          수정
+          {hasMultipleAccounts ? '전체 수정' : '수정'}
         </button>
         <button
           onClick={() => onDelete(stock.id)}

@@ -137,14 +137,57 @@ export const useStocks = (currentUser) => {
   };
 
   /**
-   * 주식 수정
+   * 주식 수정 (전체 또는 계좌별)
    */
-  const handleUpdateStock = async (id, formData) => {
+  const handleUpdateStock = async (id, formData, holdingIndex = null) => {
     try {
-      const updatedStock = {
-        ...formData,
-        updatedAt: new Date().toISOString()
-      };
+      const existingStock = stocks.find(s => s.id === id);
+      if (!existingStock) {
+        alert('주식을 찾을 수 없습니다.');
+        return;
+      }
+
+      let updatedStock;
+
+      // 계좌별 수정인 경우
+      if (holdingIndex !== null && existingStock.holdings) {
+        const updatedHoldings = [...existingStock.holdings];
+
+        // 해당 인덱스의 holding 업데이트
+        if (updatedHoldings[holdingIndex]) {
+          updatedHoldings[holdingIndex] = {
+            ...updatedHoldings[holdingIndex],
+            account: formData.account,
+            quantity: formData.quantity,
+            buyPrice: formData.buyPrice,
+            buyDate: formData.buyDate,
+            memo: formData.memo
+          };
+
+          // 전체 수량과 평균 매입가 재계산
+          const totalQuantity = updatedHoldings.reduce((sum, h) => sum + h.quantity, 0);
+          const totalBuyValue = updatedHoldings.reduce((sum, h) => sum + (h.quantity * h.buyPrice), 0);
+          const averageBuyPrice = totalBuyValue / totalQuantity;
+
+          updatedStock = {
+            ...existingStock,
+            holdings: updatedHoldings,
+            quantity: totalQuantity,
+            buyPrice: averageBuyPrice,
+            currentPrice: formData.currentPrice || existingStock.currentPrice,
+            updatedAt: new Date().toISOString()
+          };
+        } else {
+          alert('계좌 정보를 찾을 수 없습니다.');
+          return;
+        }
+      } else {
+        // 전체 수정인 경우 (기존 로직)
+        updatedStock = {
+          ...formData,
+          updatedAt: new Date().toISOString()
+        };
+      }
 
       await updateStock(currentUser.firebaseId, id, updatedStock);
       console.log('✅ 주식 수정 성공:', id);

@@ -26,7 +26,6 @@ export const PocketMoneyPage = ({ currentUser }) => {
   const {
     transactions,
     monthlyBudget,
-    loading,
     updateBudget,
     addTransaction,
     deleteTransaction,
@@ -231,25 +230,10 @@ export const PocketMoneyPage = ({ currentUser }) => {
 
       {/* 잔고 섹션 */}
       <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-6 shadow-xl text-white">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <Wallet className="w-5 h-5" />
-            💵 용돈 잔고
-          </h2>
-          {!isEditingBudget && (
-            <div className="flex gap-2">
-              <Button variant="secondary" size="sm" onClick={handleAddBalance} icon={Plus}>
-                추가
-              </Button>
-              <Button variant="secondary" size="sm" onClick={handleSubtractBalance} icon={Minus}>
-                차감
-              </Button>
-              <Button variant="secondary" size="sm" onClick={handleEditBalance} icon={Edit}>
-                수정
-              </Button>
-            </div>
-          )}
-        </div>
+        <h2 className="text-lg font-semibold flex items-center gap-2 mb-4">
+          <Wallet className="w-5 h-5" />
+          💵 용돈 잔고
+        </h2>
 
         {isEditingBudget ? (
           <div className="space-y-3">
@@ -281,7 +265,21 @@ export const PocketMoneyPage = ({ currentUser }) => {
             </div>
           </div>
         ) : (
-          <div className="text-3xl font-bold">{formatCurrency(monthlyBudget)}</div>
+          <div className="space-y-4">
+            <div className="text-3xl font-bold">{formatCurrency(monthlyBudget)}</div>
+            {/* 버튼들 - 모바일에서는 세로, 데스크톱에서는 가로 */}
+            <div className="grid grid-cols-3 gap-2">
+              <Button variant="secondary" size="sm" onClick={handleAddBalance} icon={Plus}>
+                추가
+              </Button>
+              <Button variant="secondary" size="sm" onClick={handleSubtractBalance} icon={Minus}>
+                차감
+              </Button>
+              <Button variant="secondary" size="sm" onClick={handleEditBalance} icon={Edit}>
+                수정
+              </Button>
+            </div>
+          </div>
         )}
       </div>
 

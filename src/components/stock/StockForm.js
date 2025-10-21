@@ -11,19 +11,54 @@ export const StockForm = ({
   isOpen,
   onClose,
   onSubmit,
-  initialData = null
+  initialData = null,
+  holdingIndex = null // 계좌별 수정 시 holding 인덱스
 }) => {
-  const [formData, setFormData] = useState(initialData || {
-    market: 'KR',
-    account: 'GENERAL', // 계좌 기본값: 일반
-    symbol: '',
-    name: '',
-    quantity: '',
-    buyPrice: '',
-    currentPrice: '', // 현재가 추가
-    buyDate: new Date().toISOString().split('T')[0],
-    memo: ''
-  });
+  // 계좌별 수정인 경우 해당 holding 데이터 사용
+  const getInitialFormData = () => {
+    if (initialData && holdingIndex !== null && initialData.holdings && initialData.holdings[holdingIndex]) {
+      const holding = initialData.holdings[holdingIndex];
+      return {
+        market: initialData.market,
+        account: holding.account,
+        symbol: initialData.symbol,
+        name: initialData.name,
+        quantity: holding.quantity.toString(),
+        buyPrice: holding.buyPrice.toString(),
+        currentPrice: initialData.currentPrice?.toString() || '',
+        buyDate: holding.buyDate,
+        memo: holding.memo || initialData.memo || ''
+      };
+    } else if (initialData) {
+      // 전체 수정인 경우 기존 로직
+      return {
+        market: initialData.market,
+        account: initialData.account || 'GENERAL',
+        symbol: initialData.symbol,
+        name: initialData.name,
+        quantity: initialData.quantity?.toString() || '',
+        buyPrice: initialData.buyPrice?.toString() || '',
+        currentPrice: initialData.currentPrice?.toString() || '',
+        buyDate: initialData.buyDate || new Date().toISOString().split('T')[0],
+        memo: initialData.memo || ''
+      };
+    } else {
+      // 새 추가
+      return {
+        market: 'KR',
+        account: 'GENERAL',
+        symbol: '',
+        name: '',
+        quantity: '',
+        buyPrice: '',
+        currentPrice: '',
+        buyDate: new Date().toISOString().split('T')[0],
+        memo: ''
+      };
+    }
+  };
+
+  const [formData, setFormData] = useState(getInitialFormData());
 
   // 시장 변경 시 초기화
   const handleMarketChange = (market) => {
@@ -79,15 +114,34 @@ export const StockForm = ({
     onClose();
   };
 
+  const isEditingHolding = holdingIndex !== null;
+  const modalTitle = isEditingHolding
+    ? '계좌별 종목 수정'
+    : initialData
+    ? '주식 수정'
+    : '주식 추가';
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={initialData ? '주식 수정' : '주식 추가'}
+      title={modalTitle}
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* 구분 선택 */}
+        {/* 계좌별 수정 시 종목 정보 표시 */}
+        {isEditingHolding && (
+          <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-200">
+            <div className="text-sm text-gray-700">
+              <span className="font-semibold">종목:</span> {formData.name} ({formData.symbol})
+            </div>
+            <div className="text-xs text-gray-500 mt-1">
+              특정 계좌의 보유 내역만 수정됩니다
+            </div>
+          </div>
+        )}
+
+        {/* 구분 선택 (계좌별 수정 시 비활성화) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
             구분 <span className="text-red-500">*</span>
@@ -97,10 +151,13 @@ export const StockForm = ({
               <button
                 key={key}
                 type="button"
-                onClick={() => handleMarketChange(key)}
+                onClick={() => !isEditingHolding && handleMarketChange(key)}
+                disabled={isEditingHolding}
                 className={`px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
                   formData.market === key
                     ? 'bg-indigo-500 text-white shadow-lg scale-105'
+                    : isEditingHolding
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
@@ -133,8 +190,8 @@ export const StockForm = ({
           </div>
         </div>
 
-        {/* ETF 종목 선택 (현금이 아닐 때만 표시) */}
-        {formData.market === 'KR' && (
+        {/* ETF 종목 선택 (현금이 아닐 때만 표시, 계좌별 수정 시 숨김) */}
+        {formData.market === 'KR' && !isEditingHolding && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               종목 선택 <span className="text-red-500">*</span>

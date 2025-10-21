@@ -26,6 +26,7 @@ export const StockPage = ({
   const [showForm, setShowForm] = useState(false);
   const [showPriceModal, setShowPriceModal] = useState(false);
   const [editingStock, setEditingStock] = useState(null);
+  const [editingHoldingIndex, setEditingHoldingIndex] = useState(null); // 계좌별 수정 시 holding 인덱스
   const [selectedAccount, setSelectedAccount] = useState('ALL'); // 계좌 필터
 
   // 관리자 권한 확인 (role이 'admin'인 경우)
@@ -41,8 +42,9 @@ export const StockPage = ({
       });
 
   // 수정 모달 열기
-  const handleEdit = (stock) => {
+  const handleEdit = (stock, holdingIndex = null) => {
     setEditingStock(stock);
+    setEditingHoldingIndex(holdingIndex);
     setShowForm(true);
   };
 
@@ -50,12 +52,19 @@ export const StockPage = ({
   const handleCloseForm = () => {
     setShowForm(false);
     setEditingStock(null);
+    setEditingHoldingIndex(null);
   };
 
   // 주식 추가/수정 제출
   const handleSubmit = (formData) => {
     if (editingStock) {
-      onUpdateStock(editingStock.id, formData);
+      // 계좌별 수정인 경우
+      if (editingHoldingIndex !== null) {
+        onUpdateStock(editingStock.id, formData, editingHoldingIndex);
+      } else {
+        // 전체 수정인 경우
+        onUpdateStock(editingStock.id, formData);
+      }
     } else {
       onAddStock(formData);
     }
@@ -193,6 +202,7 @@ export const StockPage = ({
           onClose={handleCloseForm}
           onSubmit={handleSubmit}
           initialData={editingStock}
+          holdingIndex={editingHoldingIndex}
         />
       )}
 

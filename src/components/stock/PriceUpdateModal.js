@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DollarSign } from 'lucide-react';
+import { DollarSign, ExternalLink } from 'lucide-react';
 import { Button, Modal } from '../common';
 import { STOCK_MARKETS } from '../../constants/stocks';
 
@@ -54,9 +54,14 @@ export const PriceUpdateModal = ({ isOpen, onClose, stocks, onUpdatePrices }) =>
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        <p className="text-sm text-gray-600 mb-4">
-          보유 중인 {stocks.length}개 종목의 현재가를 입력하세요.
-        </p>
+        <div className="mb-4">
+          <p className="text-sm text-gray-600 mb-2">
+            보유 중인 {stocks.length}개 종목의 현재가를 입력하세요.
+          </p>
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
+            💡 <strong>시세 확인 방법:</strong> 각 종목 옆 🔗 버튼을 클릭하면 네이버 금융에서 실시간 시세를 확인할 수 있습니다.
+          </div>
+        </div>
 
         {/* 종목 리스트 */}
         <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -86,7 +91,19 @@ export const PriceUpdateModal = ({ isOpen, onClose, stocks, onUpdatePrices }) =>
                     step="0.01"
                     className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
                   />
-                  <span className="text-sm text-gray-600">{market.currency}</span>
+                  <span className="text-sm text-gray-600 min-w-[30px]">{market.currency}</span>
+
+                  {/* 네이버 금융 링크 (현금 제외) */}
+                  {stock.market !== 'CASH' && (
+                    <button
+                      type="button"
+                      onClick={() => window.open(`https://finance.naver.com/item/main.naver?code=${stock.symbol}`, '_blank')}
+                      className="p-2 rounded-lg bg-indigo-500 text-white hover:bg-indigo-600 active:scale-95 transition-all duration-200 flex items-center gap-1"
+                      title="네이버 금융에서 시세 확인"
+                    >
+                      <ExternalLink size={16} />
+                    </button>
+                  )}
                 </div>
               </div>
             );

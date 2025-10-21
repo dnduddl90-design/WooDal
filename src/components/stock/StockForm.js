@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ExternalLink } from 'lucide-react';
 import { STOCK_MARKETS, ETF_STOCKS, ACCOUNT_TYPES } from '../../constants/stocks';
 import { Button, Input, Modal } from '../common';
 
@@ -249,15 +250,36 @@ export const StockForm = ({
 
         {/* 현재가 (ETF만 입력) */}
         {formData.market !== 'CASH' && (
-          <Input
-            label={`현재가 (${STOCK_MARKETS[formData.market].currency})`}
-            type="number"
-            value={formData.currentPrice}
-            onChange={(e) => setFormData({ ...formData, currentPrice: e.target.value })}
-            placeholder="현재 시세 입력 (선택사항)"
-            min="0"
-            step="0.01"
-          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              현재가 ({STOCK_MARKETS[formData.market].currency})
+            </label>
+            <div className="flex space-x-2">
+              <input
+                type="number"
+                value={formData.currentPrice}
+                onChange={(e) => setFormData({ ...formData, currentPrice: e.target.value })}
+                placeholder="현재 시세 입력 (선택사항)"
+                min="0"
+                step="0.01"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+              />
+              {formData.symbol && (
+                <button
+                  type="button"
+                  onClick={() => window.open(`https://finance.naver.com/item/main.naver?code=${formData.symbol}`, '_blank')}
+                  className="px-4 py-2 rounded-xl bg-indigo-500 text-white hover:bg-indigo-600 active:scale-95 transition-all duration-200 flex items-center space-x-2"
+                  title="네이버 금융에서 시세 확인"
+                >
+                  <ExternalLink size={18} />
+                  <span className="hidden sm:inline">시세확인</span>
+                </button>
+              )}
+            </div>
+            <p className="mt-1 text-xs text-gray-500">
+              💡 시세확인 버튼을 클릭하면 네이버 금융에서 실시간 시세를 확인할 수 있습니다
+            </p>
+          </div>
         )}
 
         {/* 현금이 아닐 때만 매입일 표시 */}

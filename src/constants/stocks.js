@@ -19,8 +19,10 @@ export const ACCOUNT_TYPES = {
 
 // ETF 종목 리스트
 export const ETF_STOCKS = [
+  { symbol: '0072R0', name: 'TIGER KRX금현물' },
   { symbol: '411060', name: 'ACE KRX금현물' },
   { symbol: '458730', name: 'TIGER 미국배당다우존스' },
+  { symbol: '465580', name: 'ACE 미국빅테크TOP7 Plus' },
   { symbol: '475380', name: 'RISE 글로벌리얼티인컴' },
   { symbol: '453850', name: 'ACE 미국30년국채액티브(H)' },
   { symbol: '379800', name: 'KODEX 미국S&P500' },
@@ -32,8 +34,10 @@ export const ETF_STOCKS = [
 // 목업 데이터 (API 연동 전 테스트용)
 export const MOCK_STOCK_PRICES = {
   // ETF (원)
+  '0072R0': 0,  // TIGER KRX금현물
   '411060': 0,  // ACE KRX금현물
   '458730': 0,  // TIGER 미국배당다우존스
+  '465580': 0,  // ACE 미국빅테크TOP7 Plus
   '475380': 0,  // RISE 글로벌리얼티인컴
   '453850': 0,  // ACE 미국30년국채액티브(H)
   '379800': 0,  // KODEX 미국S&P500

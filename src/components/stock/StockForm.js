@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { STOCK_MARKETS, POPULAR_STOCKS } from '../../constants/stocks';
+import { STOCK_MARKETS, ETF_STOCKS, ACCOUNT_TYPES } from '../../constants/stocks';
 import { Button, Input, Modal } from '../common';
 
 /**
@@ -15,15 +15,17 @@ export const StockForm = ({
 }) => {
   const [formData, setFormData] = useState(initialData || {
     market: 'KR',
+    account: 'GENERAL', // 계좌 기본값: 일반
     symbol: '',
     name: '',
     quantity: '',
     buyPrice: '',
+    currentPrice: '', // 현재가 추가
     buyDate: new Date().toISOString().split('T')[0],
     memo: ''
   });
 
-  // 시장 변경 시 symbol, name 초기화
+  // 시장 변경 시 초기화
   const handleMarketChange = (market) => {
     setFormData({
       ...formData,
@@ -33,8 +35,8 @@ export const StockForm = ({
     });
   };
 
-  // 인기 종목 선택
-  const handlePopularStock = (stock) => {
+  // 종목 선택
+  const handleStockSelect = (stock) => {
     setFormData({
       ...formData,
       symbol: stock.symbol,
@@ -46,21 +48,36 @@ export const StockForm = ({
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.symbol || !formData.name || !formData.quantity || !formData.buyPrice) {
-      alert('모든 필수 항목을 입력해주세요.');
-      return;
+    // 현금 항목은 종목 선택 없이 금액만 입력
+    if (formData.market === 'CASH') {
+      if (!formData.buyPrice) {
+        alert('현금 금액을 입력해주세요.');
+        return;
+      }
+      onSubmit({
+        ...formData,
+        symbol: 'CASH',
+        name: '현금',
+        quantity: 1, // 현금은 수량 1로 고정
+        buyPrice: Number(formData.buyPrice),
+        currentPrice: Number(formData.buyPrice) // 현금은 현재가 = 매입가
+      });
+    } else {
+      // ETF 종목 선택
+      if (!formData.symbol || !formData.name || !formData.quantity || !formData.buyPrice) {
+        alert('모든 필수 항목을 입력해주세요.');
+        return;
+      }
+      onSubmit({
+        ...formData,
+        quantity: Number(formData.quantity),
+        buyPrice: Number(formData.buyPrice),
+        currentPrice: formData.currentPrice ? Number(formData.currentPrice) : Number(formData.buyPrice) // 현재가 미입력 시 매입가 사용
+      });
     }
-
-    onSubmit({
-      ...formData,
-      quantity: Number(formData.quantity),
-      buyPrice: Number(formData.buyPrice)
-    });
 
     onClose();
   };
-
-  const popularStocks = POPULAR_STOCKS[formData.market] || [];
 
   return (
     <Modal
@@ -70,10 +87,10 @@ export const StockForm = ({
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* 시장 선택 */}
+        {/* 구분 선택 */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            시장 <span className="text-red-500">*</span>
+            구분 <span className="text-red-500">*</span>
           </label>
           <div className="grid grid-cols-2 gap-3">
             {Object.entries(STOCK_MARKETS).map(([key, market]) => (
@@ -93,83 +110,109 @@ export const StockForm = ({
           </div>
         </div>
 
-        {/* 인기 종목 빠른 선택 */}
-        {popularStocks.length > 0 && (
+        {/* 계좌 선택 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            계좌 <span className="text-red-500">*</span>
+          </label>
+          <div className="grid grid-cols-2 gap-3">
+            {Object.entries(ACCOUNT_TYPES).map(([key, account]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setFormData({ ...formData, account: key })}
+                className={`px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
+                  formData.account === key
+                    ? 'bg-indigo-500 text-white shadow-lg scale-105'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {account.icon} {account.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ETF 종목 선택 (현금이 아닐 때만 표시) */}
+        {formData.market === 'KR' && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              인기 종목 (빠른 선택)
+              종목 선택 <span className="text-red-500">*</span>
             </label>
-            <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto">
-              {popularStocks.map((stock) => (
+            <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto border border-gray-200 rounded-xl p-3">
+              {ETF_STOCKS.map((stock) => (
                 <button
                   key={stock.symbol}
                   type="button"
-                  onClick={() => handlePopularStock(stock)}
-                  className={`px-3 py-2 text-sm rounded-lg transition-all duration-200 ${
+                  onClick={() => handleStockSelect(stock)}
+                  className={`px-3 py-2 text-sm text-left rounded-lg transition-all duration-200 ${
                     formData.symbol === stock.symbol
-                      ? 'bg-indigo-100 text-indigo-700 border-2 border-indigo-500'
+                      ? 'bg-indigo-100 text-indigo-700 border-2 border-indigo-500 font-medium'
                       : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
                   }`}
                 >
-                  {stock.name}
+                  <div className="font-medium">{stock.name}</div>
+                  <div className="text-xs text-gray-500">{stock.symbol}</div>
                 </button>
               ))}
             </div>
+            {formData.symbol && (
+              <div className="mt-2 text-sm text-indigo-600">
+                ✓ 선택: {formData.name} ({formData.symbol})
+              </div>
+            )}
           </div>
         )}
 
-        {/* 종목 코드 */}
-        <Input
-          label="종목 코드"
-          type="text"
-          value={formData.symbol}
-          onChange={(e) => setFormData({ ...formData, symbol: e.target.value })}
-          placeholder={formData.market === 'KR' ? '예: 005930' : '예: AAPL'}
-          required
-        />
+        {/* 현금이 아닐 때만 수량 표시 */}
+        {formData.market !== 'CASH' && (
+          <Input
+            label="보유 수량"
+            type="number"
+            value={formData.quantity}
+            onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+            placeholder="0"
+            min="0"
+            step="1"
+            required
+          />
+        )}
 
-        {/* 종목명 */}
+        {/* 금액 필드 (현금: 보유액 / ETF: 매입가) */}
         <Input
-          label="종목명"
-          type="text"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          placeholder={formData.market === 'KR' ? '예: 삼성전자' : '예: Apple'}
-          required
-        />
-
-        {/* 보유 수량 */}
-        <Input
-          label="보유 수량"
-          type="number"
-          value={formData.quantity}
-          onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
-          placeholder="0"
-          min="0"
-          step="1"
-          required
-        />
-
-        {/* 매입가 */}
-        <Input
-          label={`매입가 (${STOCK_MARKETS[formData.market].currency})`}
+          label={formData.market === 'CASH' ? '보유 금액 (원)' : `매입가 (${STOCK_MARKETS[formData.market].currency})`}
           type="number"
           value={formData.buyPrice}
           onChange={(e) => setFormData({ ...formData, buyPrice: e.target.value })}
           placeholder="0"
           min="0"
-          step="0.01"
+          step={formData.market === 'CASH' ? '1' : '0.01'}
           required
         />
 
-        {/* 매입일 */}
-        <Input
-          label="매입일"
-          type="date"
-          value={formData.buyDate}
-          onChange={(e) => setFormData({ ...formData, buyDate: e.target.value })}
-          required
-        />
+        {/* 현재가 (ETF만 입력) */}
+        {formData.market !== 'CASH' && (
+          <Input
+            label={`현재가 (${STOCK_MARKETS[formData.market].currency})`}
+            type="number"
+            value={formData.currentPrice}
+            onChange={(e) => setFormData({ ...formData, currentPrice: e.target.value })}
+            placeholder="현재 시세 입력 (선택사항)"
+            min="0"
+            step="0.01"
+          />
+        )}
+
+        {/* 현금이 아닐 때만 매입일 표시 */}
+        {formData.market !== 'CASH' && (
+          <Input
+            label="매입일"
+            type="date"
+            value={formData.buyDate}
+            onChange={(e) => setFormData({ ...formData, buyDate: e.target.value })}
+            required
+          />
+        )}
 
         {/* 메모 */}
         <div>

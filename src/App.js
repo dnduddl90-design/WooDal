@@ -101,8 +101,10 @@ export default function App() {
     loading: stocksLoading,
     currentPrices,
     handleAddStock,
+    handleUpdateStock,
     handleDeleteStock,
-    refreshPrices
+    updateCurrentPrice,
+    updateMultiplePrices
   } = useStocks(currentUser);
 
   // ===== 5. 설정 상태 (useSettings 훅 사용) =====
@@ -524,6 +526,7 @@ export default function App() {
         <Sidebar
           currentView={currentView}
           onViewChange={setCurrentView}
+          currentUser={currentUser}
         />
 
         {/* 메인 컨텐츠 */}
@@ -558,8 +561,11 @@ export default function App() {
               currentPrices={currentPrices}
               loading={stocksLoading}
               onAddStock={handleAddStock}
+              onUpdateStock={handleUpdateStock}
               onDeleteStock={handleDeleteStock}
-              onRefreshPrices={refreshPrices}
+              onUpdateCurrentPrice={updateCurrentPrice}
+              onUpdateMultiplePrices={updateMultiplePrices}
+              currentUser={currentUser}
             />
           )}
 

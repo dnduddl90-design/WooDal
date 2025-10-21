@@ -5,7 +5,6 @@ import {
   deleteStock,
   onStocksChange
 } from '../firebase/databaseService';
-import { MOCK_STOCK_PRICES } from '../constants/stocks';
 
 /**
  * 주식 관리 커스텀 훅 (Firebase 사용)
@@ -35,10 +34,10 @@ export const useStocks = (currentUser) => {
         setStocks(firebaseStocks);
         setLoading(false);
 
-        // MOCK 데이터로 현재가 설정 (API 연동 전)
+        // 현재가는 DB에 저장된 값 사용 (수동 입력)
         const prices = {};
         firebaseStocks.forEach(stock => {
-          prices[stock.symbol] = MOCK_STOCK_PRICES[stock.symbol] || stock.buyPrice;
+          prices[stock.symbol] = stock.currentPrice || stock.buyPrice; // DB의 currentPrice 사용
         });
         setCurrentPrices(prices);
       }
@@ -49,18 +48,86 @@ export const useStocks = (currentUser) => {
   }, [currentUser?.firebaseId]);
 
   /**
-   * 주식 추가
+   * 주식 추가 (동일 종목이면 holdings 배열에 추가)
    */
   const handleAddStock = async (formData) => {
     try {
-      const newStock = {
-        ...formData,
-        userId: currentUser?.id,
-        createdAt: new Date().toISOString()
-      };
+      // 동일 종목이 이미 있는지 확인 (symbol만 비교)
+      const existingStock = stocks.find(s => s.symbol === formData.symbol);
 
-      const savedId = await saveStock(currentUser.firebaseId, newStock);
-      console.log('✅ 주식 추가 성공:', savedId);
+      if (existingStock) {
+        // 동일 종목이 있으면 holdings 배열에 추가 또는 업데이트
+        const holdings = existingStock.holdings || [];
+
+        // 같은 계좌가 이미 있는지 확인
+        const existingHoldingIndex = holdings.findIndex(h => h.account === formData.account);
+
+        let updatedHoldings;
+        if (existingHoldingIndex >= 0) {
+          // 같은 계좌가 있으면 평균 매입가 계산
+          const existingHolding = holdings[existingHoldingIndex];
+          const totalQuantity = existingHolding.quantity + formData.quantity;
+          const totalAmount = (existingHolding.quantity * existingHolding.buyPrice) +
+                            (formData.quantity * formData.buyPrice);
+          const avgBuyPrice = totalAmount / totalQuantity;
+
+          updatedHoldings = [...holdings];
+          updatedHoldings[existingHoldingIndex] = {
+            ...existingHolding,
+            quantity: totalQuantity,
+            buyPrice: Math.round(avgBuyPrice * 100) / 100,
+            buyDate: formData.buyDate // 최근 매입일로 업데이트
+          };
+        } else {
+          // 새 계좌 추가
+          updatedHoldings = [
+            ...holdings,
+            {
+              account: formData.account,
+              quantity: formData.quantity,
+              buyPrice: formData.buyPrice,
+              buyDate: formData.buyDate
+            }
+          ];
+        }
+
+        // 전체 수량과 평균 매입가 재계산
+        const totalQuantity = updatedHoldings.reduce((sum, h) => sum + h.quantity, 0);
+        const totalAmount = updatedHoldings.reduce((sum, h) => sum + (h.quantity * h.buyPrice), 0);
+        const avgBuyPrice = totalAmount / totalQuantity;
+
+        const updatedStock = {
+          ...existingStock,
+          holdings: updatedHoldings,
+          quantity: totalQuantity,
+          buyPrice: Math.round(avgBuyPrice * 100) / 100,
+          currentPrice: formData.currentPrice || existingStock.currentPrice,
+          updatedAt: new Date().toISOString()
+        };
+
+        await updateStock(currentUser.firebaseId, existingStock.id, updatedStock);
+        console.log('✅ 종목 holdings 업데이트 성공:', existingStock.id);
+        alert(`${formData.name} 종목에 추가되었습니다!\n\n총 수량: ${totalQuantity}\n평균 매입가: ${avgBuyPrice.toLocaleString()}원`);
+      } else {
+        // 새 종목 추가
+        const newStock = {
+          ...formData,
+          userId: currentUser?.id,
+          currentPrice: formData.currentPrice || formData.buyPrice,
+          holdings: [
+            {
+              account: formData.account,
+              quantity: formData.quantity,
+              buyPrice: formData.buyPrice,
+              buyDate: formData.buyDate
+            }
+          ],
+          createdAt: new Date().toISOString()
+        };
+
+        const savedId = await saveStock(currentUser.firebaseId, newStock);
+        console.log('✅ 주식 추가 성공:', savedId);
+      }
 
       // 실시간 리스너가 자동으로 UI 업데이트
     } catch (error) {
@@ -109,15 +176,56 @@ export const useStocks = (currentUser) => {
   };
 
   /**
-   * 현재가 새로고침 (API 연동 전에는 MOCK 데이터 사용)
+   * 현재가 업데이트 (특정 종목)
    */
-  const refreshPrices = () => {
-    const prices = {};
-    stocks.forEach(stock => {
-      prices[stock.symbol] = MOCK_STOCK_PRICES[stock.symbol] || stock.buyPrice;
-    });
-    setCurrentPrices(prices);
-    console.log('🔄 주식 현재가 업데이트됨 (MOCK 데이터)');
+  const updateCurrentPrice = async (stockId, newPrice) => {
+    try {
+      const stock = stocks.find(s => s.id === stockId);
+      if (!stock) return;
+
+      const updatedStock = {
+        ...stock,
+        currentPrice: Number(newPrice),
+        updatedAt: new Date().toISOString()
+      };
+
+      await updateStock(currentUser.firebaseId, stockId, updatedStock);
+      console.log('✅ 현재가 업데이트 성공:', stockId);
+
+      // 실시간 리스너가 자동으로 UI 업데이트
+    } catch (error) {
+      console.error('❌ 현재가 업데이트 실패:', error);
+      alert('현재가 업데이트에 실패했습니다.');
+    }
+  };
+
+  /**
+   * 현재가 일괄 업데이트 (여러 종목)
+   */
+  const updateMultiplePrices = async (priceUpdates) => {
+    try {
+      const promises = Object.entries(priceUpdates).map(([stockId, newPrice]) => {
+        const stock = stocks.find(s => s.id === stockId);
+        if (!stock) return null;
+
+        const updatedStock = {
+          ...stock,
+          currentPrice: Number(newPrice),
+          updatedAt: new Date().toISOString()
+        };
+
+        return updateStock(currentUser.firebaseId, stockId, updatedStock);
+      }).filter(Boolean);
+
+      await Promise.all(promises);
+      console.log(`✅ ${promises.length}개 종목 현재가 일괄 업데이트 성공`);
+      alert(`${promises.length}개 종목의 현재가가 업데이트되었습니다.`);
+
+      // 실시간 리스너가 자동으로 UI 업데이트
+    } catch (error) {
+      console.error('❌ 현재가 일괄 업데이트 실패:', error);
+      alert('현재가 업데이트에 실패했습니다.');
+    }
   };
 
   return {
@@ -127,6 +235,7 @@ export const useStocks = (currentUser) => {
     handleAddStock,
     handleUpdateStock,
     handleDeleteStock,
-    refreshPrices
+    updateCurrentPrice,
+    updateMultiplePrices
   };
 };

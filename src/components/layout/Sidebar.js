@@ -5,7 +5,8 @@ import {
   Repeat,
   Search,
   Settings,
-  Wallet
+  Wallet,
+  TrendingUp
 } from 'lucide-react';
 
 /**
@@ -13,12 +14,16 @@ import {
  * SRP: 네비게이션 메뉴 렌더링만 담당
  * OCP: menuItems를 통해 확장 가능
  */
-export const Sidebar = ({ currentView, onViewChange }) => {
+export const Sidebar = ({ currentView, onViewChange, currentUser }) => {
+  // 관리자 권한 확인 (role이 'admin'인 경우)
+  const isAdmin = currentUser?.role === 'admin';
+
   // 메뉴 아이템 정의 (OCP - 확장 가능)
   const menuItems = [
     { id: 'calendar', icon: Calendar, label: '달력', color: 'text-blue-600' },
     { id: 'statistics', icon: BarChart3, label: '통계', color: 'text-purple-600' },
-    // { id: 'stocks', icon: TrendingUp, label: '주식', color: 'text-indigo-600' }, // 숨김
+    // 관리자만 주식 메뉴 표시
+    ...(isAdmin ? [{ id: 'stocks', icon: TrendingUp, label: '주식', color: 'text-indigo-600' }] : []),
     { id: 'fixed', icon: Repeat, label: '고정지출', color: 'text-green-600' },
     { id: 'pocketmoney', icon: Wallet, label: '용돈', color: 'text-pink-600' },
     { id: 'search', icon: Search, label: '검색', color: 'text-orange-600' },

@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Plus, RefreshCw } from 'lucide-react';
+import { Plus, DollarSign } from 'lucide-react';
 import { Button } from '../components/common';
 import { StockForm } from '../components/stock/StockForm';
 import { StockCard } from '../components/stock/StockCard';
 import { StockSummary } from '../components/stock/StockSummary';
+import { PriceUpdateModal } from '../components/stock/PriceUpdateModal';
+import { ACCOUNT_TYPES } from '../constants/stocks';
 
 /**
  * 주식 포트폴리오 페이지
@@ -15,10 +17,63 @@ export const StockPage = ({
   currentPrices,
   loading,
   onAddStock,
+  onUpdateStock,
   onDeleteStock,
-  onRefreshPrices
+  onUpdateCurrentPrice,
+  onUpdateMultiplePrices,
+  currentUser
 }) => {
   const [showForm, setShowForm] = useState(false);
+  const [showPriceModal, setShowPriceModal] = useState(false);
+  const [editingStock, setEditingStock] = useState(null);
+  const [selectedAccount, setSelectedAccount] = useState('ALL'); // 계좌 필터
+
+  // 관리자 권한 확인 (role이 'admin'인 경우)
+  const isAdmin = currentUser?.role === 'admin';
+
+  // 계좌별 필터링 (holdings 기반)
+  const filteredStocks = selectedAccount === 'ALL'
+    ? stocks
+    : stocks.filter(stock => {
+        // holdings 배열에서 해당 계좌가 있는지 확인
+        const holdings = stock.holdings || [];
+        return holdings.some(h => h.account === selectedAccount);
+      });
+
+  // 수정 모달 열기
+  const handleEdit = (stock) => {
+    setEditingStock(stock);
+    setShowForm(true);
+  };
+
+  // 폼 닫기
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setEditingStock(null);
+  };
+
+  // 주식 추가/수정 제출
+  const handleSubmit = (formData) => {
+    if (editingStock) {
+      onUpdateStock(editingStock.id, formData);
+    } else {
+      onAddStock(formData);
+    }
+    handleCloseForm();
+  };
+
+  // 권한이 없는 경우 접근 거부
+  if (!isAdmin) {
+    return (
+      <div className="p-4 sm:p-8 flex items-center justify-center h-full">
+        <div className="glass-effect p-12 rounded-xl text-center max-w-md">
+          <div className="text-6xl mb-4">🔒</div>
+          <h3 className="text-xl font-bold text-gray-800 mb-2">접근 권한이 없습니다</h3>
+          <p className="text-gray-600">주식 포트폴리오는 관리자만 사용할 수 있습니다.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -43,10 +98,10 @@ export const StockPage = ({
           {stocks.length > 0 && (
             <Button
               variant="secondary"
-              icon={RefreshCw}
-              onClick={onRefreshPrices}
+              icon={DollarSign}
+              onClick={() => setShowPriceModal(true)}
             >
-              가격 새로고침
+              현재가 입력
             </Button>
           )}
           <Button
@@ -59,23 +114,62 @@ export const StockPage = ({
         </div>
       </div>
 
+      {/* 계좌 필터 */}
+      {stocks.length > 0 && (
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => setSelectedAccount('ALL')}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+              selectedAccount === 'ALL'
+                ? 'bg-indigo-500 text-white shadow-md'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            전체
+          </button>
+          {Object.entries(ACCOUNT_TYPES).map(([key, account]) => (
+            <button
+              key={key}
+              onClick={() => setSelectedAccount(key)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                selectedAccount === key
+                  ? 'bg-indigo-500 text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              {account.icon} {account.label}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* 포트폴리오 요약 */}
-      <StockSummary stocks={stocks} currentPrices={currentPrices} />
+      <StockSummary stocks={filteredStocks} currentPrices={currentPrices} />
 
       {/* 주식 목록 */}
-      {stocks.length > 0 ? (
+      {filteredStocks.length > 0 ? (
         <div>
-          <h2 className="text-lg font-bold text-gray-800 mb-4">보유 종목</h2>
+          <h2 className="text-lg font-bold text-gray-800 mb-4">
+            보유 종목 ({filteredStocks.length})
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {stocks.map((stock) => (
+            {filteredStocks.map((stock) => (
               <StockCard
                 key={stock.id}
                 stock={stock}
                 currentPrice={currentPrices[stock.symbol]}
                 onDelete={onDeleteStock}
+                onUpdatePrice={onUpdateCurrentPrice}
+                onEdit={handleEdit}
               />
             ))}
           </div>
+        </div>
+      ) : stocks.length > 0 ? (
+        <div className="glass-effect p-12 rounded-xl text-center">
+          <div className="text-6xl mb-4">🔍</div>
+          <h3 className="text-xl font-bold text-gray-800 mb-2">해당 계좌에 종목이 없습니다</h3>
+          <p className="text-gray-600">다른 계좌를 선택하거나 종목을 추가해보세요</p>
         </div>
       ) : (
         <div className="glass-effect p-12 rounded-xl text-center">
@@ -92,12 +186,23 @@ export const StockPage = ({
         </div>
       )}
 
-      {/* 주식 추가 폼 모달 */}
+      {/* 주식 추가/수정 폼 모달 */}
       {showForm && (
         <StockForm
           isOpen={showForm}
-          onClose={() => setShowForm(false)}
-          onSubmit={onAddStock}
+          onClose={handleCloseForm}
+          onSubmit={handleSubmit}
+          initialData={editingStock}
+        />
+      )}
+
+      {/* 현재가 일괄 입력 모달 */}
+      {showPriceModal && (
+        <PriceUpdateModal
+          isOpen={showPriceModal}
+          onClose={() => setShowPriceModal(false)}
+          stocks={stocks}
+          onUpdatePrices={onUpdateMultiplePrices}
         />
       )}
     </div>

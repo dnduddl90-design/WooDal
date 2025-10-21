@@ -57,7 +57,7 @@ export const useAuth = () => {
   }, []);
 
   /**
-   * firebaseUser와 userAvatar가 변경될 때 currentUser 업데이트
+   * firebaseUser, userAvatar, familyInfo가 변경될 때 currentUser 업데이트
    */
   useEffect(() => {
     if (!firebaseUser) return;
@@ -70,19 +70,37 @@ export const useAuth = () => {
       displayName = displayName.split('@')[0];
     }
 
+    // 가족 구성원인 경우 역할 확인
+    let userId = firebaseUser.uid; // 기본: Firebase UID 사용
+    let userRole = 'admin'; // 기본: 관리자
+
+    if (familyInfo && familyInfo.members) {
+      // 가족 멤버 중에서 현재 사용자 찾기
+      const memberEntry = Object.entries(familyInfo.members).find(
+        ([memberId, memberData]) => memberId === firebaseUser.uid
+      );
+
+      if (memberEntry) {
+        const [memberId, memberData] = memberEntry;
+        userId = memberId; // Firebase UID 그대로 사용
+        userRole = memberData.role || 'member';
+        displayName = memberData.name || displayName; // 가족 내 이름 우선 사용
+      }
+    }
+
     const user = {
-      id: 'user1', // 기존 LocalStorage 데이터 호환을 위해 고정
-      firebaseId: firebaseUser.uid, // Firebase UID는 별도 저장
+      id: userId, // Firebase UID를 userId로 사용 (각 사용자 고유)
+      firebaseId: firebaseUser.uid, // Firebase UID (호환성)
       email: firebaseUser.email.toLowerCase(), // 이메일은 항상 소문자로 저장 (초대 매칭용)
-      name: displayName, // 깔끔한 이름만 표시
+      name: displayName, // 가족 내 이름 또는 Google 이름
       avatar: userAvatar || DEFAULT_AVATARS.user1, // 아바타 (커스터마이징 가능)
-      role: 'admin' // 로그인한 사람은 관리자로 설정
+      role: userRole // 가족 내 역할 (admin/member)
     };
 
     setCurrentUser(user);
     console.log('👤 사용자 정보 업데이트:', user);
     console.log('👤 현재 userAvatar:', userAvatar);
-  }, [firebaseUser, userAvatar]);
+  }, [firebaseUser, userAvatar, familyInfo]);
 
   /**
    * 초대 확인 리스너 설정

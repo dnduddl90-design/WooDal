@@ -14,7 +14,8 @@ import {
   StockPage,
   FixedExpensePage,
   SearchPage,
-  SettingsPage
+  SettingsPage,
+  PocketMoneyPage
 } from './pages';
 
 // Layout Components
@@ -65,7 +66,8 @@ export default function App() {
     handleDeleteTransaction,
     handleSubmitTransaction,
     resetTransactionForm,
-    registerFixedExpense
+    registerFixedExpense,
+    settlePocketMoney
   } = useTransactions(currentUser, familyInfo);
 
   // 디버그: 로딩 상태 로그
@@ -358,7 +360,8 @@ export default function App() {
       const familyId = await createFamily(
         currentUser.firebaseId,
         currentUser.name,
-        familyName
+        familyName,
+        userAvatar || '👨'  // 사용자 아바타 전달
       );
       console.log('✅ 가족 생성 완료:', familyId);
       alert(`🎉 "${familyName}" 가족 가계부가 생성되었습니다!`);
@@ -369,7 +372,7 @@ export default function App() {
       console.error('❌ 가족 생성 실패:', error);
       alert('가족 생성에 실패했습니다.');
     }
-  }, [currentUser]);
+  }, [currentUser, userAvatar]);
 
   const handleInviteMember = useCallback(async (email) => {
     if (!familyInfo || !currentUser) return;
@@ -443,7 +446,8 @@ export default function App() {
       const familyId = await acceptInvitation(
         invitationId,
         currentUser.firebaseId,
-        currentUser.name
+        currentUser.name,
+        userAvatar || '👩'  // 사용자 아바타 전달
       );
 
       console.log('✅ 초대 수락 완료:', familyId);
@@ -455,7 +459,7 @@ export default function App() {
       console.error('❌ 초대 수락 실패:', error);
       alert('초대 수락에 실패했습니다.');
     }
-  }, [currentUser]);
+  }, [currentUser, userAvatar]);
 
   const handleRejectInvitation = useCallback(async (invitationId) => {
     try {
@@ -542,6 +546,9 @@ export default function App() {
               onDateChange={setCurrentDate}
               transactions={transactions}
               settings={settings}
+              familyInfo={familyInfo}
+              currentUser={currentUser}
+              onSettlePocketMoney={settlePocketMoney}
             />
           )}
 
@@ -577,6 +584,12 @@ export default function App() {
               onResetSearch={resetSearch}
               onEditTransaction={startEditTransaction}
               onDeleteTransaction={handleDeleteTransaction}
+            />
+          )}
+
+          {currentView === 'pocketmoney' && (
+            <PocketMoneyPage
+              currentUser={currentUser}
             />
           )}
 

@@ -30,8 +30,48 @@ export const useTransactions = (currentUser, familyInfo) => {
     amount: '',
     paymentMethod: '',
     memo: '',
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    isPocketMoney: false
   });
+
+  /**
+   * LocalStorage 데이터를 Firebase로 마이그레이션
+   */
+  const migrateLocalTransactions = async (localTransactions) => {
+    try {
+      for (const transaction of localTransactions) {
+        await saveTransaction(currentUser.firebaseId, transaction);
+      }
+      console.log('✅ 마이그레이션 완료!');
+      setLoading(false);
+    } catch (error) {
+      console.error('❌ 마이그레이션 실패:', error);
+      // 실패 시 로컬 데이터 사용
+      setTransactions(localTransactions);
+      setLoading(false);
+    }
+  };
+
+  /**
+   * user1/user2를 Firebase UID로 자동 변환 (백그라운드)
+   */
+  const migrateUserIds = async (dataId, transactions, isFamilyMode) => {
+    try {
+      const updateFunction = isFamilyMode ? updateFamilyTransaction : updateTransaction;
+
+      for (const transaction of transactions) {
+        if (transaction.userId === 'user1' || transaction.userId === 'user2') {
+          const updatedTransaction = { ...transaction, userId: currentUser.firebaseId };
+          await updateFunction(dataId, transaction.id, updatedTransaction);
+          console.log(`✅ 거래 ${transaction.id} 변환 완료: ${transaction.userId} → ${currentUser.firebaseId}`);
+        }
+      }
+
+      console.log('✅ userId 자동 변환 완료!');
+    } catch (error) {
+      console.error('❌ userId 변환 실패:', error);
+    }
+  };
 
   /**
    * Firebase에서 데이터 로드 및 실시간 리스너 설정
@@ -70,7 +110,22 @@ export const useTransactions = (currentUser, familyInfo) => {
             setLoading(false);
           }
         } else {
-          setTransactions(firebaseTransactions);
+          // user1/user2를 현재 사용자 ID로 자동 변환
+          const migratedTransactions = firebaseTransactions.map(t => {
+            if (t.userId === 'user1' || t.userId === 'user2') {
+              return { ...t, userId: currentUser.firebaseId };
+            }
+            return t;
+          });
+
+          // userId가 변경된 거래가 있으면 Firebase 업데이트 (비동기, 백그라운드)
+          const needUpdate = firebaseTransactions.some(t => t.userId === 'user1' || t.userId === 'user2');
+          if (needUpdate) {
+            console.log('🔄 user1/user2 → Firebase UID 자동 변환 중...');
+            migrateUserIds(dataId, firebaseTransactions, isFamilyMode);
+          }
+
+          setTransactions(migratedTransactions);
           setLoading(false);
         }
       }
@@ -80,24 +135,6 @@ export const useTransactions = (currentUser, familyInfo) => {
     return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser?.firebaseId, familyInfo?.id]);
-
-  /**
-   * LocalStorage 데이터를 Firebase로 마이그레이션
-   */
-  const migrateLocalTransactions = async (localTransactions) => {
-    try {
-      for (const transaction of localTransactions) {
-        await saveTransaction(currentUser.firebaseId, transaction);
-      }
-      console.log('✅ 마이그레이션 완료!');
-      setLoading(false);
-    } catch (error) {
-      console.error('❌ 마이그레이션 실패:', error);
-      // 실패 시 로컬 데이터 사용
-      setTransactions(localTransactions);
-      setLoading(false);
-    }
-  };
 
   /**
    * 거래 추가 (가족 모드/개인 모드 자동 선택)
@@ -187,7 +224,8 @@ export const useTransactions = (currentUser, familyInfo) => {
       amount: transaction.amount.toString(),
       paymentMethod: transaction.paymentMethod || '',
       memo: transaction.memo || '',
-      date: transaction.date
+      date: transaction.date,
+      isPocketMoney: transaction.isPocketMoney || false
     });
     setShowAddTransaction(true);
   };
@@ -205,7 +243,8 @@ export const useTransactions = (currentUser, familyInfo) => {
       amount: '',
       paymentMethod: '',
       memo: '',
-      date: date || new Date().toISOString().split('T')[0]
+      date: date || new Date().toISOString().split('T')[0],
+      isPocketMoney: false
     });
     setShowAddTransaction(true);
   };
@@ -221,7 +260,8 @@ export const useTransactions = (currentUser, familyInfo) => {
       amount: '',
       paymentMethod: '',
       memo: '',
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
+      isPocketMoney: false
     });
     setIsEditMode(false);
     setEditingTransaction(null);
@@ -249,6 +289,48 @@ export const useTransactions = (currentUser, familyInfo) => {
    */
   const getDayTransactions = (day, month, year) => {
     return TransactionService.filterByDate(transactions, day, month, year);
+  };
+
+  /**
+   * 용돈 정산 완료 처리
+   * 현재 월의 모든 용돈 사용 거래의 isPocketMoney를 false로 변경
+   */
+  const settlePocketMoney = async (year, month) => {
+    try {
+      const isFamilyMode = familyInfo && familyInfo.id;
+      const dataId = isFamilyMode ? familyInfo.id : currentUser.firebaseId;
+
+      // 해당 월의 용돈 사용 거래 찾기
+      const startDate = new Date(year, month, 1);
+      const endDate = new Date(year, month + 1, 0);
+
+      const pocketMoneyTransactions = transactions.filter(t => {
+        const transactionDate = new Date(t.date);
+        return transactionDate >= startDate &&
+               transactionDate <= endDate &&
+               t.type === 'expense' &&
+               t.isPocketMoney === true;
+      });
+
+      console.log(`🔄 ${pocketMoneyTransactions.length}건의 용돈 거래 정산 처리 중...`);
+
+      // 각 거래의 isPocketMoney를 false로 업데이트
+      const updateFunction = isFamilyMode ? updateFamilyTransaction : updateTransaction;
+
+      for (const transaction of pocketMoneyTransactions) {
+        const updatedTransaction = { ...transaction, isPocketMoney: false };
+        await updateFunction(dataId, transaction.id, updatedTransaction);
+      }
+
+      console.log('✅ 용돈 정산 완료!');
+      alert(`✅ ${pocketMoneyTransactions.length}건의 용돈 사용 내역 정산이 완료되었습니다!`);
+
+      return true;
+    } catch (error) {
+      console.error('❌ 정산 처리 실패:', error);
+      alert('정산 처리에 실패했습니다.');
+      return false;
+    }
   };
 
   /**
@@ -293,6 +375,7 @@ export const useTransactions = (currentUser, familyInfo) => {
     resetTransactionForm,
     handleSubmitTransaction,
     getDayTransactions,
-    registerFixedExpense
+    registerFixedExpense,
+    settlePocketMoney
   };
 };

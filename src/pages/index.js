@@ -9,3 +9,4 @@ export { StockPage } from './StockPage';
 export { FixedExpensePage } from './FixedExpensePage';
 export { SearchPage } from './SearchPage';
 export { SettingsPage } from './SettingsPage';
+export { PocketMoneyPage } from './PocketMoneyPage';

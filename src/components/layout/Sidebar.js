@@ -2,10 +2,10 @@ import React from 'react';
 import {
   Calendar,
   BarChart3,
-  TrendingUp,
   Repeat,
   Search,
-  Settings
+  Settings,
+  Wallet
 } from 'lucide-react';
 
 /**
@@ -20,6 +20,7 @@ export const Sidebar = ({ currentView, onViewChange }) => {
     { id: 'statistics', icon: BarChart3, label: '통계', color: 'text-purple-600' },
     // { id: 'stocks', icon: TrendingUp, label: '주식', color: 'text-indigo-600' }, // 숨김
     { id: 'fixed', icon: Repeat, label: '고정지출', color: 'text-green-600' },
+    { id: 'pocketmoney', icon: Wallet, label: '용돈', color: 'text-pink-600' },
     { id: 'search', icon: Search, label: '검색', color: 'text-orange-600' },
     { id: 'settings', icon: Settings, label: '설정', color: 'text-gray-600' }
   ];

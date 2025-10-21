@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, TrendingUp, Receipt, PiggyBank } from 'lucide-react';
-import { CATEGORIES } from '../constants';
+import { CATEGORIES, USERS } from '../constants';
 import { formatCurrency } from '../utils';
-import { Button } from '../components/common';
+import { Button, Modal } from '../components/common';
 
 /**
  * 통계 페이지 컴포넌트
@@ -13,8 +13,79 @@ export const StatisticsPage = ({
   currentDate,
   onDateChange,
   transactions = [],
-  settings = { budget: { monthly: '' } }
+  settings = { budget: { monthly: '' } },
+  familyInfo = null,
+  currentUser = null,
+  onSettlePocketMoney
 }) => {
+  // 사용자 정보 매핑 (가족 모드 시 familyInfo에서, 아니면 기본 USERS 사용)
+  const getUserInfo = useMemo(() => {
+    return (userId) => {
+      // 가족 모드: familyInfo.members에서 사용자 정보 찾기
+      if (familyInfo && familyInfo.members && familyInfo.members[userId]) {
+        const member = familyInfo.members[userId];
+
+        // 긴 이름에서 짧은 이름 추출 (예: "장우영" → "우영")
+        let displayName = member.name || '알 수 없음';
+        if (displayName.length > 2 && !displayName.includes(' ')) {
+          // 한글 이름이 3글자 이상인 경우 뒤 2글자만 사용
+          displayName = displayName.slice(-2);
+        }
+
+        // 아바타 결정 우선순위:
+        // 1. member.avatar가 있으면 사용
+        // 2. 현재 사용자면 currentUser.avatar 사용
+        // 3. 기본값: role에 따라 admin=👨, member=👩
+        let avatar = member.avatar;
+
+        if (!avatar && currentUser && userId === currentUser.id) {
+          // 현재 로그인한 사용자의 아바타 사용
+          avatar = currentUser.avatar;
+        }
+
+        if (!avatar) {
+          // 기본 아바타: role에 따라 설정
+          avatar = member.role === 'admin' ? '👨' : '👩';
+        }
+
+        return {
+          id: userId,
+          name: displayName,
+          avatar: avatar,
+          role: member.role || 'member',
+          color: member.role === 'admin' ? 'bg-blue-500' : 'bg-pink-500'
+        };
+      }
+
+      // 개인 모드 또는 기존 user1/user2: USERS 상수 사용
+      if (USERS[userId]) {
+        return USERS[userId];
+      }
+
+      // 찾을 수 없는 경우 기본값
+      return {
+        id: userId,
+        name: '알 수 없음',
+        avatar: '👤',
+        role: 'member',
+        color: 'bg-gray-500'
+      };
+    };
+  }, [familyInfo, currentUser]);
+  // 카테고리 세부 내역 모달 상태
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  // 사용자 필터 상태 ('all', userId)
+  const [userFilter, setUserFilter] = useState('all');
+
+  // 가족 구성원 목록 (필터 버튼용)
+  const familyMembers = useMemo(() => {
+    if (familyInfo && familyInfo.members) {
+      return Object.keys(familyInfo.members).map(userId => getUserInfo(userId));
+    }
+    // 기본값: USERS 상수 사용
+    return [USERS.user1, USERS.user2];
+  }, [familyInfo, getUserInfo]);
   // 월 이동 핸들러
   const handlePrevMonth = () => {
     const newDate = new Date(currentDate);
@@ -96,6 +167,42 @@ export const StatisticsPage = ({
       return acc;
     }, {});
 
+  // 카테고리 클릭 핸들러
+  const handleCategoryClick = (categoryName) => {
+    // 해당 카테고리의 거래 내역 필터링
+    const category = CATEGORIES.expense.find(c => c.name === categoryName);
+
+    const categoryTransactions = currentMonthData
+      .filter(t => {
+        if (t.type !== 'expense') return false;
+        const transactionCategory = CATEGORIES.expense.find(c => c.id === t.category);
+        const transactionCategoryName = transactionCategory ? transactionCategory.name : '기타';
+        return transactionCategoryName === categoryName;
+      })
+      .sort((a, b) => new Date(b.date) - new Date(a.date)); // 날짜 역순 정렬
+
+    setSelectedCategory({
+      name: categoryName,
+      transactions: categoryTransactions,
+      total: expensesByCategory[categoryName] || 0,
+      icon: category?.icon,
+      color: category?.color
+    });
+    setUserFilter('all'); // 모달 열 때마다 필터 초기화
+    setShowCategoryModal(true);
+  };
+
+  // 필터링된 거래 내역 계산
+  const getFilteredTransactions = () => {
+    if (!selectedCategory) return [];
+
+    if (userFilter === 'all') {
+      return selectedCategory.transactions;
+    }
+
+    return selectedCategory.transactions.filter(t => t.userId === userFilter);
+  };
+
   // 변화율 계산
   const incomeChange = previousIncome > 0 ? ((currentIncome - previousIncome) / previousIncome) * 100 : 0;
   const expenseChange = previousExpense > 0 ? ((currentExpense - previousExpense) / previousExpense) * 100 : 0;
@@ -139,6 +246,25 @@ export const StatisticsPage = ({
       acc[userId] = (acc[userId] || 0) + t.amount;
       return acc;
     }, {});
+
+  // 사용자별 용돈 사용 내역 계산
+  const pocketMoneyByUser = currentMonthData
+    .filter(t => t.type === 'expense' && t.isPocketMoney === true)
+    .reduce((acc, t) => {
+      const userId = t.userId || 'unknown';
+      if (!acc[userId]) {
+        acc[userId] = {
+          total: 0,
+          transactions: []
+        };
+      }
+      acc[userId].total += t.amount;
+      acc[userId].transactions.push(t);
+      return acc;
+    }, {});
+
+  // 전체 용돈 사용 금액
+  const totalPocketMoney = Object.values(pocketMoneyByUser).reduce((sum, data) => sum + data.total, 0);
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in pb-20 sm:pb-6">
@@ -401,7 +527,11 @@ export const StatisticsPage = ({
                 ];
 
                 return (
-                  <div key={category} className="space-y-1.5 sm:space-y-2">
+                  <div
+                    key={category}
+                    className="space-y-1.5 sm:space-y-2 cursor-pointer hover:bg-gray-50 p-2 sm:p-3 rounded-lg transition-colors"
+                    onClick={() => handleCategoryClick(category)}
+                  >
                     <div className="flex justify-between text-xs sm:text-sm">
                       <span className="text-gray-700 font-medium truncate mr-2">{category}</span>
                       <span className="font-bold text-gray-800 flex-shrink-0">
@@ -549,14 +679,15 @@ export const StatisticsPage = ({
               .map(([userId, amount], index) => {
                 const maxAmount = Math.max(...Object.values(expensesByUser));
                 const percentage = maxAmount > 0 ? (amount / maxAmount) * 100 : 0;
-                const userName = userId === 'user1' ? '우영 👨' : userId === 'user2' ? '달림 👩' : userId;
+                const user = getUserInfo(userId);
                 const colors = ['bg-blue-500', 'bg-pink-500', 'bg-purple-500', 'bg-green-500'];
 
                 return (
                   <div key={userId} className="space-y-1.5 sm:space-y-2">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs sm:text-sm font-medium text-gray-700">
-                        {userName}
+                      <span className="text-xs sm:text-sm font-medium text-gray-700 flex items-center gap-2">
+                        <span className="text-base">{user.avatar}</span>
+                        <span>{user.name}</span>
                       </span>
                       <div className="flex items-center gap-2">
                         <span className="text-xs sm:text-sm font-bold text-gray-800">
@@ -586,6 +717,269 @@ export const StatisticsPage = ({
             </div>
           </div>
         </div>
+      )}
+
+      {/* 용돈 사용 내역 (정산 필요) */}
+      {totalPocketMoney > 0 && (
+        <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg border-2 border-orange-300 bg-gradient-to-br from-orange-50 to-yellow-50">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
+              <span className="text-2xl">💰</span>
+              <span>용돈 사용 내역 (정산 필요)</span>
+            </h3>
+            <span className="text-xl sm:text-2xl font-bold text-orange-600">
+              {formatCurrency(totalPocketMoney)}원
+            </span>
+          </div>
+
+          <p className="text-xs sm:text-sm text-gray-600 mb-4">
+            개인 용돈으로 생활비를 지출한 내역입니다. 정산이 필요합니다.
+          </p>
+
+          {/* 사용자별 용돈 사용 내역 */}
+          <div className="space-y-3 sm:space-y-4">
+            {Object.entries(pocketMoneyByUser)
+              .sort(([,a], [,b]) => b.total - a.total)
+              .map(([userId, data], index) => {
+                const user = getUserInfo(userId);
+                const percentage = totalPocketMoney > 0 ? (data.total / totalPocketMoney) * 100 : 0;
+
+                return (
+                  <div key={userId} className="bg-white rounded-lg p-3 sm:p-4 shadow">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{user.avatar}</span>
+                        <span className="text-sm sm:text-base font-bold text-gray-800">{user.name}</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-base sm:text-lg font-bold text-orange-600">
+                          {formatCurrency(data.total)}원
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {data.transactions.length}건
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* 진행률 바 */}
+                    <div className="w-full bg-gray-200 rounded-full h-2 sm:h-2.5 mb-3">
+                      <div
+                        className="h-2 sm:h-2.5 bg-gradient-to-r from-orange-400 to-orange-600 rounded-full transition-all duration-1000"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+
+                    {/* 거래 내역 목록 (최대 5개만 표시) */}
+                    <div className="space-y-1.5">
+                      {data.transactions.slice(0, 5).map((t, idx) => {
+                        const category = CATEGORIES.expense.find(c => c.id === t.category);
+                        return (
+                          <div key={idx} className="flex items-center justify-between text-xs sm:text-sm py-1 border-b border-gray-100 last:border-0">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <span className="text-gray-500">{t.date.slice(5)}</span>
+                              <span className="font-medium text-gray-700 truncate">
+                                {category?.name || '기타'}
+                              </span>
+                              {t.memo && (
+                                <span className="text-gray-400 truncate text-xs">
+                                  {t.memo}
+                                </span>
+                              )}
+                            </div>
+                            <span className="font-semibold text-orange-600 flex-shrink-0 ml-2">
+                              {formatCurrency(t.amount)}원
+                            </span>
+                          </div>
+                        );
+                      })}
+                      {data.transactions.length > 5 && (
+                        <p className="text-xs text-gray-500 text-center pt-1">
+                          외 {data.transactions.length - 5}건
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+
+          {/* 정산 완료 버튼 */}
+          <div className="mt-4 pt-4 border-t border-orange-200">
+            <button
+              onClick={async () => {
+                if (window.confirm(`💰 용돈 ${formatCurrency(totalPocketMoney)}원을 정산 완료 처리하시겠습니까?\n\n정산 완료하면 해당 거래들의 '용돈 사용' 체크가 해제됩니다.`)) {
+                  await onSettlePocketMoney(currentDate.getFullYear(), currentDate.getMonth());
+                }
+              }}
+              className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-3 rounded-xl hover:from-orange-600 hover:to-orange-700 transition-all duration-200 shadow-lg hover:shadow-xl"
+            >
+              ✅ 정산 완료
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 카테고리 세부 내역 모달 */}
+      {selectedCategory && (
+        <Modal
+          isOpen={showCategoryModal}
+          onClose={() => setShowCategoryModal(false)}
+          title={`${selectedCategory.name} 세부 내역`}
+          size="lg"
+        >
+          {/* 카테고리 요약 */}
+          <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {selectedCategory.icon && (
+                  <div className={`p-3 rounded-lg ${selectedCategory.color || 'bg-gray-100'}`}>
+                    <selectedCategory.icon size={24} />
+                  </div>
+                )}
+                <div>
+                  <h3 className="text-lg font-bold text-gray-800">{selectedCategory.name}</h3>
+                  <p className="text-sm text-gray-600">
+                    총 {selectedCategory.transactions.length}건의 거래
+                  </p>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-red-600">
+                  -{formatCurrency(selectedCategory.total)}원
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 사용자 필터 버튼 */}
+          <div className="mb-4 flex gap-2 flex-wrap">
+            <button
+              onClick={() => setUserFilter('all')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                userFilter === 'all'
+                  ? 'bg-indigo-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              전체 ({selectedCategory.transactions.length})
+            </button>
+            {familyMembers.map((member, index) => {
+              const count = selectedCategory.transactions.filter(t => t.userId === member.id).length;
+              const colors = ['bg-blue-600', 'bg-pink-600', 'bg-purple-600', 'bg-green-600'];
+              const activeColor = colors[index % colors.length];
+
+              return (
+                <button
+                  key={member.id}
+                  onClick={() => setUserFilter(member.id)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2 ${
+                    userFilter === member.id
+                      ? `${activeColor} text-white`
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <span>{member.avatar}</span>
+                  <span>{member.name}</span>
+                  <span className="text-xs">({count})</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* 거래 내역 리스트 */}
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {getFilteredTransactions().length > 0 ? (
+              getFilteredTransactions().map((transaction, index) => {
+                const user = getUserInfo(transaction.userId);
+                const transactionDate = new Date(transaction.date);
+                const dateStr = `${transactionDate.getMonth() + 1}/${transactionDate.getDate()}`;
+
+                return (
+                  <div
+                    key={transaction.id || index}
+                    className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    {/* 사용자 아바타 + 이름 */}
+                    <div className="flex-shrink-0">
+                      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${user.color} bg-opacity-10`}>
+                        <span className="text-lg">{user.avatar}</span>
+                        <span className={`text-xs font-bold ${
+                          user.role === 'admin' ? 'text-blue-700' : 'text-pink-700'
+                        }`}>
+                          {user.name}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* 거래 정보 */}
+                    <div className="flex-1 min-w-0">
+                      {/* 날짜 */}
+                      <div className="text-xs text-gray-500 mb-1">
+                        {transaction.date} ({dateStr})
+                      </div>
+
+                      {/* 메모 */}
+                      {transaction.memo && (
+                        <div className="text-sm font-medium text-gray-800 truncate">
+                          {transaction.memo}
+                        </div>
+                      )}
+
+                      {/* 결제수단 */}
+                      {transaction.paymentMethod && (
+                        <div className="text-xs text-gray-600">
+                          {transaction.paymentMethod}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 금액 */}
+                    <div className="text-right flex-shrink-0">
+                      <span className="text-base font-bold text-red-600">
+                        -{formatCurrency(transaction.amount)}원
+                      </span>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                거래 내역이 없습니다
+              </div>
+            )}
+          </div>
+
+          {/* 푸터 통계 */}
+          <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="grid grid-cols-3 gap-3">
+              <div className="text-center p-3 bg-gray-50 rounded-lg">
+                <div className="text-xs text-gray-600 mb-1">거래 건수</div>
+                <div className="text-base font-bold text-gray-800">
+                  {getFilteredTransactions().length}건
+                </div>
+              </div>
+              <div className="text-center p-3 bg-blue-50 rounded-lg">
+                <div className="text-xs text-gray-600 mb-1">평균 지출</div>
+                <div className="text-base font-bold text-blue-600">
+                  {getFilteredTransactions().length > 0
+                    ? formatCurrency(Math.round(
+                        getFilteredTransactions().reduce((sum, t) => sum + t.amount, 0) /
+                        getFilteredTransactions().length
+                      ))
+                    : 0}원
+                </div>
+              </div>
+              <div className="text-center p-3 bg-red-50 rounded-lg">
+                <div className="text-xs text-gray-600 mb-1">총 지출</div>
+                <div className="text-base font-bold text-red-600">
+                  {formatCurrency(
+                    getFilteredTransactions().reduce((sum, t) => sum + t.amount, 0)
+                  )}원
+                </div>
+              </div>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );

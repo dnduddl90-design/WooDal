@@ -231,8 +231,9 @@ const getFamilyPath = (familyId, path) => `families/${familyId}/${path}`;
  * @param {string} creatorId - 생성자 사용자 ID
  * @param {string} creatorName - 생성자 이름
  * @param {string} familyName - 가족 이름
+ * @param {string} creatorAvatar - 생성자 아바타 (선택)
  */
-export const createFamily = async (creatorId, creatorName, familyName) => {
+export const createFamily = async (creatorId, creatorName, familyName, creatorAvatar = '👨') => {
   const familiesRef = ref(database, 'families');
   const newFamilyRef = push(familiesRef);
   const familyId = newFamilyRef.key;
@@ -246,6 +247,7 @@ export const createFamily = async (creatorId, creatorName, familyName) => {
       [creatorId]: {
         userId: creatorId,
         name: creatorName,
+        avatar: creatorAvatar,
         role: 'admin',
         joinedAt: new Date().toISOString()
       }
@@ -285,11 +287,13 @@ export const getUserFamilyId = async (userId) => {
  * @param {string} familyId - 가족 ID
  * @param {string} userId - 추가할 사용자 ID
  * @param {string} userName - 사용자 이름
+ * @param {string} userAvatar - 사용자 아바타 (선택)
  */
-export const addFamilyMember = async (familyId, userId, userName) => {
+export const addFamilyMember = async (familyId, userId, userName, userAvatar = '👩') => {
   const memberData = {
     userId,
     name: userName,
+    avatar: userAvatar,
     role: 'member',
     joinedAt: new Date().toISOString()
   };
@@ -522,8 +526,9 @@ export const onInvitationsChange = (userEmail, callback) => {
  * @param {string} invitationId - 초대 ID
  * @param {string} userId - 사용자 Firebase UID
  * @param {string} userName - 사용자 이름
+ * @param {string} userAvatar - 사용자 아바타 (선택)
  */
-export const acceptInvitation = async (invitationId, userId, userName) => {
+export const acceptInvitation = async (invitationId, userId, userName, userAvatar = '👩') => {
   // 1. 초대 정보 가져오기
   const invitationRef = ref(database, `invitations/${invitationId}`);
   const snapshot = await get(invitationRef);
@@ -535,7 +540,7 @@ export const acceptInvitation = async (invitationId, userId, userName) => {
   const invitation = snapshot.val();
 
   // 2. 가족에 멤버 추가
-  await addFamilyMember(invitation.familyId, userId, userName);
+  await addFamilyMember(invitation.familyId, userId, userName, userAvatar);
 
   // 3. 초대 상태를 'accepted'로 변경
   await update(invitationRef, {
@@ -667,6 +672,88 @@ export const onStocksChange = (userId, callback) => {
         id
       }));
       callback(stocks);
+    } else {
+      callback([]);
+    }
+  });
+};
+
+// ==================== 용돈 관리 (Pocket Money) ====================
+
+/**
+ * 용돈 예산 가져오기
+ * @param {string} userId - 사용자 ID
+ */
+export const getPocketMoneyBudget = async (userId) => {
+  const budgetRef = ref(database, getUserPath(userId, 'pocketMoney/budget'));
+  const snapshot = await get(budgetRef);
+  return snapshot.exists() ? snapshot.val() : null;
+};
+
+/**
+ * 용돈 예산 설정
+ * @param {string} userId - 사용자 ID
+ * @param {number} budget - 예산 금액
+ */
+export const setPocketMoneyBudget = async (userId, budget) => {
+  const budgetRef = ref(database, getUserPath(userId, 'pocketMoney/budget'));
+  await set(budgetRef, budget);
+};
+
+/**
+ * 용돈 거래 저장
+ * @param {string} userId - 사용자 ID
+ * @param {Object} transaction - 거래 객체
+ */
+export const savePocketMoneyTransaction = async (userId, transaction) => {
+  const transactionsRef = ref(database, getUserPath(userId, 'pocketMoney/transactions'));
+  const newTransactionRef = push(transactionsRef);
+  await set(newTransactionRef, transaction);
+  return newTransactionRef.key;
+};
+
+/**
+ * 용돈 거래 수정
+ * @param {string} userId - 사용자 ID
+ * @param {string} transactionId - 거래 ID
+ * @param {Object} updates - 수정할 데이터
+ */
+export const updatePocketMoneyTransaction = async (userId, transactionId, updates) => {
+  const transactionRef = ref(
+    database,
+    getUserPath(userId, `pocketMoney/transactions/${transactionId}`)
+  );
+  await update(transactionRef, updates);
+};
+
+/**
+ * 용돈 거래 삭제
+ * @param {string} userId - 사용자 ID
+ * @param {string} transactionId - 거래 ID
+ */
+export const deletePocketMoneyTransaction = async (userId, transactionId) => {
+  const transactionRef = ref(
+    database,
+    getUserPath(userId, `pocketMoney/transactions/${transactionId}`)
+  );
+  await remove(transactionRef);
+};
+
+/**
+ * 용돈 거래 실시간 리스너
+ * @param {string} userId - 사용자 ID
+ * @param {Function} callback - 데이터 변경 시 호출될 함수
+ */
+export const onPocketMoneyTransactionsChange = (userId, callback) => {
+  const transactionsRef = ref(database, getUserPath(userId, 'pocketMoney/transactions'));
+  return onValue(transactionsRef, (snapshot) => {
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      const transactions = Object.entries(data).map(([id, transaction]) => ({
+        ...transaction,
+        id
+      }));
+      callback(transactions);
     } else {
       callback([]);
     }

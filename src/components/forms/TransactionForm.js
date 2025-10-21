@@ -164,6 +164,23 @@ export const TransactionForm = ({
           />
         </div>
 
+        {/* 용돈 사용 체크박스 (지출일 때만 표시) */}
+        {formData.type === 'expense' && (
+          <div className="flex items-center gap-3 p-4 bg-blue-50 rounded-xl border border-blue-200">
+            <input
+              type="checkbox"
+              id="isPocketMoney"
+              checked={formData.isPocketMoney || false}
+              onChange={(e) => onFormChange({ ...formData, isPocketMoney: e.target.checked })}
+              className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+            />
+            <label htmlFor="isPocketMoney" className="text-sm font-medium text-gray-700 cursor-pointer flex items-center gap-2">
+              <span>💰</span>
+              <span>용돈 사용 (나중에 정산 필요)</span>
+            </label>
+          </div>
+        )}
+
         {/* 액션 버튼 */}
         <div className="flex space-x-3 pt-4">
           <Button

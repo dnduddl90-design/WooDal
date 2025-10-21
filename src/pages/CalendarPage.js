@@ -525,7 +525,7 @@ export const CalendarPage = ({
       {/* 거래 추가 버튼 (항상 표시) */}
       <button
         onClick={onAddTransaction}
-        className="fixed bottom-8 right-8 w-16 h-16 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-200 flex items-center justify-center"
+        className="fixed bottom-32 sm:bottom-8 right-8 w-16 h-16 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all duration-200 flex items-center justify-center"
         style={{ zIndex: 9999 }}
         title="거래 추가"
       >

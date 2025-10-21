@@ -509,7 +509,7 @@ export default function App() {
 
   // ===== 메인 앱 레이아웃 =====
   return (
-    <div className="min-h-screen bg-animated">
+    <div className="min-h-screen bg-animated pb-20 sm:pb-0">
       {/* 헤더 */}
       <Header
         user={currentUser}
@@ -521,7 +521,7 @@ export default function App() {
         onInstallPWA={handleInstallPWA}
       />
 
-      <div className="flex">
+      <div className="flex min-h-0">
         {/* 사이드바 */}
         <Sidebar
           currentView={currentView}
@@ -530,7 +530,7 @@ export default function App() {
         />
 
         {/* 메인 컨텐츠 */}
-        <main className="flex-1 p-4 sm:p-8">
+        <main className="flex-1 p-4 sm:p-8 pb-24 sm:pb-8">
           {currentView === 'calendar' && (
             <CalendarPage
               currentDate={currentDate}

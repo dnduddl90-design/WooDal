@@ -271,15 +271,30 @@ export const CalendarPage = ({
   const handlePrevDay = useCallback(() => {
     if (currentDay > 1) {
       setCurrentDay(currentDay - 1);
+    } else {
+      // 이전 달의 마지막 날로 이동
+      const newDate = new Date(currentDate);
+      newDate.setMonth(newDate.getMonth() - 1);
+      onDateChange(newDate);
+
+      // 이전 달의 마지막 날 계산
+      const prevMonthDays = getDaysInMonth(newDate);
+      setCurrentDay(prevMonthDays);
     }
-  }, [currentDay]);
+  }, [currentDay, currentDate, onDateChange]);
 
   const handleNextDay = useCallback(() => {
     const daysInMonth = getDaysInMonth(currentDate);
     if (currentDay < daysInMonth) {
       setCurrentDay(currentDay + 1);
+    } else {
+      // 다음 달의 첫날로 이동
+      const newDate = new Date(currentDate);
+      newDate.setMonth(newDate.getMonth() + 1);
+      onDateChange(newDate);
+      setCurrentDay(1);
     }
-  }, [currentDay, currentDate]);
+  }, [currentDay, currentDate, onDateChange]);
 
   const handleTodayDay = useCallback(() => {
     const now = new Date();
@@ -300,7 +315,7 @@ export const CalendarPage = ({
   // 모바일 하루 뷰 렌더링
   const renderMobileDayView = () => {
     const weekDays = ['일', '월', '화', '수', '목', '금', '토'];
-    const { daysInMonth, allItems, totalIncome, totalExpense, dayOfWeek, isToday } = mobileDayData;
+    const { allItems, totalIncome, totalExpense, dayOfWeek, isToday } = mobileDayData;
 
     return (
       <div className="space-y-4 relative">
@@ -308,12 +323,7 @@ export const CalendarPage = ({
         <div className="flex items-center justify-between bg-white rounded-xl p-4 shadow-md">
           <button
             onClick={handlePrevDay}
-            disabled={currentDay === 1}
-            className={`p-2 rounded-lg transition-colors ${
-              currentDay === 1
-                ? 'text-gray-300 cursor-not-allowed'
-                : 'text-gray-700 hover:bg-gray-100'
-            }`}
+            className="p-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-100"
           >
             <ChevronLeft size={24} />
           </button>
@@ -352,12 +362,7 @@ export const CalendarPage = ({
 
           <button
             onClick={handleNextDay}
-            disabled={currentDay === daysInMonth}
-            className={`p-2 rounded-lg transition-colors ${
-              currentDay === daysInMonth
-                ? 'text-gray-300 cursor-not-allowed'
-                : 'text-gray-700 hover:bg-gray-100'
-            }`}
+            className="p-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-100"
           >
             <ChevronRight size={24} />
           </button>

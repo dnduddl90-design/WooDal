@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
 import { USERS, CATEGORIES } from '../constants';
 import { getDaysInMonth, getFirstDayOfMonth, formatCurrency } from '../utils';
 import { Button, Modal } from '../components/common';
+import { calculateMonthsSince } from '../services/autoRegisterService';
 
 /**
  * 달력 페이지 컴포넌트
@@ -56,28 +57,42 @@ export const CalendarPage = ({
     const month = currentDate.getMonth();
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
-    return fixedExpenses.filter(expense => {
-      // 비활성화되거나 날짜가 맞지 않으면 제외
-      if (!expense.isActive || expense.autoRegisterDate !== day) {
-        return false;
-      }
+    return fixedExpenses
+      .filter(expense => {
+        // 비활성화되거나 날짜가 맞지 않으면 제외
+        if (!expense.isActive || expense.autoRegisterDate !== day) {
+          return false;
+        }
 
-      // 무기한 고정지출은 항상 표시
-      if (expense.isUnlimited !== false) {
+        // 무기한 고정지출은 항상 표시
+        if (expense.isUnlimited !== false) {
+          return true;
+        }
+
+        // 기간제 고정지출은 기간 내에만 표시
+        if (expense.startDate && dateStr < expense.startDate) {
+          return false;
+        }
+
+        if (expense.endDate && dateStr > expense.endDate) {
+          return false;
+        }
+
         return true;
-      }
+      })
+      .map(expense => {
+        // 기준일 기반 월 계산하여 금액 업데이트
+        const monthsSinceBase = calculateMonthsSince(expense.baseDate, dateStr);
+        const monthlyIncrease = expense.monthlyIncrease || 0;
+        const calculatedAmount = expense.amount + (monthlyIncrease * monthsSinceBase);
 
-      // 기간제 고정지출은 기간 내에만 표시
-      if (expense.startDate && dateStr < expense.startDate) {
-        return false;
-      }
-
-      if (expense.endDate && dateStr > expense.endDate) {
-        return false;
-      }
-
-      return true;
-    });
+        return {
+          ...expense,
+          amount: calculatedAmount,
+          originalAmount: expense.amount, // 원래 금액 보존
+          monthsSinceBase // 디버깅용
+        };
+      });
   }, [fixedExpenses, currentDate]);
 
 

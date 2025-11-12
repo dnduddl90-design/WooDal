@@ -149,14 +149,33 @@ export const FixedExpenseForm = ({
           )}
         </div>
 
-        {/* 월 증가액 */}
+        {/* 월 증감액 */}
         <Input
-          label="월 증가액 (선택)"
+          label="월 증감액 (선택)"
           type="number"
           value={formData.monthlyIncrease}
           onChange={(e) => onFormChange({ ...formData, monthlyIncrease: e.target.value })}
           placeholder="0"
         />
+        <p className="text-sm text-gray-500 -mt-3">
+          매월 자동으로 증가(+) 또는 감소(-)할 금액을 입력하세요
+        </p>
+
+        {/* 기준일 (증감액이 있을 때만 표시) */}
+        {formData.monthlyIncrease && parseInt(formData.monthlyIncrease) !== 0 && (
+          <div>
+            <Input
+              label="증감액 기준일"
+              type="date"
+              value={formData.baseDate || ''}
+              onChange={(e) => onFormChange({ ...formData, baseDate: e.target.value })}
+              required={formData.monthlyIncrease && parseInt(formData.monthlyIncrease) !== 0}
+            />
+            <p className="text-sm text-gray-500 mt-1">
+              이 날짜부터 매월 {formData.monthlyIncrease > 0 ? '증가' : '감소'}액이 누적됩니다
+            </p>
+          </div>
+        )}
 
         {/* 결제 수단 */}
         <div>

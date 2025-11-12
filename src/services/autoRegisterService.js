@@ -13,12 +13,30 @@
  * - 날짜 비교 로직
  * - LocalStorage를 활용한 마지막 체크 기록
  * - 중복 등록 방지 (같은 날 같은 고정지출 ID)
- * - 월 증가액 계산 로직
+ * - 월 증감액 계산 로직
  */
 
 import { formatDate } from '../utils/dateUtils';
 
 const LAST_CHECK_KEY = 'lastAutoRegisterCheck';
+
+/**
+ * 두 날짜 사이의 월 차이 계산
+ * @param {String} baseDateStr - 기준일 (YYYY-MM-DD)
+ * @param {String} targetDateStr - 대상일 (YYYY-MM-DD)
+ * @returns {Number} 월 차이 (기준일부터 대상일까지 지난 개월 수)
+ */
+export const calculateMonthsSince = (baseDateStr, targetDateStr) => {
+  if (!baseDateStr) return 0;
+
+  const baseDate = new Date(baseDateStr);
+  const targetDate = new Date(targetDateStr);
+
+  const yearsDiff = targetDate.getFullYear() - baseDate.getFullYear();
+  const monthsDiff = targetDate.getMonth() - baseDate.getMonth();
+
+  return yearsDiff * 12 + monthsDiff;
+};
 
 /**
  * 마지막 자동 등록 체크 날짜 가져오기
@@ -156,14 +174,17 @@ export const autoRegisterFixedExpenses = async (
       continue;
     }
 
-    // 3. 거래 생성 (오늘 날짜로 등록)
-    const transaction = createTransactionFromFixed(fixed, userId, todayStr, 0);
+    // 3. 기준일 기반 월 계산
+    const monthsSinceBase = calculateMonthsSince(fixed.baseDate, todayStr);
 
-    // 4. 거래 등록
+    // 4. 거래 생성 (오늘 날짜로 등록, 증감액 계산)
+    const transaction = createTransactionFromFixed(fixed, userId, todayStr, monthsSinceBase);
+
+    // 5. 거래 등록
     try {
       await onRegister(transaction, todayStr);
       registeredCount++;
-      console.log(`✅ '${fixed.name}' 자동 등록 완료`);
+      console.log(`✅ '${fixed.name}' 자동 등록 완료 (${monthsSinceBase}개월 경과)`);
     } catch (error) {
       console.error(`❌ '${fixed.name}' 자동 등록 실패:`, error);
     }
@@ -195,7 +216,8 @@ export const manualRegisterFixedExpense = async (
   date = null
 ) => {
   const targetDate = date || formatDate(new Date());
-  const transaction = createTransactionFromFixed(fixedExpense, userId, targetDate, 0);
+  const monthsSinceBase = calculateMonthsSince(fixedExpense.baseDate, targetDate);
+  const transaction = createTransactionFromFixed(fixedExpense, userId, targetDate, monthsSinceBase);
   await onRegister(transaction, targetDate);
-  console.log(`✅ '${fixedExpense.name}' 수동 등록 완료`);
+  console.log(`✅ '${fixedExpense.name}' 수동 등록 완료 (${monthsSinceBase}개월 경과)`);
 };

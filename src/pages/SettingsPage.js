@@ -3,6 +3,7 @@ import { Download, Trash2, Upload, Save, Users, UserPlus, Mail, LogOut, Smile } 
 import { CATEGORIES, DEFAULT_AVATARS } from '../constants';
 import { Button, Input, Modal } from '../components/common';
 import { AvatarPicker } from '../components/forms';
+import { StockSymbolManager } from '../components/settings/StockSymbolManager';
 
 /**
  * 설정 페이지 컴포넌트
@@ -32,7 +33,12 @@ export const SettingsPage = ({
   onChangeTheme,
   // 아바타 관련 props
   userAvatar,
-  onChangeAvatar
+  onChangeAvatar,
+  // 주식 종목 관련 props
+  stockSymbols = [],
+  onAddSymbol,
+  onUpdateSymbol,
+  onDeleteSymbol
 }) => {
   const [showFamilyModal, setShowFamilyModal] = useState(false);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
@@ -83,6 +89,15 @@ export const SettingsPage = ({
           </Button>
         </div>
       </div>
+
+      {/* 주식 종목 관리 */}
+      <StockSymbolManager
+        stockSymbols={stockSymbols}
+        onAddSymbol={onAddSymbol}
+        onUpdateSymbol={onUpdateSymbol}
+        onDeleteSymbol={onDeleteSymbol}
+        currentUser={currentUser}
+      />
 
       {/* 가족 가계부 설정 */}
       {familyInfo ? (

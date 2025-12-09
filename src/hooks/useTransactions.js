@@ -333,30 +333,6 @@ export const useTransactions = (currentUser, familyInfo) => {
     }
   };
 
-  /**
-   * 고정지출을 실제 거래로 등록 (가족 모드/개인 모드 자동 선택)
-   * @param {Object} transaction - 이미 생성된 거래 객체 (createTransactionFromFixed에서 생성)
-   * @param {String} date - 등록 날짜 (사용하지 않음, 이미 transaction에 포함)
-   */
-  const registerFixedExpense = async (transaction, date) => {
-    try {
-      const isFamilyMode = familyInfo && familyInfo.id;
-
-      // 가족 모드 or 개인 모드로 저장
-      if (isFamilyMode) {
-        await saveFamilyTransaction(familyInfo.id, transaction);
-      } else {
-        await saveTransaction(currentUser.firebaseId, transaction);
-      }
-
-      console.log('✅ 고정지출 자동 등록 성공', `(${isFamilyMode ? '가족 공유' : '개인'} 모드)`);
-      return transaction;
-    } catch (error) {
-      console.error('❌ 고정지출 등록 실패:', error);
-      throw error;
-    }
-  };
-
   return {
     transactions,
     loading,
@@ -375,7 +351,6 @@ export const useTransactions = (currentUser, familyInfo) => {
     resetTransactionForm,
     handleSubmitTransaction,
     getDayTransactions,
-    registerFixedExpense,
     settlePocketMoney
   };
 };

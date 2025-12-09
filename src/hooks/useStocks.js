@@ -200,16 +200,51 @@ export const useStocks = (currentUser) => {
   };
 
   /**
-   * 주식 삭제
+   * 주식 삭제 (전체 또는 계좌별)
    */
-  const handleDeleteStock = async (id) => {
+  const handleDeleteStock = async (id, holdingIndex = null) => {
     try {
-      if (!window.confirm('이 주식을 삭제하시겠습니까?')) {
+      const existingStock = stocks.find(s => s.id === id);
+      if (!existingStock) {
+        alert('주식을 찾을 수 없습니다.');
         return;
       }
 
-      await deleteStock(currentUser.firebaseId, id);
-      console.log('✅ 주식 삭제 성공:', id);
+      // 계좌별 삭제인 경우
+      if (holdingIndex !== null && existingStock.holdings) {
+        const updatedHoldings = existingStock.holdings.filter((_, index) => index !== holdingIndex);
+
+        // holdings가 비어있으면 전체 종목 삭제
+        if (updatedHoldings.length === 0) {
+          await deleteStock(currentUser.firebaseId, id);
+          console.log('✅ 마지막 계좌 삭제로 전체 종목 삭제:', id);
+          return;
+        }
+
+        // 전체 수량과 평균 매입가 재계산
+        const totalQuantity = updatedHoldings.reduce((sum, h) => sum + h.quantity, 0);
+        const totalBuyValue = updatedHoldings.reduce((sum, h) => sum + (h.quantity * h.buyPrice), 0);
+        const averageBuyPrice = totalBuyValue / totalQuantity;
+
+        const updatedStock = {
+          ...existingStock,
+          holdings: updatedHoldings,
+          quantity: totalQuantity,
+          buyPrice: averageBuyPrice,
+          updatedAt: new Date().toISOString()
+        };
+
+        await updateStock(currentUser.firebaseId, id, updatedStock);
+        console.log('✅ 계좌별 삭제 성공:', id, '인덱스:', holdingIndex);
+      } else {
+        // 전체 종목 삭제인 경우
+        if (!window.confirm('이 주식을 완전히 삭제하시겠습니까?')) {
+          return;
+        }
+
+        await deleteStock(currentUser.firebaseId, id);
+        console.log('✅ 주식 삭제 성공:', id);
+      }
 
       // 실시간 리스너가 자동으로 UI 업데이트
     } catch (error) {

@@ -759,3 +759,83 @@ export const onPocketMoneyTransactionsChange = (userId, callback) => {
     }
   });
 };
+
+// ==================== 주식 종목 (Stock Symbols) ====================
+
+/**
+ * 모든 주식 종목 가져오기
+ * @param {string} userId - 사용자 ID
+ */
+export const getStockSymbols = async (userId) => {
+  const symbolsRef = ref(database, getUserPath(userId, 'stockSymbols'));
+  const snapshot = await get(symbolsRef);
+
+  if (snapshot.exists()) {
+    const data = snapshot.val();
+    return Object.entries(data).map(([id, symbol]) => ({
+      ...symbol,
+      id
+    }));
+  }
+  return [];
+};
+
+/**
+ * 주식 종목 저장
+ * @param {string} userId - 사용자 ID
+ * @param {Object} symbol - 종목 객체 { symbol: '', name: '' }
+ */
+export const saveStockSymbol = async (userId, symbolData) => {
+  const symbolsRef = ref(database, getUserPath(userId, 'stockSymbols'));
+  const newSymbolRef = push(symbolsRef);
+  await set(newSymbolRef, symbolData);
+  return newSymbolRef.key;
+};
+
+/**
+ * 주식 종목 수정
+ * @param {string} userId - 사용자 ID
+ * @param {string} symbolId - 종목 ID
+ * @param {Object} updates - 수정할 데이터
+ */
+export const updateStockSymbol = async (userId, symbolId, updates) => {
+  const symbolRef = ref(
+    database,
+    getUserPath(userId, `stockSymbols/${symbolId}`)
+  );
+  await update(symbolRef, updates);
+};
+
+/**
+ * 주식 종목 삭제
+ * @param {string} userId - 사용자 ID
+ * @param {string} symbolId - 종목 ID
+ */
+export const deleteStockSymbol = async (userId, symbolId) => {
+  const symbolRef = ref(
+    database,
+    getUserPath(userId, `stockSymbols/${symbolId}`)
+  );
+  await remove(symbolRef);
+};
+
+/**
+ * 주식 종목 실시간 리스너
+ * @param {string} userId - 사용자 ID
+ * @param {Function} callback - 데이터 변경 시 호출될 함수
+ */
+export const onStockSymbolsChange = (userId, callback) => {
+  const symbolsRef = ref(database, getUserPath(userId, 'stockSymbols'));
+  return onValue(symbolsRef, (snapshot) => {
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      const symbols = Object.entries(data).map(([id, symbol]) => ({
+        ...symbol,
+        id
+      }));
+      callback(symbols);
+    } else {
+      callback([]);
+    }
+  });
+};

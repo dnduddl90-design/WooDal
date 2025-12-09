@@ -12,7 +12,7 @@ import {
  * SRP: 주식 카드 UI만 담당
  * DIP: Props를 통해 데이터와 핸들러 주입받음
  */
-export const StockCard = ({ stock, currentPrice, onDelete, onUpdatePrice, onEdit }) => {
+export const StockCard = ({ stock, currentPrice, onDelete, onUpdatePrice, onEdit, onDeleteHolding }) => {
   const [isEditingPrice, setIsEditingPrice] = useState(false);
   const [newPrice, setNewPrice] = useState('');
   const [showHoldings, setShowHoldings] = useState(false); // 계좌별 내역 표시
@@ -104,13 +104,22 @@ export const StockCard = ({ stock, currentPrice, onDelete, onUpdatePrice, onEdit
                     </div>
                     <div className="text-gray-500 text-xs">{holding.buyDate}</div>
                   </div>
-                  <button
-                    onClick={() => onEdit(stock, index)}
-                    className="opacity-0 group-hover/holding:opacity-100 transition-opacity p-1 hover:bg-indigo-100 rounded"
-                    title="이 계좌 수정"
-                  >
-                    <Edit2 size={14} className="text-indigo-600" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => onEdit(stock, index)}
+                      className="opacity-0 group-hover/holding:opacity-100 transition-opacity p-1 hover:bg-indigo-100 rounded"
+                      title="이 계좌 수정"
+                    >
+                      <Edit2 size={14} className="text-indigo-600" />
+                    </button>
+                    <button
+                      onClick={() => onDeleteHolding(stock, index)}
+                      className="opacity-0 group-hover/holding:opacity-100 transition-opacity p-1 hover:bg-red-100 rounded"
+                      title="이 계좌 삭제"
+                    >
+                      <Trash2 size={14} className="text-red-600" />
+                    </button>
+                  </div>
                 </div>
               </div>
             );

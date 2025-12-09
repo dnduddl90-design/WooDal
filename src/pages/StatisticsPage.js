@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, TrendingUp, Receipt, PiggyBank } from 'lucide-react';
 import { CATEGORIES, USERS } from '../constants';
-import { formatCurrency } from '../utils';
+import { formatCurrency, calculateMonthsSince, formatDate } from '../utils';
 import { Button, Modal } from '../components/common';
 
 /**
@@ -13,6 +13,7 @@ export const StatisticsPage = ({
   currentDate,
   onDateChange,
   transactions = [],
+  fixedExpenses = [],
   settings = { budget: { monthly: '' } },
   familyInfo = null,
   currentUser = null,
@@ -114,6 +115,40 @@ export const StatisticsPage = ({
     return transactionDate >= startDate && transactionDate <= endDate;
   });
 
+  // 현재 월의 활성화된 고정지출 계산
+  const currentMonthFixedExpenses = useMemo(() => {
+    const monthStr = formatDate(new Date(year, month, 15)); // 월 중간 날짜 사용
+
+    return fixedExpenses
+      .filter(fixed => {
+        // 비활성화된 고정지출 제외
+        if (!fixed.isActive) return false;
+
+        // 무기한 고정지출
+        if (fixed.isUnlimited !== false) return true;
+
+        // 기간 제한 고정지출
+        if (fixed.startDate && monthStr < fixed.startDate) return false;
+        if (fixed.endDate && monthStr > fixed.endDate) return false;
+
+        return true;
+      })
+      .map(fixed => {
+        // 월 증감액 계산
+        const monthsSinceBase = calculateMonthsSince(fixed.baseDate, monthStr);
+        const monthlyIncrease = fixed.monthlyIncrease || 0;
+        const calculatedAmount = fixed.amount + (monthlyIncrease * monthsSinceBase);
+
+        return {
+          ...fixed,
+          calculatedAmount
+        };
+      });
+  }, [fixedExpenses, year, month]);
+
+  // 고정지출 총액
+  const fixedExpenseTotal = currentMonthFixedExpenses.reduce((sum, fixed) => sum + fixed.calculatedAmount, 0);
+
   // 이전 월 데이터 계산
   const prevYear = month === 0 ? year - 1 : year;
   const prevMonth = month === 0 ? 11 : month - 1;
@@ -130,15 +165,26 @@ export const StatisticsPage = ({
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  // 저축 카테고리 지출 계산
-  const currentSavings = currentMonthData
+  // 거래 내역에서 저축 카테고리 지출 계산
+  const transactionSavings = currentMonthData
     .filter(t => t.type === 'expense' && t.category === 'savings')
     .reduce((sum, t) => sum + t.amount, 0);
 
-  // 총 지출 (저축 포함)
-  const currentExpenseTotal = currentMonthData
+  // 고정지출에서 저축 카테고리 금액 계산
+  const fixedSavings = currentMonthFixedExpenses
+    .filter(fixed => fixed.category === 'savings')
+    .reduce((sum, fixed) => sum + fixed.calculatedAmount, 0);
+
+  // 저축 카테고리 지출 총액 (거래 + 고정지출)
+  const currentSavings = transactionSavings + fixedSavings;
+
+  // 거래 내역 총 지출 (저축 포함)
+  const transactionExpenseTotal = currentMonthData
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
+
+  // 총 지출 (거래 + 고정지출, 저축 포함)
+  const currentExpenseTotal = transactionExpenseTotal + fixedExpenseTotal;
 
   // 실제 소비 지출 (저축 제외)
   const currentExpense = currentExpenseTotal - currentSavings;
@@ -157,7 +203,7 @@ export const StatisticsPage = ({
 
   const previousExpense = previousExpenseTotal - previousSavings;
 
-  // 카테고리별 지출 계산
+  // 카테고리별 지출 계산 (거래 + 고정지출)
   const expensesByCategory = currentMonthData
     .filter(t => t.type === 'expense')
     .reduce((acc, t) => {
@@ -166,6 +212,13 @@ export const StatisticsPage = ({
       acc[categoryName] = (acc[categoryName] || 0) + t.amount;
       return acc;
     }, {});
+
+  // 고정지출을 카테고리별 지출에 추가
+  currentMonthFixedExpenses.forEach(fixed => {
+    const category = CATEGORIES.expense.find(c => c.id === fixed.category);
+    const categoryName = category ? category.name : '기타';
+    expensesByCategory[categoryName] = (expensesByCategory[categoryName] || 0) + fixed.calculatedAmount;
+  });
 
   // 카테고리 클릭 핸들러
   const handleCategoryClick = (categoryName) => {
@@ -179,11 +232,36 @@ export const StatisticsPage = ({
         const transactionCategoryName = transactionCategory ? transactionCategory.name : '기타';
         return transactionCategoryName === categoryName;
       })
+      .map(t => ({ ...t, isFixed: false })) // 일반 거래 표시
       .sort((a, b) => new Date(b.date) - new Date(a.date)); // 날짜 역순 정렬
+
+    // 해당 카테고리의 고정지출 추가
+    const categoryFixedExpenses = currentMonthFixedExpenses
+      .filter(fixed => {
+        const fixedCategory = CATEGORIES.expense.find(c => c.id === fixed.category);
+        const fixedCategoryName = fixedCategory ? fixedCategory.name : '기타';
+        return fixedCategoryName === categoryName;
+      })
+      .map(fixed => ({
+        id: `fixed-${fixed.id}`,
+        type: 'expense',
+        category: fixed.category,
+        subcategory: fixed.subcategory,
+        amount: fixed.calculatedAmount,
+        paymentMethod: fixed.paymentMethod,
+        memo: `[고정지출] ${fixed.name}${fixed.memo ? ` - ${fixed.memo}` : ''}`,
+        date: formatDate(new Date(year, month, fixed.day || 1)), // 고정지출 날짜
+        userId: currentUser?.id || 'unknown',
+        isFixed: true // 고정지출 표시
+      }));
+
+    // 거래 + 고정지출 합치기
+    const allItems = [...categoryTransactions, ...categoryFixedExpenses]
+      .sort((a, b) => new Date(b.date) - new Date(a.date));
 
     setSelectedCategory({
       name: categoryName,
-      transactions: categoryTransactions,
+      transactions: allItems,
       total: expensesByCategory[categoryName] || 0,
       icon: category?.icon,
       color: category?.color
@@ -456,9 +534,18 @@ export const StatisticsPage = ({
               const budgetAmount = parseInt(settings.budget.categories[category.id]) || 0;
               if (budgetAmount === 0) return null;
 
-              const spentAmount = currentMonthData
+              // 거래 내역 지출
+              const transactionSpent = currentMonthData
                 .filter(t => t.type === 'expense' && t.category === category.id)
                 .reduce((sum, t) => sum + t.amount, 0);
+
+              // 고정지출
+              const fixedSpent = currentMonthFixedExpenses
+                .filter(fixed => fixed.category === category.id)
+                .reduce((sum, fixed) => sum + fixed.calculatedAmount, 0);
+
+              // 총 지출 (거래 + 고정지출)
+              const spentAmount = transactionSpent + fixedSpent;
 
               const percentage = budgetAmount > 0 ? (spentAmount / budgetAmount) * 100 : 0;
               const Icon = category.icon;
@@ -897,7 +984,11 @@ export const StatisticsPage = ({
                 return (
                   <div
                     key={transaction.id || index}
-                    className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                    className={`flex items-center gap-3 p-3 border rounded-lg transition-colors ${
+                      transaction.isFixed
+                        ? 'border-blue-300 bg-blue-50 hover:bg-blue-100'
+                        : 'border-gray-200 hover:bg-gray-50'
+                    }`}
                   >
                     {/* 사용자 아바타 + 이름 */}
                     <div className="flex-shrink-0">

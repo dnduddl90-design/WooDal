@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ExternalLink } from 'lucide-react';
-import { STOCK_MARKETS, ETF_STOCKS, ACCOUNT_TYPES } from '../../constants/stocks';
+import { STOCK_MARKETS, ACCOUNT_TYPES } from '../../constants/stocks';
 import { Button, Input, Modal } from '../common';
 
 /**
@@ -13,7 +13,9 @@ export const StockForm = ({
   onClose,
   onSubmit,
   initialData = null,
-  holdingIndex = null // 계좌별 수정 시 holding 인덱스
+  holdingIndex = null, // 계좌별 수정 시 holding 인덱스
+  stockSymbols = [], // Firebase에서 가져온 종목 목록
+  symbolsLoading = false
 }) => {
   // 계좌별 수정인 경우 해당 holding 데이터 사용
   const getInitialFormData = () => {
@@ -197,23 +199,35 @@ export const StockForm = ({
             <label className="block text-sm font-medium text-gray-700 mb-2">
               종목 선택 <span className="text-red-500">*</span>
             </label>
-            <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto border border-gray-200 rounded-xl p-3">
-              {ETF_STOCKS.map((stock) => (
-                <button
-                  key={stock.symbol}
-                  type="button"
-                  onClick={() => handleStockSelect(stock)}
-                  className={`px-3 py-2 text-sm text-left rounded-lg transition-all duration-200 ${
-                    formData.symbol === stock.symbol
-                      ? 'bg-indigo-100 text-indigo-700 border-2 border-indigo-500 font-medium'
-                      : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
-                  }`}
-                >
-                  <div className="font-medium">{stock.name}</div>
-                  <div className="text-xs text-gray-500">{stock.symbol}</div>
-                </button>
-              ))}
-            </div>
+            {symbolsLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-2"></div>
+                <p className="text-sm text-gray-600">종목 목록 로딩 중...</p>
+              </div>
+            ) : stockSymbols.length === 0 ? (
+              <div className="text-center py-8 border border-gray-200 rounded-xl">
+                <p className="text-sm text-gray-600">등록된 종목이 없습니다.</p>
+                <p className="text-xs text-gray-500 mt-1">설정 페이지에서 종목을 추가해주세요.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto border border-gray-200 rounded-xl p-3">
+                {stockSymbols.map((stock) => (
+                  <button
+                    key={stock.id || stock.symbol}
+                    type="button"
+                    onClick={() => handleStockSelect(stock)}
+                    className={`px-3 py-2 text-sm text-left rounded-lg transition-all duration-200 ${
+                      formData.symbol === stock.symbol
+                        ? 'bg-indigo-100 text-indigo-700 border-2 border-indigo-500 font-medium'
+                        : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200'
+                    }`}
+                  >
+                    <div className="font-medium">{stock.name}</div>
+                    <div className="text-xs text-gray-500">{stock.symbol}</div>
+                  </button>
+                ))}
+              </div>
+            )}
             {formData.symbol && (
               <div className="mt-2 text-sm text-indigo-600">
                 ✓ 선택: {formData.name} ({formData.symbol})

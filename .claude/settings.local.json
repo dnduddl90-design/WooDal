@@ -38,7 +38,9 @@
       "Bash(git commit -m \"문서: Phase 17 개발일지 업데이트\")",
       "Bash(firebase init:*)",
       "Bash(git commit:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(del \"D:\\1.Project\\test\\WooDal\\src\\services\\autoRegisterService.js\")",
+      "Bash(rm:*)"
     ],
     "deny": [],
     "ask": []

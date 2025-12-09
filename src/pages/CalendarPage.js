@@ -1,9 +1,8 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
 import { USERS, CATEGORIES } from '../constants';
-import { getDaysInMonth, getFirstDayOfMonth, formatCurrency } from '../utils';
+import { getDaysInMonth, getFirstDayOfMonth, formatCurrency, calculateMonthsSince } from '../utils';
 import { Button, Modal } from '../components/common';
-import { calculateMonthsSince } from '../services/autoRegisterService';
 
 /**
  * 달력 페이지 컴포넌트

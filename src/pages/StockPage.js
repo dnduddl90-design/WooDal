@@ -21,7 +21,9 @@ export const StockPage = ({
   onDeleteStock,
   onUpdateCurrentPrice,
   onUpdateMultiplePrices,
-  currentUser
+  currentUser,
+  stockSymbols = [],
+  symbolsLoading = false
 }) => {
   const [showForm, setShowForm] = useState(false);
   const [showPriceModal, setShowPriceModal] = useState(false);
@@ -46,6 +48,13 @@ export const StockPage = ({
     setEditingStock(stock);
     setEditingHoldingIndex(holdingIndex);
     setShowForm(true);
+  };
+
+  // 계좌별 삭제
+  const handleDeleteHolding = (stock, holdingIndex) => {
+    if (window.confirm('이 계좌의 보유 내역을 삭제하시겠습니까?')) {
+      onDeleteStock(stock.id, holdingIndex);
+    }
   };
 
   // 폼 닫기
@@ -170,6 +179,7 @@ export const StockPage = ({
                 onDelete={onDeleteStock}
                 onUpdatePrice={onUpdateCurrentPrice}
                 onEdit={handleEdit}
+                onDeleteHolding={handleDeleteHolding}
               />
             ))}
           </div>
@@ -203,6 +213,8 @@ export const StockPage = ({
           onSubmit={handleSubmit}
           initialData={editingStock}
           holdingIndex={editingHoldingIndex}
+          stockSymbols={stockSymbols}
+          symbolsLoading={symbolsLoading}
         />
       )}
 

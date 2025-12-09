@@ -53,3 +53,21 @@ export const isSameDate = (date1, date2) => {
     d1.getDate() === d2.getDate()
   );
 };
+
+/**
+ * 두 날짜 사이의 월 차이 계산
+ * @param {String} baseDateStr - 기준일 (YYYY-MM-DD)
+ * @param {String} targetDateStr - 대상일 (YYYY-MM-DD)
+ * @returns {Number} 월 차이 (기준일부터 대상일까지 지난 개월 수)
+ */
+export const calculateMonthsSince = (baseDateStr, targetDateStr) => {
+  if (!baseDateStr) return 0;
+
+  const baseDate = new Date(baseDateStr);
+  const targetDate = new Date(targetDateStr);
+
+  const yearsDiff = targetDate.getFullYear() - baseDate.getFullYear();
+  const monthsDiff = targetDate.getMonth() - baseDate.getMonth();
+
+  return yearsDiff * 12 + monthsDiff;
+};

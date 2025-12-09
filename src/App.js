@@ -1,10 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 // Hooks
-import { useAuth, useTransactions, useFixedExpenses, useStocks, useSettings, useTheme } from './hooks';
-
-// Services
-import { autoRegisterFixedExpenses } from './services/autoRegisterService';
+import { useAuth, useTransactions, useFixedExpenses, useStocks, useStockSymbols, useSettings, useTheme } from './hooks';
 
 // Pages
 import {
@@ -66,7 +63,6 @@ export default function App() {
     handleDeleteTransaction,
     handleSubmitTransaction,
     resetTransactionForm,
-    registerFixedExpense,
     settlePocketMoney
   } = useTransactions(currentUser, familyInfo);
 
@@ -106,6 +102,15 @@ export default function App() {
     updateCurrentPrice,
     updateMultiplePrices
   } = useStocks(currentUser);
+
+  // ===== 4-1. 주식 종목 상태 (useStockSymbols 훅 사용) =====
+  const {
+    stockSymbols,
+    loading: symbolsLoading,
+    handleAddSymbol,
+    handleUpdateSymbol,
+    handleDeleteSymbol
+  } = useStockSymbols(currentUser);
 
   // ===== 5. 설정 상태 (useSettings 훅 사용) =====
   const { settings, updateSettings } = useSettings(currentUser);
@@ -184,24 +189,6 @@ export default function App() {
     // 프롬프트는 한 번만 사용 가능
     setDeferredPrompt(null);
   };
-
-  // ===== 고정지출 자동 등록 로직 =====
-  useEffect(() => {
-    // 로그인 및 데이터 로드 완료 후 자동 등록 체크
-    if (isAuthenticated && currentUser && fixedExpenses.length > 0 && !transactionsLoading) {
-      autoRegisterFixedExpenses(
-        fixedExpenses,
-        transactions,
-        currentUser.id,
-        registerFixedExpense
-      ).then(count => {
-        if (count > 0) {
-          alert(`🎉 ${count}건의 고정지출이 자동으로 등록되었습니다!`);
-        }
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, currentUser?.id, fixedExpenses.length]); // 로그인 및 고정지출 변경 시 실행
 
   // ===== 검색 관련 함수들 (useCallback으로 최적화) =====
   const performSearch = useCallback(() => {
@@ -548,6 +535,7 @@ export default function App() {
               currentDate={currentDate}
               onDateChange={setCurrentDate}
               transactions={transactions}
+              fixedExpenses={fixedExpenses}
               settings={settings}
               familyInfo={familyInfo}
               currentUser={currentUser}
@@ -566,6 +554,8 @@ export default function App() {
               onUpdateCurrentPrice={updateCurrentPrice}
               onUpdateMultiplePrices={updateMultiplePrices}
               currentUser={currentUser}
+              stockSymbols={stockSymbols}
+              symbolsLoading={symbolsLoading}
             />
           )}
 
@@ -621,6 +611,10 @@ export default function App() {
               onChangeTheme={changeTheme}
               userAvatar={userAvatar}
               onChangeAvatar={handleChangeAvatar}
+              stockSymbols={stockSymbols}
+              onAddSymbol={handleAddSymbol}
+              onUpdateSymbol={handleUpdateSymbol}
+              onDeleteSymbol={handleDeleteSymbol}
             />
           )}
         </main>

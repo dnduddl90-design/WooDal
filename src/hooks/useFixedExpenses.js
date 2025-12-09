@@ -107,12 +107,15 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
    */
   const handleAddFixedExpense = async (formData) => {
     try {
+      // startDate 보장: 비어있으면 오늘 날짜로 설정
+      const today = new Date().toISOString().split('T')[0];
       const newFixed = {
         id: Date.now(),
         ...formData,
         amount: parseInt(formData.amount) || 0,
         autoRegisterDate: parseInt(formData.autoRegisterDate) || 1,
-        monthlyIncrease: parseInt(formData.monthlyIncrease) || 0
+        monthlyIncrease: parseInt(formData.monthlyIncrease) || 0,
+        startDate: formData.startDate || today
       };
 
       const isFamilyMode = familyInfo && familyInfo.id;
@@ -208,6 +211,49 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
     } catch (error) {
       console.error('❌ 고정지출 토글 실패:', error);
       alert('고정지출 상태 변경에 실패했습니다.');
+    }
+  };
+
+  /**
+   * 고정지출 해지 (endDate를 오늘로 설정)
+   */
+  const handleCancelFixedExpense = async (id) => {
+    const fixedExpense = fixedExpenses.find(f => f.id === id);
+    if (!fixedExpense) return;
+
+    const startDateStr = fixedExpense.startDate || '알 수 없음';
+    const today = new Date().toISOString().split('T')[0];
+
+    if (!window.confirm(
+      `이 고정지출을 해지하시겠습니까?\n\n` +
+      `📅 구독 기간: ${startDateStr} ~ ${today}\n\n` +
+      `- 오늘 이후로는 자동 등록되지 않습니다\n` +
+      `- 이전 기록은 유지됩니다\n` +
+      `- 목록에서 숨겨집니다`
+    )) {
+      return;
+    }
+
+    try {
+      const updatedExpense = {
+        ...fixedExpense,
+        endDate: today,
+        isUnlimited: false
+      };
+
+      const isFamilyMode = familyInfo && familyInfo.id;
+
+      if (isFamilyMode) {
+        await updateFamilyFixedExpense(familyInfo.id, id, updatedExpense);
+      } else {
+        await updateFixedExpense(currentUser.firebaseId, id, updatedExpense);
+      }
+
+      alert('✅ 고정지출이 해지되었습니다.');
+      console.log('✅ 고정지출 해지 성공:', id, `(${isFamilyMode ? '가족 공유' : '개인'} 모드)`);
+    } catch (error) {
+      console.error('❌ 고정지출 해지 실패:', error);
+      alert('❌ 해지 중 오류가 발생했습니다.');
     }
   };
 
@@ -312,6 +358,7 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
     handleAddFixedExpense,
     handleUpdateFixedExpense,
     handleDeleteFixedExpense,
+    handleCancelFixedExpense,
     handleToggleActive,
     getFixedExpensesForDay,
     startAddFixed,

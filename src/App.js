@@ -86,6 +86,7 @@ export default function App() {
     startAddFixed,
     startEditFixed,
     handleDeleteFixedExpense,
+    handleCancelFixedExpense,
     handleToggleActive,
     handleSubmitFixed,
     resetFixedForm
@@ -565,6 +566,7 @@ export default function App() {
               onAdd={startAddFixed}
               onEdit={startEditFixed}
               onDelete={handleDeleteFixedExpense}
+              onCancel={handleCancelFixedExpense}
               onToggleActive={handleToggleActive}
             />
           )}

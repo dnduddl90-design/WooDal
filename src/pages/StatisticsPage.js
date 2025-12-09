@@ -303,9 +303,39 @@ export const StatisticsPage = ({
       return transactionDate >= monthStart && transactionDate <= monthEnd;
     });
 
+    // 해당 월의 고정지출 계산
+    const monthStr = formatDate(new Date(targetYear, targetMonth, 15));
+    const monthFixedExpenses = fixedExpenses
+      .filter(fixed => {
+        if (!fixed.isActive) return false;
+        if (fixed.isUnlimited !== false) return true;
+        if (fixed.startDate && monthStr < fixed.startDate) return false;
+        if (fixed.endDate && monthStr > fixed.endDate) return false;
+        return true;
+      })
+      .map(fixed => {
+        const monthsSinceBase = calculateMonthsSince(fixed.baseDate, monthStr);
+        const monthlyIncrease = fixed.monthlyIncrease || 0;
+        return {
+          ...fixed,
+          calculatedAmount: fixed.amount + (monthlyIncrease * monthsSinceBase)
+        };
+      });
+
     const income = monthData.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-    const savings = monthData.filter(t => t.type === 'expense' && t.category === 'savings').reduce((sum, t) => sum + t.amount, 0);
-    const expenseTotal = monthData.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+
+    // 거래 내역 저축
+    const transactionSavings = monthData.filter(t => t.type === 'expense' && t.category === 'savings').reduce((sum, t) => sum + t.amount, 0);
+    // 고정지출 저축
+    const fixedSavings = monthFixedExpenses.filter(fixed => fixed.category === 'savings').reduce((sum, fixed) => sum + fixed.calculatedAmount, 0);
+    const savings = transactionSavings + fixedSavings;
+
+    // 거래 내역 지출
+    const transactionExpenseTotal = monthData.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+    // 고정지출 총액
+    const fixedExpenseTotal = monthFixedExpenses.reduce((sum, fixed) => sum + fixed.calculatedAmount, 0);
+    // 전체 지출 (저축 제외)
+    const expenseTotal = transactionExpenseTotal + fixedExpenseTotal;
     const expense = expenseTotal - savings;
 
     last6Months.push({
@@ -316,14 +346,44 @@ export const StatisticsPage = ({
     });
   }
 
-  // 가족 구성원별 지출 (familyInfo가 있을 때만)
+  // 가족 구성원별 지출 (familyInfo가 있을 때만, 저축 제외)
   const expensesByUser = currentMonthData
-    .filter(t => t.type === 'expense')
+    .filter(t => t.type === 'expense' && t.category !== 'savings')
     .reduce((acc, t) => {
       const userId = t.userId || 'unknown';
       acc[userId] = (acc[userId] || 0) + t.amount;
       return acc;
     }, {});
+
+  // 고정지출 중 저축 제외한 금액을 가족 구성원별로 추가
+  // 고정지출은 admin 또는 첫 번째 구성원에게 할당
+  const adminUserId = familyInfo
+    ? Object.keys(familyInfo.members || {}).find(id => familyInfo.members[id].role === 'admin') || Object.keys(familyInfo.members || {})[0]
+    : currentUser?.id || 'user1';
+
+  currentMonthFixedExpenses
+    .filter(fixed => fixed.category !== 'savings')
+    .forEach(fixed => {
+      const userId = fixed.userId || adminUserId;
+      expensesByUser[userId] = (expensesByUser[userId] || 0) + fixed.calculatedAmount;
+    });
+
+  // 가족 구성원별 저축 (저축 카테고리만)
+  const savingsByUser = currentMonthData
+    .filter(t => t.type === 'expense' && t.category === 'savings')
+    .reduce((acc, t) => {
+      const userId = t.userId || 'unknown';
+      acc[userId] = (acc[userId] || 0) + t.amount;
+      return acc;
+    }, {});
+
+  // 고정지출 중 저축을 가족 구성원별로 추가
+  currentMonthFixedExpenses
+    .filter(fixed => fixed.category === 'savings')
+    .forEach(fixed => {
+      const userId = fixed.userId || adminUserId;
+      savingsByUser[userId] = (savingsByUser[userId] || 0) + fixed.calculatedAmount;
+    });
 
   // 사용자별 용돈 사용 내역 계산
   const pocketMoneyByUser = currentMonthData
@@ -664,14 +724,14 @@ export const StatisticsPage = ({
       {/* 재정 건강 알림 */}
       {currentMonthData.length > 0 && (
         <div className={`glass-effect rounded-xl p-4 sm:p-6 shadow-lg ${
-          currentIncome >= currentExpenseTotal
+          currentIncome >= currentExpense
             ? 'bg-gradient-to-r from-green-50 to-blue-50'
             : 'bg-gradient-to-r from-red-50 to-orange-50'
         }`}>
           <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">
             💡 이번 달 가계 분석
           </h3>
-          {currentIncome >= currentExpenseTotal ? (
+          {currentIncome >= currentExpense ? (
             <div>
               <p className="text-sm sm:text-base text-gray-700 mb-2">
                 🎉 훌륭합니다! 이번 달 <span className="font-bold text-green-600">
@@ -681,9 +741,9 @@ export const StatisticsPage = ({
               <p className="text-xs sm:text-sm text-gray-600 mb-2">
                 저축률 {savingRate.toFixed(1)}%를 달성했습니다. 계속 이런 습관을 유지하세요!
               </p>
-              {currentIncome > currentExpenseTotal && (
+              {currentIncome > currentExpense + currentSavings && (
                 <p className="text-xs sm:text-sm text-blue-600">
-                  추가로 <span className="font-semibold">{formatCurrency(currentIncome - currentExpenseTotal)}원</span>의 여유 자금이 있습니다.
+                  추가로 <span className="font-semibold">{formatCurrency(currentIncome - currentExpense - currentSavings)}원</span>의 여유 자금이 있습니다.
                 </p>
               )}
             </div>
@@ -691,7 +751,7 @@ export const StatisticsPage = ({
             <div>
               <p className="text-sm sm:text-base text-gray-700 mb-2">
                 ⚠️ 이번 달 지출이 수입을 <span className="font-bold text-red-600">
-                  {formatCurrency(currentExpenseTotal - currentIncome)}원
+                  {formatCurrency(currentExpense - currentIncome)}원
                 </span> 초과했습니다.
               </p>
               <p className="text-xs sm:text-sm text-gray-600">
@@ -710,11 +770,11 @@ export const StatisticsPage = ({
           </h3>
           <div className="space-y-3 sm:space-y-4">
             {last6Months.map((monthData, index) => {
-              const maxAmount = Math.max(
-                ...last6Months.map(m => Math.max(m.income, m.expense))
-              );
+              // 각 월별로 개별 최대값 기준으로 계산
+              const maxAmount = Math.max(monthData.income, monthData.expense, monthData.saving);
               const incomePercentage = maxAmount > 0 ? (monthData.income / maxAmount) * 100 : 0;
               const expensePercentage = maxAmount > 0 ? (monthData.expense / maxAmount) * 100 : 0;
+              const savingPercentage = maxAmount > 0 ? (monthData.saving / maxAmount) * 100 : 0;
               const isCurrentMonth = index === last6Months.length - 1;
 
               return (
@@ -731,7 +791,7 @@ export const StatisticsPage = ({
                         -{formatCurrency(monthData.expense)}
                       </span>
                       <span className={`font-bold ${monthData.saving >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
-                        {monthData.saving >= 0 ? '+' : ''}{formatCurrency(monthData.saving)}
+                        💰{monthData.saving >= 0 ? '+' : ''}{formatCurrency(monthData.saving)}
                       </span>
                     </div>
                   </div>
@@ -746,6 +806,13 @@ export const StatisticsPage = ({
                       className="h-2 sm:h-2.5 bg-gradient-to-r from-red-400 to-red-600 rounded transition-all duration-1000"
                       style={{ width: `${expensePercentage}%` }}
                     />
+                    {/* 저축 바 */}
+                    {monthData.saving > 0 && (
+                      <div
+                        className="h-2 sm:h-2.5 bg-gradient-to-r from-blue-400 to-blue-600 rounded transition-all duration-1000"
+                        style={{ width: `${savingPercentage}%` }}
+                      />
+                    )}
                   </div>
                 </div>
               );
@@ -760,46 +827,109 @@ export const StatisticsPage = ({
           <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-4 sm:mb-6">
             👨‍👩‍👧‍👦 가족 구성원별 지출
           </h3>
-          <div className="space-y-3 sm:space-y-4">
-            {Object.entries(expensesByUser)
-              .sort(([,a], [,b]) => b - a)
-              .map(([userId, amount], index) => {
-                const maxAmount = Math.max(...Object.values(expensesByUser));
-                const percentage = maxAmount > 0 ? (amount / maxAmount) * 100 : 0;
-                const user = getUserInfo(userId);
-                const colors = ['bg-blue-500', 'bg-pink-500', 'bg-purple-500', 'bg-green-500'];
 
-                return (
-                  <div key={userId} className="space-y-1.5 sm:space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs sm:text-sm font-medium text-gray-700 flex items-center gap-2">
-                        <span className="text-base">{user.avatar}</span>
-                        <span>{user.name}</span>
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs sm:text-sm font-bold text-gray-800">
-                          {formatCurrency(amount)}원
+          {/* 소비 지출 (저축 제외) */}
+          <div className="mb-6">
+            <h4 className="text-sm font-semibold text-gray-700 mb-3">💳 소비 지출</h4>
+            <div className="space-y-3 sm:space-y-4">
+              {Object.entries(expensesByUser)
+                .sort(([,a], [,b]) => b - a)
+                .map(([userId, amount], index) => {
+                  const maxAmount = Math.max(...Object.values(expensesByUser));
+                  const percentage = maxAmount > 0 ? (amount / maxAmount) * 100 : 0;
+                  const user = getUserInfo(userId);
+                  const colors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-amber-500'];
+
+                  return (
+                    <div key={userId} className="space-y-1.5 sm:space-y-2">
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs sm:text-sm font-medium text-gray-700 flex items-center gap-2">
+                          <span className="text-base">{user.avatar}</span>
+                          <span>{user.name}</span>
                         </span>
-                        <span className="text-[10px] sm:text-xs text-gray-500">
-                          ({((amount / currentExpense) * 100).toFixed(1)}%)
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs sm:text-sm font-bold text-gray-800">
+                            {formatCurrency(amount)}원
+                          </span>
+                          <span className="text-[10px] sm:text-xs text-gray-500">
+                            ({((amount / currentExpense) * 100).toFixed(1)}%)
+                          </span>
+                        </div>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2.5 sm:h-3">
+                        <div
+                          className={`h-2.5 sm:h-3 rounded-full transition-all duration-1000 ease-out ${colors[index % colors.length]}`}
+                          style={{ width: `${percentage}%` }}
+                        />
                       </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 sm:h-3">
-                      <div
-                        className={`h-2.5 sm:h-3 rounded-full transition-all duration-1000 ease-out ${colors[index % colors.length]}`}
-                        style={{ width: `${percentage}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+            </div>
           </div>
-          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200">
+
+          {/* 저축 */}
+          {Object.keys(savingsByUser).length > 0 && (
+            <div className="mb-4">
+              <h4 className="text-sm font-semibold text-gray-700 mb-3">💰 저축</h4>
+              <div className="space-y-3 sm:space-y-4">
+                {Object.entries(savingsByUser)
+                  .sort(([,a], [,b]) => b - a)
+                  .map(([userId, amount], index) => {
+                    const maxAmount = Math.max(...Object.values(savingsByUser));
+                    const percentage = maxAmount > 0 ? (amount / maxAmount) * 100 : 0;
+                    const user = getUserInfo(userId);
+                    const colors = ['bg-blue-500', 'bg-cyan-500', 'bg-indigo-500', 'bg-sky-500'];
+
+                    return (
+                      <div key={userId} className="space-y-1.5 sm:space-y-2">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs sm:text-sm font-medium text-gray-700 flex items-center gap-2">
+                            <span className="text-base">{user.avatar}</span>
+                            <span>{user.name}</span>
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs sm:text-sm font-bold text-blue-600">
+                              {formatCurrency(amount)}원
+                            </span>
+                            <span className="text-[10px] sm:text-xs text-gray-500">
+                              ({((amount / currentSavings) * 100).toFixed(1)}%)
+                            </span>
+                          </div>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2.5 sm:h-3">
+                          <div
+                            className={`h-2.5 sm:h-3 rounded-full transition-all duration-1000 ease-out ${colors[index % colors.length]}`}
+                            style={{ width: `${percentage}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+          )}
+
+          {/* 합계 */}
+          <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-gray-200 space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-xs sm:text-sm font-medium text-gray-700">전체 지출</span>
-              <span className="text-sm sm:text-base font-bold text-gray-900">
+              <span className="text-xs sm:text-sm font-medium text-gray-700">전체 소비</span>
+              <span className="text-sm sm:text-base font-bold text-red-600">
                 {formatCurrency(currentExpense)}원
+              </span>
+            </div>
+            {currentSavings > 0 && (
+              <div className="flex justify-between items-center">
+                <span className="text-xs sm:text-sm font-medium text-gray-700">전체 저축</span>
+                <span className="text-sm sm:text-base font-bold text-blue-600">
+                  {formatCurrency(currentSavings)}원
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+              <span className="text-xs sm:text-sm font-semibold text-gray-800">전체 합계</span>
+              <span className="text-sm sm:text-base font-bold text-gray-900">
+                {formatCurrency(currentExpense + currentSavings)}원
               </span>
             </div>
           </div>

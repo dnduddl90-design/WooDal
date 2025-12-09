@@ -104,12 +104,16 @@ export const FixedExpenseForm = ({
             </div>
             <button
               type="button"
-              onClick={() => onFormChange({
-                ...formData,
-                isUnlimited: !formData.isUnlimited,
-                startDate: formData.isUnlimited ? new Date().toISOString().split('T')[0] : '',
-                endDate: ''
-              })}
+              onClick={() => {
+                const newIsUnlimited = !formData.isUnlimited;
+                const today = new Date().toISOString().split('T')[0];
+                onFormChange({
+                  ...formData,
+                  isUnlimited: newIsUnlimited,
+                  startDate: formData.startDate || today,
+                  endDate: newIsUnlimited ? '' : formData.endDate
+                });
+              }}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
                 formData.isUnlimited ? 'bg-blue-600' : 'bg-gray-300'
               }`}

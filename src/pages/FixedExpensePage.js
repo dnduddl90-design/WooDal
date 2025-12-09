@@ -1,7 +1,7 @@
-import React from 'react';
-import { Plus, Eye, EyeOff, Edit2, Trash2, Receipt, AlertCircle } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Plus, Eye, EyeOff, Edit2, StopCircle, Receipt, AlertCircle } from 'lucide-react';
 import { CATEGORIES } from '../constants';
-import { formatCurrency } from '../utils';
+import { formatCurrency, formatDate } from '../utils';
 import { Button } from '../components/common';
 
 /**
@@ -14,27 +14,84 @@ export const FixedExpensePage = ({
   onAdd,
   onEdit,
   onDelete,
+  onCancel,
   onToggleActive
 }) => {
+  const [isMigrating, setIsMigrating] = useState(false);
+  // 오늘 날짜
+  const today = formatDate(new Date());
+
+  // 기간이 유효한 고정지출만 필터링 (endDate가 없거나 오늘 이후인 것만)
+  const validFixedExpenses = useMemo(() => {
+    return fixedExpenses.filter(fixed => {
+      // endDate가 없거나 무기한이면 표시
+      if (!fixed.endDate || fixed.isUnlimited !== false) return true;
+      // endDate가 오늘 이후면 표시
+      return fixed.endDate >= today;
+    });
+  }, [fixedExpenses, today]);
+
   // 통계 계산
-  const activeExpenses = fixedExpenses.filter(f => f.isActive);
-  const inactiveCount = fixedExpenses.length - activeExpenses.length;
+  const activeExpenses = validFixedExpenses.filter(f => f.isActive);
+  const inactiveCount = validFixedExpenses.length - activeExpenses.length;
   const monthlyTotal = activeExpenses.reduce((sum, f) => sum + f.amount, 0);
+
+  // 마이그레이션 함수
+  const handleMigrateData = async () => {
+    const fixedExpensesToUpdate = fixedExpenses.filter(
+      fixed => fixed.isUnlimited && (!fixed.startDate || fixed.startDate === '')
+    );
+
+    if (fixedExpensesToUpdate.length === 0) {
+      alert('마이그레이션할 항목이 없습니다. 모든 고정지출이 이미 시작일을 가지고 있습니다.');
+      return;
+    }
+
+    if (!window.confirm(`기존 무기한 고정지출 ${fixedExpensesToUpdate.length}개의 시작일을 2025-10-01로 설정하시겠습니까?`)) {
+      return;
+    }
+
+    setIsMigrating(true);
+    try {
+      for (const fixed of fixedExpensesToUpdate) {
+        await onEdit(fixed.id, {
+          ...fixed,
+          startDate: '2025-10-01'
+        });
+      }
+      alert(`✅ 마이그레이션 완료! ${fixedExpensesToUpdate.length}개 항목이 업데이트되었습니다.`);
+    } catch (error) {
+      console.error('마이그레이션 오류:', error);
+      alert('❌ 마이그레이션 중 오류가 발생했습니다.');
+    } finally {
+      setIsMigrating(false);
+    }
+  };
 
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in pb-20 sm:pb-6">
       {/* 헤더 */}
       <div className="flex justify-between items-center gap-2">
         <h2 className="text-lg sm:text-2xl font-bold gradient-text">고정지출 관리</h2>
-        <Button
-          variant="primary"
-          icon={Plus}
-          onClick={onAdd}
-          className="text-xs sm:text-sm"
-        >
-          <span className="hidden sm:inline">고정지출 추가</span>
-          <span className="sm:hidden">추가</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="secondary"
+            onClick={handleMigrateData}
+            disabled={isMigrating}
+            className="text-xs"
+          >
+            {isMigrating ? '처리 중...' : '🔧 마이그레이션'}
+          </Button>
+          <Button
+            variant="primary"
+            icon={Plus}
+            onClick={onAdd}
+            className="text-xs sm:text-sm"
+          >
+            <span className="hidden sm:inline">고정지출 추가</span>
+            <span className="sm:hidden">추가</span>
+          </Button>
+        </div>
       </div>
 
       {/* 요약 카드들 */}
@@ -75,7 +132,7 @@ export const FixedExpensePage = ({
             <div className="min-w-0">
               <p className="text-xs sm:text-sm text-gray-600 mb-1">전체 항목</p>
               <p className="text-lg sm:text-2xl font-bold text-gray-800">
-                {fixedExpenses.length}개
+                {validFixedExpenses.length}개
               </p>
               {inactiveCount > 0 && (
                 <p className="text-xs sm:text-sm text-gray-500 mt-1">
@@ -94,7 +151,7 @@ export const FixedExpensePage = ({
       <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
         <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">고정지출 목록</h3>
 
-        {fixedExpenses.length === 0 ? (
+        {validFixedExpenses.length === 0 ? (
           <div className="text-center py-8 sm:py-12">
             <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">📋</div>
             <p className="text-sm sm:text-base text-gray-500 mb-1 sm:mb-2">등록된 고정지출이 없습니다</p>
@@ -112,7 +169,7 @@ export const FixedExpensePage = ({
           </div>
         ) : (
           <div className="space-y-3 sm:space-y-4">
-            {fixedExpenses.map(fixed => {
+            {validFixedExpenses.map(fixed => {
               const category = CATEGORIES.expense.find(c => c.id === fixed.category);
               const Icon = category?.icon;
 
@@ -201,13 +258,9 @@ export const FixedExpensePage = ({
                       <Button
                         variant="danger"
                         size="sm"
-                        icon={Trash2}
-                        onClick={() => {
-                          if (window.confirm(`'${fixed.name}'을(를) 삭제하시겠습니까?`)) {
-                            onDelete(fixed.id);
-                          }
-                        }}
-                        title="삭제"
+                        icon={StopCircle}
+                        onClick={() => onCancel(fixed.id)}
+                        title="해지"
                         className="flex-1 sm:flex-none"
                       />
                     </div>

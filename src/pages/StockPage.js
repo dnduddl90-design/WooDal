@@ -37,11 +37,28 @@ export const StockPage = ({
   // 계좌별 필터링 (holdings 기반)
   const filteredStocks = selectedAccount === 'ALL'
     ? stocks
-    : stocks.filter(stock => {
-        // holdings 배열에서 해당 계좌가 있는지 확인
-        const holdings = stock.holdings || [];
-        return holdings.some(h => h.account === selectedAccount);
-      });
+    : stocks
+        .filter(stock => {
+          // holdings 배열에서 해당 계좌가 있는지 확인
+          const holdings = stock.holdings || [];
+          return holdings.some(h => h.account === selectedAccount);
+        })
+        .map(stock => {
+          // 선택된 계좌의 holdings만 필터링
+          const filteredHoldings = stock.holdings.filter(h => h.account === selectedAccount);
+
+          // 필터링된 holdings 기준으로 총 수량과 평균 매입가 재계산
+          const totalQuantity = filteredHoldings.reduce((sum, h) => sum + h.quantity, 0);
+          const totalBuyValue = filteredHoldings.reduce((sum, h) => sum + (h.quantity * h.buyPrice), 0);
+          const avgBuyPrice = totalQuantity > 0 ? totalBuyValue / totalQuantity : 0;
+
+          return {
+            ...stock,
+            holdings: filteredHoldings,
+            quantity: totalQuantity,
+            buyPrice: avgBuyPrice
+          };
+        });
 
   // 수정 모달 열기
   const handleEdit = (stock, holdingIndex = null) => {

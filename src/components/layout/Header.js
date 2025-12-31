@@ -9,6 +9,7 @@ import { Button } from '../common';
  */
 export const Header = ({
   user,
+  appTitle = "우영달림 가계부",
   onLogout,
   pendingInvitations = [],
   onAcceptInvitation,
@@ -28,7 +29,7 @@ export const Header = ({
           <div className="text-2xl sm:text-4xl animate-float flex-shrink-0">{user.avatar}</div>
           <div className="min-w-0">
             <h1 className="text-base sm:text-2xl font-bold gradient-text truncate">
-              우영달림 가계부
+              {appTitle}
             </h1>
             <p className="text-[11px] sm:text-sm text-gray-600 truncate">
               {user.name}님의 가계부

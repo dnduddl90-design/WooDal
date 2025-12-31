@@ -9,7 +9,7 @@ import { signInWithGoogle } from '../firebase';
  * SRP: 로그인 UI만 담당
  * DIP: Props를 통해 로그인 핸들러 주입받음
  */
-export const LoginPage = ({ onLogin }) => {
+export const LoginPage = ({ onLogin, appSubtitle = "우영 ♥ 달림", appTitle = "우영달림 가계부" }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -39,7 +39,7 @@ export const LoginPage = ({ onLogin }) => {
             <span className="text-3xl">👩</span>
           </div>
           <h1 className="text-2xl font-bold gradient-text mb-2">
-            우영 ♥ 달림
+            {appSubtitle}
           </h1>
           <p className="text-gray-600">부부 가계부</p>
         </div>
@@ -48,7 +48,7 @@ export const LoginPage = ({ onLogin }) => {
         <div className="mb-6 text-center">
           <p className="text-gray-600 text-sm">
             Google 계정으로 로그인하여<br />
-            우영/달림 부부 가계부를 사용하세요
+            {appTitle}를 사용하세요
           </p>
         </div>
 

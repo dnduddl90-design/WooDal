@@ -10,3 +10,4 @@ export { useStockSymbols } from './useStockSymbols';
 export { useSettings } from './useSettings';
 export { useTheme } from './useTheme';
 export { usePocketMoney } from './usePocketMoney';
+export { useBranding } from './useBranding';

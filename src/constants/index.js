@@ -6,3 +6,4 @@ export * from './categories';
 export * from './paymentMethods';
 export * from './users';
 export * from './avatars';
+export * from './branding';

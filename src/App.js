@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 // Hooks
-import { useAuth, useTransactions, useFixedExpenses, useStocks, useStockSymbols, useSettings, useTheme } from './hooks';
+import { useAuth, useTransactions, useFixedExpenses, useStocks, useStockSymbols, useSettings, useTheme, useBranding } from './hooks';
 
 // Pages
 import {
@@ -22,7 +22,7 @@ import { Header, Sidebar } from './components/layout';
 import { TransactionForm, FixedExpenseForm } from './components/forms';
 
 // Utils
-import { STORAGE_KEYS, saveToStorage, clearAllStorage } from './utils';
+import { STORAGE_KEYS, saveToStorage, clearAllStorage, updatePWAMetadata } from './utils';
 
 /**
  * 메인 애플리케이션 컴포넌트
@@ -116,7 +116,14 @@ export default function App() {
   // ===== 5. 설정 상태 (useSettings 훅 사용) =====
   const { settings, updateSettings } = useSettings(currentUser);
 
-  // ===== 5. 뷰 및 날짜 상태 =====
+  // ===== 5-1. 브랜딩 상태 (useBranding 훅 사용) =====
+  const {
+    brandingSettings,
+    updateBrandingSettings,
+    getAppTitle
+  } = useBranding(currentUser, familyInfo);
+
+  // ===== 6. 뷰 및 날짜 상태 =====
   const [currentView, setCurrentView] = useState('calendar');
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -165,6 +172,13 @@ export default function App() {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
   }, []);
+
+  // PWA 메타데이터 동적 업데이트
+  useEffect(() => {
+    if (brandingSettings?.pwa) {
+      updatePWAMetadata(brandingSettings.pwa);
+    }
+  }, [brandingSettings?.pwa]);
 
   // PWA 설치 함수
   const handleInstallPWA = async () => {
@@ -479,7 +493,13 @@ export default function App() {
 
   // ===== 로그인하지 않은 경우 =====
   if (!isAuthenticated) {
-    return <LoginPage onLogin={handleLogin} />;
+    return (
+      <LoginPage
+        onLogin={handleLogin}
+        appSubtitle={brandingSettings.pwa?.shortName || "우영달림"}
+        appTitle={brandingSettings.appName || "우영달림 가계부"}
+      />
+    );
   }
 
   // ===== 데이터 로딩 중 =====
@@ -501,6 +521,7 @@ export default function App() {
       {/* 헤더 */}
       <Header
         user={currentUser}
+        appTitle={getAppTitle()}
         onLogout={handleLogout}
         pendingInvitations={pendingInvitations}
         onAcceptInvitation={handleAcceptInvitation}
@@ -617,6 +638,8 @@ export default function App() {
               onAddSymbol={handleAddSymbol}
               onUpdateSymbol={handleUpdateSymbol}
               onDeleteSymbol={handleDeleteSymbol}
+              brandingSettings={brandingSettings}
+              onUpdateBranding={updateBrandingSettings}
             />
           )}
         </main>

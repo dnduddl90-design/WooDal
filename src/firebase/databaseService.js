@@ -839,3 +839,81 @@ export const onStockSymbolsChange = (userId, callback) => {
     }
   });
 };
+
+// ==================== 브랜딩 설정 (Branding) ====================
+
+/**
+ * 가족 브랜딩 설정 가져오기
+ * @param {string} familyId - 가족 ID
+ * @returns {Promise<Object|null>} - 브랜딩 설정 객체 또는 null
+ */
+export const getFamilyBranding = async (familyId) => {
+  const brandingRef = ref(database, getFamilyPath(familyId, 'branding'));
+  const snapshot = await get(brandingRef);
+  return snapshot.exists() ? snapshot.val() : null;
+};
+
+/**
+ * 가족 브랜딩 설정 저장
+ * @param {string} familyId - 가족 ID
+ * @param {Object} branding - 브랜딩 설정 객체
+ */
+export const saveFamilyBranding = async (familyId, branding) => {
+  const brandingRef = ref(database, getFamilyPath(familyId, 'branding'));
+  const brandingData = {
+    ...branding,
+    updatedAt: new Date().toISOString()
+  };
+  await set(brandingRef, brandingData);
+};
+
+/**
+ * 가족 브랜딩 실시간 리스너
+ * @param {string} familyId - 가족 ID
+ * @param {Function} callback - 데이터 변경 시 호출될 함수
+ * @returns {Function} - unsubscribe 함수
+ */
+export const onFamilyBrandingChange = (familyId, callback) => {
+  const brandingRef = ref(database, getFamilyPath(familyId, 'branding'));
+  return onValue(brandingRef, (snapshot) => {
+    callback(snapshot.exists() ? snapshot.val() : null);
+  });
+};
+
+/**
+ * 개인 브랜딩 설정 가져오기 (가족이 없는 사용자용)
+ * @param {string} userId - 사용자 ID
+ * @returns {Promise<Object|null>} - 브랜딩 설정 객체 또는 null
+ */
+export const getPersonalBranding = async (userId) => {
+  const brandingRef = ref(database, getUserPath(userId, 'branding'));
+  const snapshot = await get(brandingRef);
+  return snapshot.exists() ? snapshot.val() : null;
+};
+
+/**
+ * 개인 브랜딩 설정 저장 (가족이 없는 사용자용)
+ * @param {string} userId - 사용자 ID
+ * @param {Object} branding - 브랜딩 설정 객체
+ */
+export const savePersonalBranding = async (userId, branding) => {
+  const brandingRef = ref(database, getUserPath(userId, 'branding'));
+  const brandingData = {
+    ...branding,
+    updatedAt: new Date().toISOString()
+  };
+  await set(brandingRef, brandingData);
+};
+
+/**
+ * 개인 브랜딩 실시간 리스너
+ * @param {string} userId - 사용자 ID
+ * @param {Function} callback - 데이터 변경 시 호출될 함수
+ * @returns {Function} - unsubscribe 함수
+ */
+export const onPersonalBrandingChange = (userId, callback) => {
+  const brandingRef = ref(database, getUserPath(userId, 'branding'));
+  return onValue(brandingRef, (snapshot) => {
+    callback(snapshot.exists() ? snapshot.val() : null);
+  });
+};

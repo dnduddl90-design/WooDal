@@ -4,6 +4,7 @@ import { CATEGORIES, DEFAULT_AVATARS } from '../constants';
 import { Button, Input, Modal } from '../components/common';
 import { AvatarPicker } from '../components/forms';
 import { StockSymbolManager } from '../components/settings/StockSymbolManager';
+import { BrandingSettings } from '../components/settings/BrandingSettings';
 
 /**
  * 설정 페이지 컴포넌트
@@ -38,7 +39,10 @@ export const SettingsPage = ({
   stockSymbols = [],
   onAddSymbol,
   onUpdateSymbol,
-  onDeleteSymbol
+  onDeleteSymbol,
+  // 브랜딩 관련 props
+  brandingSettings,
+  onUpdateBranding
 }) => {
   const [showFamilyModal, setShowFamilyModal] = useState(false);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
@@ -96,6 +100,14 @@ export const SettingsPage = ({
         onAddSymbol={onAddSymbol}
         onUpdateSymbol={onUpdateSymbol}
         onDeleteSymbol={onDeleteSymbol}
+        currentUser={currentUser}
+      />
+
+      {/* 앱 커스터마이징 */}
+      <BrandingSettings
+        brandingSettings={brandingSettings}
+        onUpdateBranding={onUpdateBranding}
+        familyInfo={familyInfo}
         currentUser={currentUser}
       />
 
@@ -434,11 +446,13 @@ export const SettingsPage = ({
           </div>
           <div className="text-center p-4 bg-gradient-to-r from-pink-100 to-blue-100 rounded-lg">
             <p className="text-2xl font-bold">💕</p>
-            <p className="text-sm text-gray-600 mt-1">우영♥달림</p>
+            <p className="text-sm text-gray-600 mt-1">
+              {brandingSettings?.pwa?.shortName || "우영♥달림"}
+            </p>
           </div>
         </div>
         <p className="text-sm text-gray-500 text-center mt-4">
-          우영달림 가계부 • 2025 • Made with Claude Code
+          {brandingSettings?.appName || "우영달림 가계부"} • 2025 • Made with Claude Code
         </p>
       </div>
 

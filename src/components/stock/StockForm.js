@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { STOCK_MARKETS, ACCOUNT_TYPES } from '../../constants/stocks';
+import { getTodayDateString } from '../../utils';
 import { Button, Input, Modal } from '../common';
 
 /**
@@ -42,7 +43,7 @@ export const StockForm = ({
         quantity: initialData.quantity?.toString() || '',
         buyPrice: initialData.buyPrice?.toString() || '',
         currentPrice: initialData.currentPrice?.toString() || '',
-        buyDate: initialData.buyDate || new Date().toISOString().split('T')[0],
+        buyDate: initialData.buyDate || getTodayDateString(),
         memo: initialData.memo || ''
       };
     } else {
@@ -55,7 +56,7 @@ export const StockForm = ({
         quantity: '',
         buyPrice: '',
         currentPrice: '',
-        buyDate: new Date().toISOString().split('T')[0],
+        buyDate: getTodayDateString(),
         memo: ''
       };
     }

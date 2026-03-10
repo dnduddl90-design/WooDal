@@ -22,7 +22,14 @@ import { Header, Sidebar } from './components/layout';
 import { TransactionForm, FixedExpenseForm } from './components/forms';
 
 // Utils
-import { STORAGE_KEYS, saveToStorage, clearAllStorage, updatePWAMetadata } from './utils';
+import {
+  STORAGE_KEYS,
+  saveToStorage,
+  clearAllStorage,
+  updatePWAMetadata,
+  getTodayDateString,
+  sortByDateDesc
+} from './utils';
 
 /**
  * 메인 애플리케이션 컴포넌트
@@ -52,7 +59,6 @@ export default function App() {
   // ===== 2. 거래 내역 상태 (useTransactions 훅 사용) =====
   const {
     transactions,
-    loading: transactionsLoading,
     transactionForm,
     showAddTransaction,
     isEditMode,
@@ -65,14 +71,6 @@ export default function App() {
     resetTransactionForm,
     settlePocketMoney
   } = useTransactions(currentUser, familyInfo);
-
-  // 디버그: 로딩 상태 로그
-  console.log('🔍 App.js 로딩 상태:', {
-    authLoading,
-    transactionsLoading,
-    isAuthenticated,
-    currentUser: currentUser?.email
-  });
 
   // ===== 3. 고정지출 상태 (useFixedExpenses 훅 사용) =====
   const {
@@ -157,14 +155,12 @@ export default function App() {
       setDeferredPrompt(e);
       // 커스텀 설치 버튼 표시
       setShowInstallPrompt(true);
-      console.log('[PWA] 앱 설치 가능');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
 
     // 이미 설치된 경우 감지
     if (window.matchMedia('(display-mode: standalone)').matches) {
-      console.log('[PWA] 앱이 이미 설치되어 있습니다.');
       setShowInstallPrompt(false);
     }
 
@@ -192,13 +188,9 @@ export default function App() {
 
     // 사용자 선택 대기
     const { outcome } = await deferredPrompt.userChoice;
-    console.log(`[PWA] 사용자 선택: ${outcome}`);
 
     if (outcome === 'accepted') {
-      console.log('[PWA] 앱 설치 수락');
       setShowInstallPrompt(false);
-    } else {
-      console.log('[PWA] 앱 설치 거절');
     }
 
     // 프롬프트는 한 번만 사용 가능
@@ -254,9 +246,7 @@ export default function App() {
     }
 
     // 날짜순 정렬 (최신순)
-    results.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-    setSearchResults(results);
+    setSearchResults(sortByDateDesc(results));
   }, [transactions, searchQuery, searchFilters]);
 
   const resetSearch = useCallback(() => {
@@ -350,7 +340,7 @@ export default function App() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `가계부_백업_${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `가계부_백업_${getTodayDateString()}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -361,13 +351,12 @@ export default function App() {
   const handleCreateFamily = useCallback(async (familyName) => {
     try {
       const { createFamily } = await import('./firebase/databaseService');
-      const familyId = await createFamily(
+      await createFamily(
         currentUser.firebaseId,
         currentUser.name,
         familyName,
         userAvatar || '👨'  // 사용자 아바타 전달
       );
-      console.log('✅ 가족 생성 완료:', familyId);
       alert(`🎉 "${familyName}" 가족 가계부가 생성되었습니다!`);
 
       // 페이지 새로고침으로 가족 정보 로드
@@ -400,7 +389,6 @@ export default function App() {
         trimmedEmail.toLowerCase()
       );
 
-      console.log('✅ 초대 생성 완료:', trimmedEmail.toLowerCase());
       alert(`🎉 ${trimmedEmail}로 초대를 보냈습니다!\n\n해당 이메일로 Google 로그인하면 자동으로 초대를 확인할 수 있습니다.`);
     } catch (error) {
       console.error('❌ 초대 실패:', error);
@@ -431,7 +419,6 @@ export default function App() {
       const memberRef = ref(database, `families/${familyInfo.id}/members/${currentUser.firebaseId}`);
       await remove(memberRef);
 
-      console.log('✅ 가족 탈퇴 완료');
       alert('가족 가계부에서 탈퇴했습니다.');
 
       // 페이지 새로고침으로 개인 모드로 전환
@@ -447,14 +434,13 @@ export default function App() {
     try {
       const { acceptInvitation } = await import('./firebase/databaseService');
 
-      const familyId = await acceptInvitation(
+      await acceptInvitation(
         invitationId,
         currentUser.firebaseId,
         currentUser.name,
         userAvatar || '👩'  // 사용자 아바타 전달
       );
 
-      console.log('✅ 초대 수락 완료:', familyId);
       alert('🎉 가족 가계부에 참여했습니다!');
 
       // 페이지 새로고침으로 가족 모드로 전환
@@ -471,7 +457,6 @@ export default function App() {
 
       await rejectInvitation(invitationId);
 
-      console.log('✅ 초대 거절 완료:', invitationId);
       alert('초대를 거절했습니다.');
     } catch (error) {
       console.error('❌ 초대 거절 실패:', error);
@@ -546,6 +531,8 @@ export default function App() {
               onDateChange={setCurrentDate}
               transactions={transactions}
               fixedExpenses={fixedExpenses}
+              familyInfo={familyInfo}
+              currentUser={currentUser}
               onAddTransaction={startAddTransaction}
               onEditTransaction={startEditTransaction}
               onDeleteTransaction={handleDeleteTransaction}
@@ -597,6 +584,8 @@ export default function App() {
               searchQuery={searchQuery}
               searchFilters={searchFilters}
               searchResults={searchResults}
+              familyInfo={familyInfo}
+              currentUser={currentUser}
               onSearchQueryChange={setSearchQuery}
               onSearchFiltersChange={setSearchFilters}
               onPerformSearch={performSearch}

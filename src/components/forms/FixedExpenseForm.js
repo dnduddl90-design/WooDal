@@ -1,5 +1,6 @@
 import React from 'react';
 import { CATEGORIES, PAYMENT_METHODS } from '../../constants';
+import { getTodayDateString } from '../../utils';
 import { Button, Input, Modal } from '../common';
 
 /**
@@ -106,7 +107,7 @@ export const FixedExpenseForm = ({
               type="button"
               onClick={() => {
                 const newIsUnlimited = !formData.isUnlimited;
-                const today = new Date().toISOString().split('T')[0];
+                const today = getTodayDateString();
                 onFormChange({
                   ...formData,
                   isUnlimited: newIsUnlimited,

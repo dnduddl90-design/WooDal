@@ -21,11 +21,6 @@ const firebaseConfig = {
   appId: process.env.REACT_APP_FIREBASE_APP_ID
 };
 
-// 디버깅: Firebase 설정 확인
-console.log('🔥 Firebase 설정 로드 중...');
-console.log('API Key 존재:', !!firebaseConfig.apiKey);
-console.log('Project ID:', firebaseConfig.projectId);
-
 // Firebase 설정 값 검증
 if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
   console.error('❌ Firebase 설정 오류: .env 파일을 확인하세요!');
@@ -34,7 +29,6 @@ if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
 
 // Firebase 앱 초기화
 const app = initializeApp(firebaseConfig);
-console.log('✅ Firebase 초기화 완료');
 
 // 인증 서비스 초기화
 export const auth = getAuth(app);

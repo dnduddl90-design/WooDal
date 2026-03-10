@@ -9,7 +9,7 @@ import {
   deleteFamilyFixedExpense,
   onFamilyFixedExpensesChange
 } from '../firebase/databaseService';
-import { STORAGE_KEYS, loadFromStorage } from '../utils';
+import { STORAGE_KEYS, loadFromStorage, getTodayDateString } from '../utils';
 
 /**
  * 고정지출 관리 커스텀 훅 (Firebase 사용)
@@ -50,23 +50,16 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
     // 가족 모드인지 개인 모드인지 확인
     const isFamilyMode = familyInfo && familyInfo.id;
     const dataId = isFamilyMode ? familyInfo.id : currentUser.firebaseId;
-    const mode = isFamilyMode ? '가족 공유' : '개인';
-
-    console.log(`📥 Firebase에서 고정지출 로드 중... (${mode} 모드)`);
-
     // 실시간 리스너 설정 (가족 모드 or 개인 모드)
     const listenerFunction = isFamilyMode ? onFamilyFixedExpensesChange : onFixedExpensesChange;
 
     const unsubscribe = listenerFunction(
       dataId,
       (firebaseFixed) => {
-        console.log(`✅ 고정지출 ${firebaseFixed.length}건 로드됨 (${mode} 모드)`);
-
         // Firebase 데이터가 비어있으면 LocalStorage에서 마이그레이션
         if (firebaseFixed.length === 0) {
           const localFixed = loadFromStorage(STORAGE_KEYS.FIXED_EXPENSES, []);
           if (localFixed.length > 0 && !isFamilyMode) { // 개인 모드일 때만 마이그레이션
-            console.log(`🔄 LocalStorage에서 ${localFixed.length}건 마이그레이션 시작...`);
             migrateLocalFixedExpenses(localFixed);
           } else {
             setFixedExpenses([]);
@@ -92,7 +85,6 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
       for (const fixed of localFixed) {
         await saveFixedExpense(currentUser.firebaseId, fixed);
       }
-      console.log('✅ 고정지출 마이그레이션 완료!');
       setLoading(false);
     } catch (error) {
       console.error('❌ 고정지출 마이그레이션 실패:', error);
@@ -108,7 +100,7 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
   const handleAddFixedExpense = async (formData) => {
     try {
       // startDate 보장: 비어있으면 오늘 날짜로 설정
-      const today = new Date().toISOString().split('T')[0];
+      const today = getTodayDateString();
       const newFixed = {
         id: Date.now(),
         ...formData,
@@ -121,11 +113,12 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
       const isFamilyMode = familyInfo && familyInfo.id;
 
       // 가족 모드 or 개인 모드로 저장
-      const savedId = isFamilyMode
-        ? await saveFamilyFixedExpense(familyInfo.id, newFixed)
-        : await saveFixedExpense(currentUser.firebaseId, newFixed);
+      if (isFamilyMode) {
+        await saveFamilyFixedExpense(familyInfo.id, newFixed);
+      } else {
+        await saveFixedExpense(currentUser.firebaseId, newFixed);
+      }
 
-      console.log('✅ 고정지출 추가 성공:', savedId, `(${isFamilyMode ? '가족 공유' : '개인'} 모드)`);
       // 실시간 리스너가 자동으로 UI 업데이트
     } catch (error) {
       console.error('❌ 고정지출 추가 실패:', error);
@@ -156,7 +149,6 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
         await updateFixedExpense(currentUser.firebaseId, id, updatedFixed);
       }
 
-      console.log('✅ 고정지출 수정 성공:', id, `(${isFamilyMode ? '가족 공유' : '개인'} 모드)`);
       // 실시간 리스너가 자동으로 UI 업데이트
     } catch (error) {
       console.error('❌ 고정지출 수정 실패:', error);
@@ -178,7 +170,6 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
         await deleteFixedExpense(currentUser.firebaseId, id);
       }
 
-      console.log('✅ 고정지출 삭제 성공:', id, `(${isFamilyMode ? '가족 공유' : '개인'} 모드)`);
       // 실시간 리스너가 자동으로 UI 업데이트
     } catch (error) {
       console.error('❌ 고정지출 삭제 실패:', error);
@@ -206,7 +197,6 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
         await updateFixedExpense(currentUser.firebaseId, id, updatedFixed);
       }
 
-      console.log('✅ 고정지출 활성화 토글 성공:', id, `(${isFamilyMode ? '가족 공유' : '개인'} 모드)`);
       // 실시간 리스너가 자동으로 UI 업데이트
     } catch (error) {
       console.error('❌ 고정지출 토글 실패:', error);
@@ -222,7 +212,7 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
     if (!fixedExpense) return;
 
     const startDateStr = fixedExpense.startDate || '알 수 없음';
-    const today = new Date().toISOString().split('T')[0];
+    const today = getTodayDateString();
 
     if (!window.confirm(
       `이 고정지출을 해지하시겠습니까?\n\n` +
@@ -250,7 +240,6 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
       }
 
       alert('✅ 고정지출이 해지되었습니다.');
-      console.log('✅ 고정지출 해지 성공:', id, `(${isFamilyMode ? '가족 공유' : '개인'} 모드)`);
     } catch (error) {
       console.error('❌ 고정지출 해지 실패:', error);
       alert('❌ 해지 중 오류가 발생했습니다.');

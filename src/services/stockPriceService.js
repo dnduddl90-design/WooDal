@@ -7,6 +7,121 @@
  * 2. 네이버 금융 HTML 파싱
  */
 
+const REQUEST_TIMEOUT_MS = 8000;
+
+const PROXY_BUILDERS = [
+  (url) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  (url) => `https://r.jina.ai/http://${url.replace(/^https?:\/\//, '')}`
+];
+
+const withTimeout = async (url, options = {}) => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(timeoutId);
+  }
+};
+
+const extractNumber = (value) => {
+  if (value === undefined || value === null) return null;
+
+  const normalized = String(value).replace(/[^\d.-]/g, '');
+  const parsed = Number(normalized);
+
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
+
+const fetchJsonThroughProxies = async (url) => {
+  for (const buildProxyUrl of PROXY_BUILDERS) {
+    try {
+      const response = await withTimeout(buildProxyUrl(url), {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json, text/plain;q=0.9, */*;q=0.8'
+        }
+      });
+
+      if (!response.ok) {
+        continue;
+      }
+
+      const text = await response.text();
+      const data = JSON.parse(text);
+      return data;
+    } catch (error) {
+      continue;
+    }
+  }
+
+  return null;
+};
+
+const fetchTextThroughProxies = async (url) => {
+  for (const buildProxyUrl of PROXY_BUILDERS) {
+    try {
+      const response = await withTimeout(buildProxyUrl(url), {
+        method: 'GET',
+        headers: {
+          Accept: 'text/html, text/plain;q=0.9, */*;q=0.8'
+        }
+      });
+
+      if (!response.ok) {
+        continue;
+      }
+
+      const text = await response.text();
+      if (text) {
+        return text;
+      }
+    } catch (error) {
+      continue;
+    }
+  }
+
+  return null;
+};
+
+const parseNaverJsonPrice = (data) => {
+  const stockData = data?.result?.areas?.[0]?.datas?.[0];
+  return (
+    extractNumber(stockData?.nv) ||
+    extractNumber(stockData?.closePrice) ||
+    extractNumber(stockData?.cv) ||
+    extractNumber(data?.closePrice) ||
+    extractNumber(data?.compareToPreviousClosePrice) ||
+    extractNumber(data?.stockItem?.closePrice)
+  );
+};
+
+const parseNaverHtmlPrice = (html) => {
+  if (!html) return null;
+
+  const patterns = [
+    /id=["']_nowVal["'][^>]*>\s*([^<\s]+)\s*</i,
+    /class=["'][^"']*no_up[^"']*["'][^>]*>\s*([^<\s]+)\s*</i,
+    /class=["'][^"']*no_down[^"']*["'][^>]*>\s*([^<\s]+)\s*</i,
+    /현재가[^0-9]*([\d,]+)/i
+  ];
+
+  for (const pattern of patterns) {
+    const match = html.match(pattern);
+    const price = extractNumber(match?.[1]);
+    if (price) {
+      return price;
+    }
+  }
+
+  return null;
+};
+
 /**
  * 한국 주식 (ETF) 현재가 조회
  * @param {string} symbol - 종목 코드 (예: '411060')
@@ -14,47 +129,33 @@
  */
 export const fetchKoreanStockPrice = async (symbol) => {
   try {
-    // 방법: CORS-anywhere 프록시 사용
-    // 참고: 무료 서버는 요청 제한이 있을 수 있습니다
-    const corsProxy = 'https://corsproxy.io/?';
-    const naverApiUrl = `https://polling.finance.naver.com/api/realtime?query=SERVICE_ITEM:${symbol}`;
-    const proxyUrl = corsProxy + encodeURIComponent(naverApiUrl);
+    const jsonEndpoints = [
+      `https://polling.finance.naver.com/api/realtime?query=SERVICE_ITEM:${symbol}`,
+      `https://m.stock.naver.com/api/stock/${symbol}/basic`,
+      `https://api.stock.naver.com/stock/${symbol}/basic`
+    ];
 
-    console.log('🔍 주식 시세 조회 시작:', symbol);
-    const response = await fetch(proxyUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
+    for (const endpoint of jsonEndpoints) {
+      const jsonData = await fetchJsonThroughProxies(endpoint);
+      const jsonPrice = parseNaverJsonPrice(jsonData);
+
+      if (jsonPrice) {
+        return jsonPrice;
       }
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log('📦 응답 데이터:', data);
+    const naverPageUrl = `https://finance.naver.com/item/main.naver?code=${symbol}`;
+    const html = await fetchTextThroughProxies(naverPageUrl);
+    const htmlPrice = parseNaverHtmlPrice(html);
 
-    // 네이버 실시간 시세 API 응답 구조
-    const stockData = data?.result?.areas?.[0]?.datas?.[0];
-    const currentPrice = stockData?.nv || stockData?.closePrice;
-
-    if (currentPrice) {
-      const price = Number(currentPrice.replace(/,/g, ''));
-      console.log('💰 현재가:', price);
-      return price;
+    if (htmlPrice) {
+      return htmlPrice;
     }
-
-    throw new Error('데이터 파싱 실패');
-
   } catch (error) {
     console.error('❌ 주식 시세 조회 오류:', error);
-
-    // Fallback: 사용자에게 수동 입력 안내
-    // 목업 데이터는 제거하고 null 반환
-    console.log('ℹ️ 자동 조회 실패 - 수동 입력 필요');
-    return null;
   }
+
+  return null;
 };
 
 /**

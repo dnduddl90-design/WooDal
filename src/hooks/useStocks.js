@@ -24,13 +24,10 @@ export const useStocks = (currentUser) => {
       return;
     }
 
-    console.log('📥 Firebase에서 주식 데이터 로드 중...');
-
     // 실시간 리스너 설정
     const unsubscribe = onStocksChange(
       currentUser.firebaseId,
       (firebaseStocks) => {
-        console.log(`✅ 주식 ${firebaseStocks.length}건 로드됨`);
         setStocks(firebaseStocks);
         setLoading(false);
 
@@ -106,7 +103,6 @@ export const useStocks = (currentUser) => {
         };
 
         await updateStock(currentUser.firebaseId, existingStock.id, updatedStock);
-        console.log('✅ 종목 holdings 업데이트 성공:', existingStock.id);
         alert(`${formData.name} 종목에 추가되었습니다!\n\n총 수량: ${totalQuantity}\n평균 매입가: ${avgBuyPrice.toLocaleString()}원`);
       } else {
         // 새 종목 추가
@@ -125,8 +121,7 @@ export const useStocks = (currentUser) => {
           createdAt: new Date().toISOString()
         };
 
-        const savedId = await saveStock(currentUser.firebaseId, newStock);
-        console.log('✅ 주식 추가 성공:', savedId);
+        await saveStock(currentUser.firebaseId, newStock);
       }
 
       // 실시간 리스너가 자동으로 UI 업데이트
@@ -190,8 +185,6 @@ export const useStocks = (currentUser) => {
       }
 
       await updateStock(currentUser.firebaseId, id, updatedStock);
-      console.log('✅ 주식 수정 성공:', id);
-
       // 실시간 리스너가 자동으로 UI 업데이트
     } catch (error) {
       console.error('❌ 주식 수정 실패:', error);
@@ -217,7 +210,6 @@ export const useStocks = (currentUser) => {
         // holdings가 비어있으면 전체 종목 삭제
         if (updatedHoldings.length === 0) {
           await deleteStock(currentUser.firebaseId, id);
-          console.log('✅ 마지막 계좌 삭제로 전체 종목 삭제:', id);
           return;
         }
 
@@ -235,7 +227,6 @@ export const useStocks = (currentUser) => {
         };
 
         await updateStock(currentUser.firebaseId, id, updatedStock);
-        console.log('✅ 계좌별 삭제 성공:', id, '인덱스:', holdingIndex);
       } else {
         // 전체 종목 삭제인 경우
         if (!window.confirm('이 주식을 완전히 삭제하시겠습니까?')) {
@@ -243,7 +234,6 @@ export const useStocks = (currentUser) => {
         }
 
         await deleteStock(currentUser.firebaseId, id);
-        console.log('✅ 주식 삭제 성공:', id);
       }
 
       // 실시간 리스너가 자동으로 UI 업데이트
@@ -268,8 +258,6 @@ export const useStocks = (currentUser) => {
       };
 
       await updateStock(currentUser.firebaseId, stockId, updatedStock);
-      console.log('✅ 현재가 업데이트 성공:', stockId);
-
       // 실시간 리스너가 자동으로 UI 업데이트
     } catch (error) {
       console.error('❌ 현재가 업데이트 실패:', error);
@@ -296,7 +284,6 @@ export const useStocks = (currentUser) => {
       }).filter(Boolean);
 
       await Promise.all(promises);
-      console.log(`✅ ${promises.length}개 종목 현재가 일괄 업데이트 성공`);
       alert(`${promises.length}개 종목의 현재가가 업데이트되었습니다.`);
 
       // 실시간 리스너가 자동으로 UI 업데이트

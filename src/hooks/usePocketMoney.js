@@ -27,13 +27,10 @@ export const usePocketMoney = (currentUser) => {
       return;
     }
 
-    console.log('📥 Firebase에서 용돈 데이터 로드 중...');
-
     // 예산 로드
     getPocketMoneyBudget(currentUser.firebaseId).then(budget => {
       if (budget !== null) {
         setMonthlyBudget(budget);
-        console.log('✅ 예산 로드:', budget);
       }
     });
 
@@ -41,7 +38,6 @@ export const usePocketMoney = (currentUser) => {
     const unsubscribe = onPocketMoneyTransactionsChange(
       currentUser.firebaseId,
       (firebaseTransactions) => {
-        console.log(`✅ 용돈 거래 ${firebaseTransactions.length}건 로드됨`);
         setTransactions(firebaseTransactions);
         setLoading(false);
       }
@@ -57,7 +53,6 @@ export const usePocketMoney = (currentUser) => {
     try {
       await setPocketMoneyBudget(currentUser.firebaseId, newBudget);
       setMonthlyBudget(newBudget);
-      console.log('✅ 예산 업데이트 성공:', newBudget);
       return true;
     } catch (error) {
       console.error('❌ 예산 업데이트 실패:', error);
@@ -74,7 +69,6 @@ export const usePocketMoney = (currentUser) => {
       const newBalance = monthlyBudget + amount;
       await setPocketMoneyBudget(currentUser.firebaseId, newBalance);
       setMonthlyBudget(newBalance);
-      console.log('✅ 잔고 추가 성공:', amount, '→ 새 잔고:', newBalance);
       return true;
     } catch (error) {
       console.error('❌ 잔고 추가 실패:', error);
@@ -95,7 +89,6 @@ export const usePocketMoney = (currentUser) => {
       };
 
       await savePocketMoneyTransaction(currentUser.firebaseId, newTransaction);
-      console.log('✅ 용돈 거래 추가 성공');
       return true;
     } catch (error) {
       console.error('❌ 거래 추가 실패:', error);
@@ -110,7 +103,6 @@ export const usePocketMoney = (currentUser) => {
   const updateTransaction = async (id, transactionData) => {
     try {
       await updatePocketMoneyTransaction(currentUser.firebaseId, id, transactionData);
-      console.log('✅ 용돈 거래 수정 성공');
       return true;
     } catch (error) {
       console.error('❌ 거래 수정 실패:', error);
@@ -125,7 +117,6 @@ export const usePocketMoney = (currentUser) => {
   const deleteTransaction = async (id) => {
     try {
       await deletePocketMoneyTransaction(currentUser.firebaseId, id);
-      console.log('✅ 용돈 거래 삭제 성공');
       return true;
     } catch (error) {
       console.error('❌ 거래 삭제 실패:', error);

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Plus, Eye, EyeOff, Edit2, StopCircle, Receipt, AlertCircle } from 'lucide-react';
 import { CATEGORIES } from '../constants';
 import { formatCurrency, formatDate } from '../utils';
@@ -17,7 +17,6 @@ export const FixedExpensePage = ({
   onCancel,
   onToggleActive
 }) => {
-  const [isMigrating, setIsMigrating] = useState(false);
   // 오늘 날짜
   const today = formatDate(new Date());
 
@@ -36,62 +35,20 @@ export const FixedExpensePage = ({
   const inactiveCount = validFixedExpenses.length - activeExpenses.length;
   const monthlyTotal = activeExpenses.reduce((sum, f) => sum + f.amount, 0);
 
-  // 마이그레이션 함수
-  const handleMigrateData = async () => {
-    const fixedExpensesToUpdate = fixedExpenses.filter(
-      fixed => fixed.isUnlimited && (!fixed.startDate || fixed.startDate === '')
-    );
-
-    if (fixedExpensesToUpdate.length === 0) {
-      alert('마이그레이션할 항목이 없습니다. 모든 고정지출이 이미 시작일을 가지고 있습니다.');
-      return;
-    }
-
-    if (!window.confirm(`기존 무기한 고정지출 ${fixedExpensesToUpdate.length}개의 시작일을 2025-10-01로 설정하시겠습니까?`)) {
-      return;
-    }
-
-    setIsMigrating(true);
-    try {
-      for (const fixed of fixedExpensesToUpdate) {
-        await onEdit(fixed.id, {
-          ...fixed,
-          startDate: '2025-10-01'
-        });
-      }
-      alert(`✅ 마이그레이션 완료! ${fixedExpensesToUpdate.length}개 항목이 업데이트되었습니다.`);
-    } catch (error) {
-      console.error('마이그레이션 오류:', error);
-      alert('❌ 마이그레이션 중 오류가 발생했습니다.');
-    } finally {
-      setIsMigrating(false);
-    }
-  };
-
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in pb-20 sm:pb-6">
       {/* 헤더 */}
       <div className="flex justify-between items-center gap-2">
         <h2 className="text-lg sm:text-2xl font-bold gradient-text">고정지출 관리</h2>
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            onClick={handleMigrateData}
-            disabled={isMigrating}
-            className="text-xs"
-          >
-            {isMigrating ? '처리 중...' : '🔧 마이그레이션'}
-          </Button>
-          <Button
-            variant="primary"
-            icon={Plus}
-            onClick={onAdd}
-            className="text-xs sm:text-sm"
-          >
-            <span className="hidden sm:inline">고정지출 추가</span>
-            <span className="sm:hidden">추가</span>
-          </Button>
-        </div>
+        <Button
+          variant="primary"
+          icon={Plus}
+          onClick={onAdd}
+          className="text-xs sm:text-sm"
+        >
+          <span className="hidden sm:inline">고정지출 추가</span>
+          <span className="sm:hidden">추가</span>
+        </Button>
       </div>
 
       {/* 요약 카드들 */}

@@ -1,5 +1,6 @@
 import React from 'react';
 import { CATEGORIES, PAYMENT_METHODS } from '../../constants';
+import { getTodayDateString } from '../../utils';
 import { Button, Input, Modal } from '../common';
 
 /**
@@ -75,7 +76,7 @@ export const TransactionForm = ({
         <Input
           label="날짜"
           type="date"
-          value={formData.date || new Date().toISOString().split('T')[0]}
+          value={formData.date || getTodayDateString()}
           onChange={(e) => onFormChange({ ...formData, date: e.target.value })}
           required
         />

@@ -39,8 +39,8 @@ flex-col          →  flex-row
 ### 2. 배포 가이드 문서 작성
 
 **생성/업데이트된 문서**:
-- `DEPLOYMENT.md` - Firebase Hosting 배포 상세 가이드
-- `개발일지.md` - Phase 7 추가 및 배포 방법 섹션
+- `../operations/DEPLOYMENT.md` - Firebase Hosting 배포 상세 가이드
+- `./개발일지.md` - Phase 7 추가 및 배포 방법 섹션
 - `README.md` - 프로젝트 현황 업데이트
 - `.env.example` - Firebase 설정 템플릿
 
@@ -174,9 +174,11 @@ npx kill-port 3000
 프로젝트 루트/
 ├── .env                    # Firebase 설정 (Git 제외!)
 ├── .env.example            # Firebase 설정 템플릿
-├── DEPLOYMENT.md           # 배포 가이드
-├── 개발일지.md             # 전체 개발 일지
-├── SESSION-SUMMARY.md      # 이 파일
+├── docs/
+│   ├── operations/DEPLOYMENT.md   # 배포 가이드
+│   └── history/
+│       ├── 개발일지.md            # 전체 개발 일지
+│       └── SESSION-SUMMARY.md     # 이 파일
 │
 ├── src/
 │   ├── firebase/
@@ -198,8 +200,8 @@ npx kill-port 3000
 
 ## 📚 주요 문서
 
-- **개발일지.md** - 전체 개발 과정 (Phase 1-7)
-- **DEPLOYMENT.md** - Firebase Hosting 배포 가이드
+- **docs/history/개발일지.md** - 전체 개발 과정 (Phase 1-7)
+- **docs/operations/DEPLOYMENT.md** - Firebase Hosting 배포 가이드
 - **CLAUDE.md** - 프로젝트 전체 설계 문서
 - **README.md** - 프로젝트 개요 및 현황
 - **SOLID-GUIDE.md** - SOLID 원칙 개발 가이드
@@ -216,7 +218,7 @@ npx kill-port 3000
 ### Firebase 보안
 - ⚠️ 현재 테스트 모드 (30일간 전체 공개)
 - 🔒 프로덕션 배포 전 Security Rules 설정 필수!
-- 📖 DEPLOYMENT.md의 보안 섹션 참고
+- 📖 docs/operations/DEPLOYMENT.md의 보안 섹션 참고
 
 ### 개발 서버
 - 포트 충돌 시: `npx kill-port 3000`

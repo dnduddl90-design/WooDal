@@ -10,7 +10,7 @@ import {
   deleteFamilyTransaction,
   onFamilyTransactionsChange
 } from '../firebase/databaseService';
-import { STORAGE_KEYS, loadFromStorage } from '../utils';
+import { STORAGE_KEYS, loadFromStorage, getTodayDateString, parseDateString } from '../utils';
 
 /**
  * 거래 내역 관리 커스텀 훅 (Firebase 사용)
@@ -30,7 +30,7 @@ export const useTransactions = (currentUser, familyInfo) => {
     amount: '',
     paymentMethod: '',
     memo: '',
-    date: new Date().toISOString().split('T')[0],
+    date: getTodayDateString(),
     isPocketMoney: false
   });
 
@@ -42,7 +42,6 @@ export const useTransactions = (currentUser, familyInfo) => {
       for (const transaction of localTransactions) {
         await saveTransaction(currentUser.firebaseId, transaction);
       }
-      console.log('✅ 마이그레이션 완료!');
       setLoading(false);
     } catch (error) {
       console.error('❌ 마이그레이션 실패:', error);
@@ -63,11 +62,8 @@ export const useTransactions = (currentUser, familyInfo) => {
         if (transaction.userId === 'user1' || transaction.userId === 'user2') {
           const updatedTransaction = { ...transaction, userId: currentUser.firebaseId };
           await updateFunction(dataId, transaction.id, updatedTransaction);
-          console.log(`✅ 거래 ${transaction.id} 변환 완료: ${transaction.userId} → ${currentUser.firebaseId}`);
         }
       }
-
-      console.log('✅ userId 자동 변환 완료!');
     } catch (error) {
       console.error('❌ userId 변환 실패:', error);
     }
@@ -87,23 +83,16 @@ export const useTransactions = (currentUser, familyInfo) => {
     // 가족 모드인지 개인 모드인지 확인
     const isFamilyMode = familyInfo && familyInfo.id;
     const dataId = isFamilyMode ? familyInfo.id : currentUser.firebaseId;
-    const mode = isFamilyMode ? '가족 공유' : '개인';
-
-    console.log(`📥 Firebase에서 거래 내역 로드 중... (${mode} 모드)`);
-
     // 실시간 리스너 설정 (가족 모드 or 개인 모드)
     const listenerFunction = isFamilyMode ? onFamilyTransactionsChange : onTransactionsChange;
 
     const unsubscribe = listenerFunction(
       dataId,
       (firebaseTransactions) => {
-        console.log(`✅ 거래 내역 ${firebaseTransactions.length}건 로드됨 (${mode} 모드)`);
-
         // Firebase 데이터가 비어있으면 LocalStorage에서 마이그레이션
         if (firebaseTransactions.length === 0) {
           const localTransactions = loadFromStorage(STORAGE_KEYS.TRANSACTIONS, []);
           if (localTransactions.length > 0 && !isFamilyMode) { // 개인 모드일 때만 마이그레이션
-            console.log(`🔄 LocalStorage에서 ${localTransactions.length}건 마이그레이션 시작...`);
             migrateLocalTransactions(localTransactions);
           } else {
             setTransactions([]);
@@ -121,7 +110,6 @@ export const useTransactions = (currentUser, familyInfo) => {
           // userId가 변경된 거래가 있으면 Firebase 업데이트 (비동기, 백그라운드)
           const needUpdate = firebaseTransactions.some(t => t.userId === 'user1' || t.userId === 'user2');
           if (needUpdate) {
-            console.log('🔄 user1/user2 → Firebase UID 자동 변환 중...');
             migrateUserIds(dataId, firebaseTransactions, isFamilyMode);
           }
 
@@ -149,11 +137,12 @@ export const useTransactions = (currentUser, familyInfo) => {
       const isFamilyMode = familyInfo && familyInfo.id;
 
       // 가족 모드 or 개인 모드로 저장
-      const savedId = isFamilyMode
-        ? await saveFamilyTransaction(familyInfo.id, newTransaction)
-        : await saveTransaction(currentUser.firebaseId, newTransaction);
+      if (isFamilyMode) {
+        await saveFamilyTransaction(familyInfo.id, newTransaction);
+      } else {
+        await saveTransaction(currentUser.firebaseId, newTransaction);
+      }
 
-      console.log('✅ 거래 추가 성공:', savedId, `(${isFamilyMode ? '가족 공유' : '개인'} 모드)`);
       // 실시간 리스너가 자동으로 UI 업데이트
     } catch (error) {
       console.error('❌ 거래 추가 실패:', error);
@@ -181,7 +170,6 @@ export const useTransactions = (currentUser, familyInfo) => {
         await updateTransaction(currentUser.firebaseId, id, updatedTransaction);
       }
 
-      console.log('✅ 거래 수정 성공:', id, `(${isFamilyMode ? '가족 공유' : '개인'} 모드)`);
       // 실시간 리스너가 자동으로 UI 업데이트
     } catch (error) {
       console.error('❌ 거래 수정 실패:', error);
@@ -203,7 +191,6 @@ export const useTransactions = (currentUser, familyInfo) => {
         await deleteTransaction(currentUser.firebaseId, id);
       }
 
-      console.log('✅ 거래 삭제 성공:', id, `(${isFamilyMode ? '가족 공유' : '개인'} 모드)`);
       // 실시간 리스너가 자동으로 UI 업데이트
     } catch (error) {
       console.error('❌ 거래 삭제 실패:', error);
@@ -243,7 +230,7 @@ export const useTransactions = (currentUser, familyInfo) => {
       amount: '',
       paymentMethod: '',
       memo: '',
-      date: date || new Date().toISOString().split('T')[0],
+      date: date || getTodayDateString(),
       isPocketMoney: false
     });
     setShowAddTransaction(true);
@@ -260,7 +247,7 @@ export const useTransactions = (currentUser, familyInfo) => {
       amount: '',
       paymentMethod: '',
       memo: '',
-      date: new Date().toISOString().split('T')[0],
+      date: getTodayDateString(),
       isPocketMoney: false
     });
     setIsEditMode(false);
@@ -305,14 +292,12 @@ export const useTransactions = (currentUser, familyInfo) => {
       const endDate = new Date(year, month + 1, 0);
 
       const pocketMoneyTransactions = transactions.filter(t => {
-        const transactionDate = new Date(t.date);
+        const transactionDate = parseDateString(t.date);
         return transactionDate >= startDate &&
                transactionDate <= endDate &&
                t.type === 'expense' &&
                t.isPocketMoney === true;
       });
-
-      console.log(`🔄 ${pocketMoneyTransactions.length}건의 용돈 거래 정산 처리 중...`);
 
       // 각 거래의 isPocketMoney를 false로 업데이트
       const updateFunction = isFamilyMode ? updateFamilyTransaction : updateTransaction;
@@ -321,8 +306,6 @@ export const useTransactions = (currentUser, familyInfo) => {
         const updatedTransaction = { ...transaction, isPocketMoney: false };
         await updateFunction(dataId, transaction.id, updatedTransaction);
       }
-
-      console.log('✅ 용돈 정산 완료!');
       alert(`✅ ${pocketMoneyTransactions.length}건의 용돈 사용 내역 정산이 완료되었습니다!`);
 
       return true;

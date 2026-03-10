@@ -1,3 +1,5 @@
+import { parseDateString } from '../utils';
+
 /**
  * 거래 내역 서비스
  * SRP: 거래 내역 비즈니스 로직만 담당
@@ -33,7 +35,7 @@ export class TransactionService {
    */
   static filterByDate(transactions, day, month, year) {
     return transactions.filter(t => {
-      const tDate = new Date(t.date);
+      const tDate = parseDateString(t.date);
       return (
         tDate.getDate() === day &&
         tDate.getMonth() === month &&
@@ -46,11 +48,11 @@ export class TransactionService {
    * 특정 기간의 거래 필터링
    */
   static filterByDateRange(transactions, startDate, endDate) {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
+    const start = parseDateString(startDate);
+    const end = parseDateString(endDate);
 
     return transactions.filter(t => {
-      const tDate = new Date(t.date);
+      const tDate = parseDateString(t.date);
       return tDate >= start && tDate <= end;
     });
   }

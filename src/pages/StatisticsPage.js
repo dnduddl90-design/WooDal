@@ -1,7 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { ChevronLeft, ChevronRight, TrendingUp, Receipt, PiggyBank } from 'lucide-react';
-import { CATEGORIES, USERS } from '../constants';
-import { formatCurrency, calculateMonthsSince, formatDate } from '../utils';
+import { CATEGORIES } from '../constants';
+import {
+  formatCurrency,
+  calculateMonthsSince,
+  formatDate,
+  getAvailableUsers,
+  parseDateString,
+  resolveUserInfo,
+  sortByDateDesc
+} from '../utils';
 import { Button, Modal } from '../components/common';
 
 /**
@@ -19,59 +27,8 @@ export const StatisticsPage = ({
   currentUser = null,
   onSettlePocketMoney
 }) => {
-  // 사용자 정보 매핑 (가족 모드 시 familyInfo에서, 아니면 기본 USERS 사용)
   const getUserInfo = useMemo(() => {
-    return (userId) => {
-      // 가족 모드: familyInfo.members에서 사용자 정보 찾기
-      if (familyInfo && familyInfo.members && familyInfo.members[userId]) {
-        const member = familyInfo.members[userId];
-
-        // 긴 이름에서 짧은 이름 추출 (예: "장우영" → "우영")
-        let displayName = member.name || '알 수 없음';
-        if (displayName.length > 2 && !displayName.includes(' ')) {
-          // 한글 이름이 3글자 이상인 경우 뒤 2글자만 사용
-          displayName = displayName.slice(-2);
-        }
-
-        // 아바타 결정 우선순위:
-        // 1. member.avatar가 있으면 사용
-        // 2. 현재 사용자면 currentUser.avatar 사용
-        // 3. 기본값: role에 따라 admin=👨, member=👩
-        let avatar = member.avatar;
-
-        if (!avatar && currentUser && userId === currentUser.id) {
-          // 현재 로그인한 사용자의 아바타 사용
-          avatar = currentUser.avatar;
-        }
-
-        if (!avatar) {
-          // 기본 아바타: role에 따라 설정
-          avatar = member.role === 'admin' ? '👨' : '👩';
-        }
-
-        return {
-          id: userId,
-          name: displayName,
-          avatar: avatar,
-          role: member.role || 'member',
-          color: member.role === 'admin' ? 'bg-blue-500' : 'bg-pink-500'
-        };
-      }
-
-      // 개인 모드 또는 기존 user1/user2: USERS 상수 사용
-      if (USERS[userId]) {
-        return USERS[userId];
-      }
-
-      // 찾을 수 없는 경우 기본값
-      return {
-        id: userId,
-        name: '알 수 없음',
-        avatar: '👤',
-        role: 'member',
-        color: 'bg-gray-500'
-      };
-    };
+    return (userId, options = {}) => resolveUserInfo(userId, familyInfo, currentUser, options);
   }, [familyInfo, currentUser]);
   // 카테고리 세부 내역 모달 상태
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -81,12 +38,10 @@ export const StatisticsPage = ({
 
   // 가족 구성원 목록 (필터 버튼용)
   const familyMembers = useMemo(() => {
-    if (familyInfo && familyInfo.members) {
-      return Object.keys(familyInfo.members).map(userId => getUserInfo(userId));
-    }
-    // 기본값: USERS 상수 사용
-    return [USERS.user1, USERS.user2];
-  }, [familyInfo, getUserInfo]);
+    return getAvailableUsers(familyInfo, currentUser).map((user) =>
+      getUserInfo(user.id, { shortName: true })
+    );
+  }, [familyInfo, currentUser, getUserInfo]);
   // 월 이동 핸들러
   const handlePrevMonth = () => {
     const newDate = new Date(currentDate);
@@ -111,7 +66,7 @@ export const StatisticsPage = ({
   const endDate = new Date(year, month + 1, 0);
 
   const currentMonthData = transactions.filter(t => {
-    const transactionDate = new Date(t.date);
+    const transactionDate = parseDateString(t.date);
     return transactionDate >= startDate && transactionDate <= endDate;
   });
 
@@ -156,7 +111,7 @@ export const StatisticsPage = ({
   const prevEndDate = new Date(prevYear, prevMonth + 1, 0);
 
   const previousMonthData = transactions.filter(t => {
-    const transactionDate = new Date(t.date);
+    const transactionDate = parseDateString(t.date);
     return transactionDate >= prevStartDate && transactionDate <= prevEndDate;
   });
 
@@ -232,8 +187,7 @@ export const StatisticsPage = ({
         const transactionCategoryName = transactionCategory ? transactionCategory.name : '기타';
         return transactionCategoryName === categoryName;
       })
-      .map(t => ({ ...t, isFixed: false })) // 일반 거래 표시
-      .sort((a, b) => new Date(b.date) - new Date(a.date)); // 날짜 역순 정렬
+      .map(t => ({ ...t, isFixed: false })); // 일반 거래 표시
 
     // 해당 카테고리의 고정지출 추가
     const categoryFixedExpenses = currentMonthFixedExpenses
@@ -250,14 +204,13 @@ export const StatisticsPage = ({
         amount: fixed.calculatedAmount,
         paymentMethod: fixed.paymentMethod,
         memo: `[고정지출] ${fixed.name}${fixed.memo ? ` - ${fixed.memo}` : ''}`,
-        date: formatDate(new Date(year, month, fixed.day || 1)), // 고정지출 날짜
+        date: formatDate(new Date(year, month, fixed.autoRegisterDate || 1)),
         userId: currentUser?.id || 'unknown',
         isFixed: true // 고정지출 표시
       }));
 
     // 거래 + 고정지출 합치기
-    const allItems = [...categoryTransactions, ...categoryFixedExpenses]
-      .sort((a, b) => new Date(b.date) - new Date(a.date));
+    const allItems = sortByDateDesc([...categoryTransactions, ...categoryFixedExpenses]);
 
     setSelectedCategory({
       name: categoryName,
@@ -299,7 +252,7 @@ export const StatisticsPage = ({
     const monthEnd = new Date(targetYear, targetMonth + 1, 0);
 
     const monthData = transactions.filter(t => {
-      const transactionDate = new Date(t.date);
+      const transactionDate = parseDateString(t.date);
       return transactionDate >= monthStart && transactionDate <= monthEnd;
     });
 
@@ -1108,7 +1061,7 @@ export const StatisticsPage = ({
             {getFilteredTransactions().length > 0 ? (
               getFilteredTransactions().map((transaction, index) => {
                 const user = getUserInfo(transaction.userId);
-                const transactionDate = new Date(transaction.date);
+                const transactionDate = parseDateString(transaction.date);
                 const dateStr = `${transactionDate.getMonth() + 1}/${transactionDate.getDate()}`;
 
                 return (

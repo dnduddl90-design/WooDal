@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
-import { USERS, CATEGORIES } from '../constants';
-import { getDaysInMonth, getFirstDayOfMonth, formatCurrency, calculateMonthsSince } from '../utils';
+import { CATEGORIES } from '../constants';
+import { getDaysInMonth, getFirstDayOfMonth, formatCurrency, calculateMonthsSince, resolveUserInfo } from '../utils';
 import { Button, Modal } from '../components/common';
 
 /**
@@ -14,6 +14,8 @@ export const CalendarPage = ({
   onDateChange,
   transactions = [],
   fixedExpenses = [],
+  familyInfo,
+  currentUser,
   onAddTransaction,
   onEditTransaction,
   onDeleteTransaction
@@ -165,7 +167,9 @@ export const CalendarPage = ({
           {allItems.length > 0 ? (
             <div className="space-y-0.5 sm:space-y-1">
               {allItems.slice(0, 2).map((item, index) => {
-                const user = item.type === 'fixed' ? null : USERS[item.userId];
+                const user = item.type === 'fixed'
+                  ? null
+                  : resolveUserInfo(item.userId, familyInfo, currentUser);
 
                 return (
                   <div
@@ -403,7 +407,9 @@ export const CalendarPage = ({
           {allItems.length > 0 ? (
             <div className="divide-y divide-gray-100">
               {allItems.map((item, index) => {
-                const user = item.type === 'fixed' ? null : USERS[item.userId];
+                const user = item.type === 'fixed'
+                  ? null
+                  : resolveUserInfo(item.userId, familyInfo, currentUser);
 
                 // 카테고리 한글명 찾기
                 let categoryName = item.category || item.name;
@@ -561,7 +567,9 @@ export const CalendarPage = ({
         >
           <div className="space-y-3">
             {selectedDayData.allItems.map((item, index) => {
-              const user = item.type === 'fixed' ? null : USERS[item.userId];
+              const user = item.type === 'fixed'
+                ? null
+                : resolveUserInfo(item.userId, familyInfo, currentUser);
 
               // 카테고리 한글명 찾기
               let categoryName = item.category || item.name;

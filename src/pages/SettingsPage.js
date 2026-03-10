@@ -48,10 +48,6 @@ export const SettingsPage = ({
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [familyName, setFamilyName] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
-
-  // 디버그: 아바타 props 확인
-  console.log('[SettingsPage] userAvatar:', userAvatar);
-  console.log('[SettingsPage] onChangeAvatar:', typeof onChangeAvatar);
   const handleFileImport = (e) => {
     const file = e.target.files[0];
     if (file) {

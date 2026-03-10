@@ -6,3 +6,4 @@ export * from './dateUtils';
 export * from './formatUtils';
 export * from './storageUtils';
 export * from './pwaUtils';
+export * from './userUtils';

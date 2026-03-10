@@ -24,17 +24,12 @@ export const useStockSymbols = (currentUser) => {
       return;
     }
 
-    console.log('📥 Firebase에서 주식 종목 로드 중...');
-
     // 실시간 리스너 설정
     const unsubscribe = onStockSymbolsChange(
       currentUser.firebaseId,
       (firebaseSymbols) => {
-        console.log(`✅ 주식 종목 ${firebaseSymbols.length}건 로드됨`);
-
         // Firebase 데이터가 비어있으면 기본 종목 마이그레이션
         if (firebaseSymbols.length === 0) {
-          console.log('🔄 기본 종목 마이그레이션 시작...');
           migrateDefaultSymbols();
         } else {
           setStockSymbols(firebaseSymbols);
@@ -56,7 +51,6 @@ export const useStockSymbols = (currentUser) => {
       for (const symbol of ETF_STOCKS) {
         await saveStockSymbol(currentUser.firebaseId, symbol);
       }
-      console.log('✅ 기본 종목 마이그레이션 완료!');
       setLoading(false);
     } catch (error) {
       console.error('❌ 기본 종목 마이그레이션 실패:', error);
@@ -72,7 +66,6 @@ export const useStockSymbols = (currentUser) => {
   const handleAddSymbol = async (symbolData) => {
     try {
       await saveStockSymbol(currentUser.firebaseId, symbolData);
-      console.log('✅ 종목 추가 성공:', symbolData.name);
     } catch (error) {
       console.error('❌ 종목 추가 실패:', error);
       alert('종목 추가에 실패했습니다.');
@@ -85,7 +78,6 @@ export const useStockSymbols = (currentUser) => {
   const handleUpdateSymbol = async (symbolId, symbolData) => {
     try {
       await updateStockSymbol(currentUser.firebaseId, symbolId, symbolData);
-      console.log('✅ 종목 수정 성공:', symbolData.name);
     } catch (error) {
       console.error('❌ 종목 수정 실패:', error);
       alert('종목 수정에 실패했습니다.');
@@ -98,7 +90,6 @@ export const useStockSymbols = (currentUser) => {
   const handleDeleteSymbol = async (symbolId) => {
     try {
       await deleteStockSymbol(currentUser.firebaseId, symbolId);
-      console.log('✅ 종목 삭제 성공:', symbolId);
     } catch (error) {
       console.error('❌ 종목 삭제 실패:', error);
       alert('종목 삭제에 실패했습니다.');

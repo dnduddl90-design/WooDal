@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { DollarSign, ExternalLink } from 'lucide-react';
+import { DollarSign, ExternalLink, Loader2, RefreshCw } from 'lucide-react';
 import { Button, Modal } from '../common';
 import { STOCK_MARKETS } from '../../constants/stocks';
+import { fetchStockPrice } from '../../services/stockPriceService';
 
 /**
  * 현재가 일괄 입력 모달
@@ -17,12 +18,71 @@ export const PriceUpdateModal = ({ isOpen, onClose, stocks, onUpdatePrices }) =>
     });
     return initialPrices;
   });
+  const [isFetchingPrices, setIsFetchingPrices] = useState(false);
 
   const handlePriceChange = (stockId, value) => {
     setPrices({
       ...prices,
       [stockId]: value
     });
+  };
+
+  const handleAutoFetchPrices = async () => {
+    const targetStocks = stocks.filter((stock) => stock.market !== 'CASH' && stock.symbol);
+
+    if (targetStocks.length === 0) {
+      alert('자동 조회할 종목이 없습니다.');
+      return;
+    }
+
+    setIsFetchingPrices(true);
+
+    try {
+      const results = await Promise.allSettled(
+        targetStocks.map(async (stock) => {
+          const fetchedPrice = await fetchStockPrice(stock.market, stock.symbol);
+          return {
+            stockId: stock.id,
+            stockName: stock.name,
+            price: fetchedPrice
+          };
+        })
+      );
+
+      let successCount = 0;
+
+      setPrices((prevPrices) => {
+        const nextPrices = { ...prevPrices };
+
+        results.forEach((result) => {
+          if (result.status !== 'fulfilled') {
+            return;
+          }
+
+          const { stockId, price } = result.value;
+          if (price) {
+            nextPrices[stockId] = price;
+            successCount += 1;
+          }
+        });
+
+        return nextPrices;
+      });
+
+      if (successCount === 0) {
+        alert('자동으로 현재가를 가져오지 못했습니다. 아래 링크로 시세를 확인해 수동 입력해주세요.');
+        return;
+      }
+
+      if (successCount < targetStocks.length) {
+        alert(`${successCount}개 종목의 현재가를 자동으로 채웠습니다. 실패한 종목은 수동으로 입력해주세요.`);
+        return;
+      }
+
+      alert(`${successCount}개 종목의 현재가를 자동으로 불러왔습니다.`);
+    } finally {
+      setIsFetchingPrices(false);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -59,7 +119,19 @@ export const PriceUpdateModal = ({ isOpen, onClose, stocks, onUpdatePrices }) =>
             보유 중인 {stocks.length}개 종목의 현재가를 입력하세요.
           </p>
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-700">
-            💡 <strong>시세 확인 방법:</strong> 각 종목 옆 🔗 버튼을 클릭하면 네이버 금융에서 실시간 시세를 확인할 수 있습니다.
+            💡 <strong>시세 확인 방법:</strong> 자동 조회를 누르거나, 각 종목 옆 🔗 버튼으로 네이버 금융을 열어 수동 입력할 수 있습니다.
+          </div>
+          <div className="mt-3">
+            <Button
+              type="button"
+              variant="secondary"
+              icon={isFetchingPrices ? Loader2 : RefreshCw}
+              onClick={handleAutoFetchPrices}
+              disabled={isFetchingPrices}
+              className={isFetchingPrices ? 'opacity-80' : ''}
+            >
+              {isFetchingPrices ? '자동 조회 중...' : '현재가 자동 조회'}
+            </Button>
           </div>
         </div>
 

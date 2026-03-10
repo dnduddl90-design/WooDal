@@ -30,6 +30,34 @@ export const formatDate = (date) => {
 };
 
 /**
+ * 오늘 날짜를 YYYY-MM-DD 형식으로 반환
+ */
+export const getTodayDateString = () => {
+  return formatDate(new Date());
+};
+
+/**
+ * YYYY-MM-DD 문자열을 로컬 시간 기준 Date로 변환
+ */
+export const parseDateString = (dateString) => {
+  if (!dateString) return null;
+
+  const [year, month, day] = dateString.split('-').map(Number);
+  if (!year || !month || !day) {
+    return new Date(dateString);
+  }
+
+  return new Date(year, month - 1, day);
+};
+
+/**
+ * 날짜 배열/객체를 최신순으로 정렬
+ */
+export const sortByDateDesc = (items) => {
+  return [...items].sort((a, b) => parseDateString(b.date) - parseDateString(a.date));
+};
+
+/**
  * 오늘인지 확인
  */
 export const isToday = (day, month, year) => {

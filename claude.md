@@ -155,7 +155,7 @@ import { Button, Modal } from '../components/common';
 
 ## Key Files to Understand
 
-- `개발일지.md` - **Complete development history** (Korean)
+- `docs/history/개발일지.md` - **Complete development history** (Korean)
 - `SOLID.md` - SOLID principles guide
 - `CLAUDE.md` - This file, project documentation
 - `README.md` - Project overview
@@ -169,7 +169,7 @@ import { Button, Modal } from '../components/common';
 ### Adding New Features
 
 1. Check `SOLID.md` for SOLID principles
-2. Review `개발일지.md` for implementation patterns
+2. Review `docs/history/개발일지.md` for implementation patterns
 3. Determine correct folder: constants/utils/services/hooks/components/firebase
 4. Create file with single responsibility
 5. Add export to corresponding `index.js`
@@ -235,7 +235,7 @@ This app was initially built as a monolithic 2177-line `App.js` using Claude web
 - ✅ Phase 4: Family sharing system (95%)
 - ⏳ Phase 5: Family creation UI (in progress)
 
-**Development Log**: See `개발일지.md` for complete development history.
+**Development Log**: See `docs/history/개발일지.md` for complete development history.
 
 When making changes:
 - Preserve the existing SOLID architecture
@@ -243,4 +243,4 @@ When making changes:
 - Maintain the glassmorphism visual style
 - Consult `SOLID.md` for SOLID principles
 - Test in browser at localhost:3000 after changes
-- Check `개발일지.md` for implementation details
+- Check `docs/history/개발일지.md` for implementation details

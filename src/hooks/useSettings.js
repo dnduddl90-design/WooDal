@@ -31,9 +31,7 @@ export const useSettings = (currentUser) => {
     try {
       const localSettings = loadFromStorage(STORAGE_KEYS.SETTINGS);
       if (localSettings) {
-        console.log('📦 LocalStorage 설정 발견, Firebase로 마이그레이션 중...');
         await saveSettings(userId, localSettings);
-        console.log('✅ 설정 마이그레이션 완료');
         // LocalStorage에서 제거 (선택사항)
         // localStorage.removeItem(STORAGE_KEYS.SETTINGS);
       }
@@ -98,7 +96,6 @@ export const useSettings = (currentUser) => {
     if (currentUser) {
       try {
         await saveSettings(currentUser.firebaseId, newSettings);
-        console.log('✅ 설정 저장 완료 (Firebase)');
       } catch (error) {
         console.error('❌ 설정 저장 실패:', error);
         alert('설정 저장에 실패했습니다.');
@@ -106,7 +103,6 @@ export const useSettings = (currentUser) => {
     } else {
       // 로그인하지 않은 경우 LocalStorage에 저장
       saveToStorage(STORAGE_KEYS.SETTINGS, newSettings);
-      console.log('✅ 설정 저장 완료 (LocalStorage)');
     }
   };
 

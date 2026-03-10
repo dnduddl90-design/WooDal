@@ -1,7 +1,7 @@
 import React from 'react';
 import { Search, X, Edit2, Trash2 } from 'lucide-react';
-import { CATEGORIES, USERS, PAYMENT_METHODS } from '../constants';
-import { formatCurrency } from '../utils';
+import { CATEGORIES, PAYMENT_METHODS } from '../constants';
+import { formatCurrency, getAvailableUsers, resolveUserInfo } from '../utils';
 import { Button, Input } from '../components/common';
 
 /**
@@ -13,6 +13,8 @@ export const SearchPage = ({
   searchQuery,
   searchFilters,
   searchResults = [],
+  familyInfo,
+  currentUser,
   onSearchQueryChange,
   onSearchFiltersChange,
   onPerformSearch,
@@ -20,6 +22,8 @@ export const SearchPage = ({
   onEditTransaction,
   onDeleteTransaction
 }) => {
+  const availableUsers = getAvailableUsers(familyInfo, currentUser);
+
   // 모든 카테고리 가져오기
   const getAllCategories = () => {
     return [
@@ -110,7 +114,7 @@ export const SearchPage = ({
               className="px-2 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
             >
               <option value="all">모든 사용자</option>
-              {Object.values(USERS).map(user => (
+              {availableUsers.map(user => (
                 <option key={user.id} value={user.id}>
                   {user.name}
                 </option>
@@ -218,7 +222,7 @@ export const SearchPage = ({
             {searchResults.map(transaction => {
               const category = CATEGORIES[transaction.type]?.find(c => c.id === transaction.category);
               const Icon = category?.icon;
-              const user = USERS[transaction.userId];
+              const user = resolveUserInfo(transaction.userId, familyInfo, currentUser);
               const paymentMethod = PAYMENT_METHODS.find(p => p.id === transaction.paymentMethod);
 
               return (

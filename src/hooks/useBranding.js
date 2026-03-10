@@ -48,11 +48,9 @@ export const useBranding = (currentUser, familyInfo) => {
 
           // Firebase에 설정이 없으면 마이그레이션 (기본값 생성)
           if (!firebaseBranding) {
-            console.log('📦 브랜딩 설정 없음, 가족 정보로부터 기본값 생성 중...');
             const defaultBranding = BrandingService.createDefaultBrandingFromFamily(familyInfo);
             await saveFamilyBranding(familyId, defaultBranding);
             firebaseBranding = defaultBranding;
-            console.log('✅ 브랜딩 기본값 생성 완료');
           }
         }
         // 개인 모드인 경우
@@ -61,14 +59,12 @@ export const useBranding = (currentUser, familyInfo) => {
 
           // Firebase에 설정이 없으면 기본값 저장
           if (!firebaseBranding) {
-            console.log('📦 개인 브랜딩 설정 없음, 기본값 생성 중...');
             const defaultBranding = {
               ...DEFAULT_BRANDING,
               createdAt: new Date().toISOString()
             };
             await savePersonalBranding(userId, defaultBranding);
             firebaseBranding = defaultBranding;
-            console.log('✅ 개인 브랜딩 기본값 생성 완료');
           }
         }
 
@@ -158,10 +154,8 @@ export const useBranding = (currentUser, familyInfo) => {
         // Firebase 저장
         if (hasFamilyMode && familyId) {
           await saveFamilyBranding(familyId, newSettings);
-          console.log('✅ 가족 브랜딩 설정 저장 완료 (Firebase)');
         } else if (userId) {
           await savePersonalBranding(userId, newSettings);
-          console.log('✅ 개인 브랜딩 설정 저장 완료 (Firebase)');
         }
       } catch (error) {
         console.error('❌ 브랜딩 설정 저장 실패:', error);

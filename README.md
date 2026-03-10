@@ -109,10 +109,11 @@ firebase deploy --only hosting
 
 ## 📚 문서
 
-- **[개발일지.md](./개발일지.md)** - 개발 과정 요약 (Phase 1-15)
-- **[개발일지-전체.md](./개발일지-전체.md)** - 전체 개발 과정 상세 기록
+- **[docs/문서-정리-인덱스.md](./docs/문서-정리-인덱스.md)** - 문서 분류 및 추천 읽기 순서
+- **[docs/history/개발일지.md](./docs/history/개발일지.md)** - 개발 과정 요약 (Phase 1-15)
+- **[docs/history/개발일지-전체.md](./docs/history/개발일지-전체.md)** - 전체 개발 과정 상세 기록
 - **[SOLID.md](./SOLID.md)** - SOLID 원칙 가이드
-- **[Firebase-데이터-관리-가이드.md](./Firebase-데이터-관리-가이드.md)** - 데이터 관리 및 백업 전략
+- **[docs/operations/Firebase-데이터-관리-가이드.md](./docs/operations/Firebase-데이터-관리-가이드.md)** - 데이터 관리 및 백업 전략
 - **[CLAUDE.md](./CLAUDE.md)** - 프로젝트 설계 문서
 
 ---
@@ -247,7 +248,7 @@ families/
 - Firebase Console에서 월 1회 JSON 내보내기
 - 중요 작업 전 백업 필수
 
-자세한 내용: [Firebase-데이터-관리-가이드.md](./Firebase-데이터-관리-가이드.md)
+자세한 내용: [docs/operations/Firebase-데이터-관리-가이드.md](./docs/operations/Firebase-데이터-관리-가이드.md)
 
 ---
 

@@ -18,7 +18,6 @@ export const LoginPage = ({ onLogin, appSubtitle = "우영 ♥ 달림", appTitle
       setLoading(true);
       setError('');
       const user = await signInWithGoogle();
-      console.log('✅ Google 로그인 성공:', user.email);
       onLogin(user);
     } catch (error) {
       console.error('❌ Google 로그인 실패:', error);

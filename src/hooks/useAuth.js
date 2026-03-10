@@ -30,10 +30,8 @@ export const useAuth = () => {
           if (familyId) {
             const family = await getFamily(familyId);
             setFamilyInfo(family);
-            console.log('👨‍👩‍👧‍👦 가족 정보 로드됨:', family.name);
           } else {
             setFamilyInfo(null);
-            console.log('👤 개인 가계부 모드 (가족 없음)');
           }
         } catch (error) {
           console.error('❌ 가족 정보 로드 실패:', error);
@@ -41,13 +39,11 @@ export const useAuth = () => {
         }
 
         setIsAuthenticated(true);
-        console.log('✅ 인증 상태 변경: 로그인됨', fbUser.email);
       } else {
         setFirebaseUser(null);
         setCurrentUser(null);
         setFamilyInfo(null);
         setIsAuthenticated(false);
-        console.log('✅ 인증 상태 변경: 로그아웃됨');
       }
       setLoading(false);
     });
@@ -96,10 +92,7 @@ export const useAuth = () => {
       avatar: userAvatar || DEFAULT_AVATARS.user1, // 아바타 (커스터마이징 가능)
       role: userRole // 가족 내 역할 (admin/member)
     };
-
     setCurrentUser(user);
-    console.log('👤 사용자 정보 업데이트:', user);
-    console.log('👤 현재 userAvatar:', userAvatar);
   }, [firebaseUser, userAvatar, familyInfo]);
 
   /**
@@ -110,14 +103,10 @@ export const useAuth = () => {
 
     // 이메일을 소문자로 정규화 (대소문자 매칭 문제 해결)
     const normalizedEmail = currentUser.email.toLowerCase();
-    console.log('📬 초대 리스너 시작:', normalizedEmail);
 
     // 실시간 초대 리스너 설정
     const unsubscribe = onInvitationsChange(normalizedEmail, (invitations) => {
       setPendingInvitations(invitations);
-      if (invitations.length > 0) {
-        console.log(`📩 대기 중인 초대 ${invitations.length}건 발견`);
-      }
     });
 
     // 클린업
@@ -130,13 +119,10 @@ export const useAuth = () => {
   useEffect(() => {
     if (!currentUser?.firebaseId) return;
 
-    console.log('🎨 아바타 리스너 시작');
-
     // 실시간 아바타 리스너 설정
     const unsubscribe = onAvatarChange(currentUser.firebaseId, (avatar) => {
       if (avatar) {
         setUserAvatar(avatar);
-        console.log('🎨 아바타 업데이트:', avatar);
       }
     });
 
@@ -150,7 +136,6 @@ export const useAuth = () => {
    */
   const handleLogin = (firebaseUser) => {
     // Firebase 인증 리스너가 자동으로 처리하므로 여기서는 아무것도 안 해도 됨
-    console.log('✅ 로그인 성공:', firebaseUser.email);
   };
 
   /**
@@ -159,7 +144,6 @@ export const useAuth = () => {
   const handleLogout = async () => {
     try {
       await firebaseLogout();
-      console.log('✅ 로그아웃 성공');
     } catch (error) {
       console.error('❌ 로그아웃 실패:', error);
     }
@@ -174,7 +158,6 @@ export const useAuth = () => {
     try {
       await saveUserAvatar(currentUser.firebaseId, newAvatar);
       setUserAvatar(newAvatar);
-      console.log('✅ 아바타 변경 완료:', newAvatar);
     } catch (error) {
       console.error('❌ 아바타 변경 실패:', error);
       alert('아바타 변경에 실패했습니다.');

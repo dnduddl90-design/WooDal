@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { TrendingUp, TrendingDown, Wallet, Calendar, Plus, Trash2, Minus, Edit } from 'lucide-react';
 import { Button, Input, Modal } from '../components/common';
-import { formatCurrency, formatDate } from '../utils';
+import { formatCurrency, formatDate, getTodayDateString, parseDateString } from '../utils';
 import { usePocketMoney } from '../hooks';
 
 /**
@@ -19,7 +19,7 @@ export const PocketMoneyPage = ({ currentUser }) => {
     category: '',
     amount: '',
     memo: '',
-    date: new Date().toISOString().split('T')[0]
+    date: getTodayDateString()
   });
 
   // usePocketMoney 훅 사용
@@ -39,7 +39,7 @@ export const PocketMoneyPage = ({ currentUser }) => {
   // 현재 월의 거래만 필터링
   const currentMonthTransactions = useMemo(() => {
     return transactions.filter(t => {
-      const transactionDate = new Date(t.date);
+      const transactionDate = parseDateString(t.date);
       return transactionDate.getFullYear() === currentYear &&
              transactionDate.getMonth() === currentMonth;
     });
@@ -48,7 +48,7 @@ export const PocketMoneyPage = ({ currentUser }) => {
   // 지난 달까지의 총 지출 계산 (이월 잔고 계산용)
   const previousMonthsSpent = useMemo(() => {
     return transactions.filter(t => {
-      const transactionDate = new Date(t.date);
+      const transactionDate = parseDateString(t.date);
       const currentMonthStart = new Date(currentYear, currentMonth, 1);
       return transactionDate < currentMonthStart;
     }).reduce((sum, t) => sum + t.amount, 0);
@@ -170,7 +170,7 @@ export const PocketMoneyPage = ({ currentUser }) => {
         category: '',
         amount: '',
         memo: '',
-        date: new Date().toISOString().split('T')[0]
+        date: getTodayDateString()
       });
     }
   };

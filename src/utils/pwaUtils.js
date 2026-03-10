@@ -105,7 +105,6 @@ export const updatePWAMetadata = (pwaSettings) => {
       document.head.appendChild(manifestLink);
     }
 
-    console.log('✅ PWA 메타데이터 업데이트 완료');
   } catch (error) {
     console.error('❌ PWA 메타데이터 업데이트 실패:', error);
   }

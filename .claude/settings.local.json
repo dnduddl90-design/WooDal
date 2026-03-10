@@ -40,7 +40,9 @@
       "Bash(git commit:*)",
       "Bash(git checkout:*)",
       "Bash(del \"D:\\1.Project\\test\\WooDal\\src\\services\\autoRegisterService.js\")",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(npm run build:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nPhase 22: 브랜딩 커스터마이징 기능 추가\n\n- 앱 이름 및 사용자 이름 설정 가능\n- Firebase에 브랜딩 설정 저장 및 실시간 동기화\n- Settings 페이지에 브랜딩 커스터마이징 UI 추가\n- Header, LoginPage, SettingsPage의 하드코딩된 이름 동적 교체\n- PWA 메타데이터 동적 업데이트\n\n새로운 파일:\n- src/constants/branding.js - 브랜딩 기본값\n- src/services/brandingService.js - 브랜딩 비즈니스 로직\n- src/hooks/useBranding.js - 브랜딩 상태 관리 hook\n- src/components/settings/BrandingSettings.js - 브랜딩 UI 컴포넌트\n- src/utils/pwaUtils.js - PWA 메타데이터 업데이트\n\n수정된 파일:\n- src/firebase/databaseService.js - 브랜딩 CRUD 함수 추가\n- src/App.js - useBranding hook 통합\n- src/components/layout/Header.js - 동적 앱 제목\n- src/pages/LoginPage.js - 동적 앱 이름 표시\n- src/pages/SettingsPage.js - BrandingSettings 컴포넌트 추가\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")"
     ],
     "deny": [],
     "ask": []

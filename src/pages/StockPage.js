@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Plus, DollarSign } from 'lucide-react';
-import { Button } from '../components/common';
+import React, { useEffect, useState } from 'react';
+import { Plus, DollarSign, RefreshCw, FolderTree } from 'lucide-react';
+import { Button, Modal } from '../components/common';
 import { StockForm } from '../components/stock/StockForm';
 import { StockCard } from '../components/stock/StockCard';
 import { StockSummary } from '../components/stock/StockSummary';
@@ -21,18 +21,35 @@ export const StockPage = ({
   onDeleteStock,
   onUpdateCurrentPrice,
   onUpdateMultiplePrices,
+  onRefreshMarketPrices,
   currentUser,
   stockSymbols = [],
-  symbolsLoading = false
+  stockCategories = [],
+  symbolsLoading = false,
+  isRefreshingPrices = false,
+  lastPriceUpdatedAt = null,
+  priceRefreshStatus = null
 }) => {
   const [showForm, setShowForm] = useState(false);
   const [showPriceModal, setShowPriceModal] = useState(false);
+  const [showUncategorizedModal, setShowUncategorizedModal] = useState(false);
   const [editingStock, setEditingStock] = useState(null);
   const [editingHoldingIndex, setEditingHoldingIndex] = useState(null); // 계좌별 수정 시 holding 인덱스
   const [selectedAccount, setSelectedAccount] = useState('ALL'); // 계좌 필터
 
+  useEffect(() => {
+    if (stocks.length === 0 || !onRefreshMarketPrices) {
+      return;
+    }
+
+    onRefreshMarketPrices();
+  }, [stocks.length, onRefreshMarketPrices]);
+
   // 관리자 권한 확인 (role이 'admin'인 경우)
   const isAdmin = currentUser?.role === 'admin';
+  const uncategorizedStocks = stocks.filter(
+    (stock) => stock.market !== 'CASH' && (!stock.categoryId || stock.categoryName === '미분류')
+  );
 
   // 계좌별 필터링 (holdings 기반)
   const filteredStocks = selectedAccount === 'ALL'
@@ -128,8 +145,24 @@ export const StockPage = ({
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">주식 포트폴리오</h1>
           <p className="text-sm text-gray-600 mt-1">보유 주식을 관리하고 수익률을 확인하세요</p>
+          {lastPriceUpdatedAt && (
+            <p className="text-xs text-gray-500 mt-2">
+              마지막 시세 갱신: {new Date(lastPriceUpdatedAt).toLocaleString('ko-KR')}
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
+          {stocks.length > 0 && (
+            <Button
+              variant="secondary"
+              icon={RefreshCw}
+              onClick={() => onRefreshMarketPrices?.({ force: true })}
+              disabled={isRefreshingPrices}
+              className={isRefreshingPrices ? 'opacity-80' : ''}
+            >
+              {isRefreshingPrices ? '조회 중...' : '시세 새로고침'}
+            </Button>
+          )}
           {stocks.length > 0 && (
             <Button
               variant="secondary"
@@ -148,6 +181,47 @@ export const StockPage = ({
           </Button>
         </div>
       </div>
+
+      {priceRefreshStatus && (
+        <div
+          className={`rounded-xl px-4 py-3 text-sm border ${
+            priceRefreshStatus.type === 'success'
+              ? 'bg-green-50 border-green-200 text-green-700'
+              : priceRefreshStatus.type === 'partial'
+                ? 'bg-yellow-50 border-yellow-200 text-yellow-700'
+                : priceRefreshStatus.type === 'cached'
+                  ? 'bg-blue-50 border-blue-200 text-blue-700'
+                  : priceRefreshStatus.type === 'error'
+                    ? 'bg-red-50 border-red-200 text-red-700'
+                    : 'bg-gray-50 border-gray-200 text-gray-700'
+          }`}
+        >
+          {priceRefreshStatus.message}
+        </div>
+      )}
+
+      {uncategorizedStocks.length > 0 && (
+        <div className="rounded-xl px-4 py-4 border bg-amber-50 border-amber-200 text-amber-800">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <FolderTree size={20} className="mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="font-semibold">미분류 종목이 {uncategorizedStocks.length}개 있습니다.</p>
+                <p className="text-sm text-amber-700">
+                  분류를 지정하면 상단 그래프와 요약이 더 깔끔하게 정리됩니다.
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="secondary"
+              onClick={() => setShowUncategorizedModal(true)}
+              className="text-sm"
+            >
+              미분류 정리
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* 계좌 필터 */}
       {stocks.length > 0 && (
@@ -231,6 +305,7 @@ export const StockPage = ({
           initialData={editingStock}
           holdingIndex={editingHoldingIndex}
           stockSymbols={stockSymbols}
+          stockCategories={stockCategories}
           symbolsLoading={symbolsLoading}
         />
       )}
@@ -243,6 +318,46 @@ export const StockPage = ({
           stocks={stocks}
           onUpdatePrices={onUpdateMultiplePrices}
         />
+      )}
+
+      {showUncategorizedModal && (
+        <Modal
+          isOpen={showUncategorizedModal}
+          onClose={() => setShowUncategorizedModal(false)}
+          title="미분류 종목 정리"
+          size="md"
+        >
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600">
+              아래 종목에 분류를 지정하면 상단 요약이 분류 기준으로 더 정확하게 묶입니다.
+            </p>
+            <div className="space-y-2">
+              {uncategorizedStocks.map((stock) => (
+                <div
+                  key={stock.id}
+                  className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+                >
+                  <div>
+                    <p className="font-medium text-gray-900">{stock.name}</p>
+                    <p className="text-xs text-gray-500">
+                      {stock.symbol} · {stock.quantity}주
+                    </p>
+                  </div>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => {
+                      setShowUncategorizedModal(false);
+                      handleEdit(stock, null);
+                    }}
+                  >
+                    분류 지정
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );

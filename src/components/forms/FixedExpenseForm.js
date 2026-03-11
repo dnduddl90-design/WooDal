@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { CATEGORIES, PAYMENT_METHODS } from '../../constants';
 import { getTodayDateString } from '../../utils';
 import { Button, Input, Modal } from '../common';
@@ -16,12 +16,47 @@ export const FixedExpenseForm = ({
   onSubmit,
   isEditMode = false
 }) => {
+  const amount = parseInt(formData.amount, 10) || 0;
+  const monthlyIncrease = parseInt(formData.monthlyIncrease, 10) || 0;
+  const previewMonths = useMemo(() => {
+    if (!amount) {
+      return [];
+    }
+
+    const today = new Date();
+    const baseDay = formData.autoRegisterDate || 1;
+
+    return Array.from({ length: 3 }, (_, index) => {
+      const previewDate = new Date(today.getFullYear(), today.getMonth() + index, Math.min(baseDay, 28));
+      return {
+        label: `${previewDate.getFullYear()}년 ${previewDate.getMonth() + 1}월`,
+        amount: amount + (monthlyIncrease * index)
+      };
+    });
+  }, [amount, formData.autoRegisterDate, monthlyIncrease]);
+
+  const needsBaseDate = monthlyIncrease !== 0;
+  const dateRangeInvalid = !formData.isUnlimited && formData.startDate && formData.endDate && formData.endDate < formData.startDate;
+
   // 폼 제출 핸들러
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (formData.name && formData.category && formData.amount) {
-      onSubmit();
+
+    if (!formData.name || !formData.category || !formData.amount) {
+      return;
     }
+
+    if (dateRangeInvalid) {
+      alert('종료일은 시작일보다 빠를 수 없습니다.');
+      return;
+    }
+
+    if (needsBaseDate && !formData.baseDate) {
+      alert('월 증감액을 사용할 때는 증감액 기준일이 필요합니다.');
+      return;
+    }
+
+    onSubmit();
   };
 
   return (
@@ -69,6 +104,7 @@ export const FixedExpenseForm = ({
           value={formData.amount}
           onChange={(e) => onFormChange({ ...formData, amount: e.target.value })}
           placeholder="0"
+          min="0"
           required
         />
 
@@ -152,6 +188,11 @@ export const FixedExpenseForm = ({
               설정한 기간 동안만 자동으로 거래가 등록됩니다
             </p>
           )}
+          {dateRangeInvalid && (
+            <p className="text-sm text-red-500">
+              종료일은 시작일 이후여야 합니다.
+            </p>
+          )}
         </div>
 
         {/* 월 증감액 */}
@@ -167,7 +208,7 @@ export const FixedExpenseForm = ({
         </p>
 
         {/* 기준일 (증감액이 있을 때만 표시) */}
-        {formData.monthlyIncrease && parseInt(formData.monthlyIncrease) !== 0 && (
+        {needsBaseDate && (
           <div>
             <Input
               label="증감액 기준일"
@@ -179,6 +220,20 @@ export const FixedExpenseForm = ({
             <p className="text-sm text-gray-500 mt-1">
               이 날짜부터 매월 {formData.monthlyIncrease > 0 ? '증가' : '감소'}액이 누적됩니다
             </p>
+          </div>
+        )}
+
+        {previewMonths.length > 0 && (
+          <div className="rounded-xl border border-blue-100 bg-blue-50 p-4">
+            <p className="text-sm font-semibold text-blue-900 mb-3">자동 등록 미리보기</p>
+            <div className="space-y-2">
+              {previewMonths.map((preview) => (
+                <div key={preview.label} className="flex items-center justify-between text-sm">
+                  <span className="text-blue-800">{preview.label}</span>
+                  <span className="font-semibold text-blue-900">{preview.amount.toLocaleString()}원</span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

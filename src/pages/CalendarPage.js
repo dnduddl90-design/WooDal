@@ -46,55 +46,137 @@ export const CalendarPage = ({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // 특정 날짜의 거래 내역 가져오기 (useCallback으로 메모이제이션)
-  const getDayTransactions = useCallback((day, month, year) => {
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    return transactions.filter(t => t.date === dateStr);
-  }, [transactions]);
+  const monthKey = useMemo(() => {
+    return `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+  }, [currentDate]);
 
-  // 특정 날짜의 고정지출 가져오기 (useCallback으로 메모이제이션)
-  const getFixedExpensesForDay = useCallback((day) => {
+  const transactionsByDate = useMemo(() => {
+    return transactions.reduce((acc, transaction) => {
+      if (!transaction.date?.startsWith(monthKey)) {
+        return acc;
+      }
+
+      if (!acc[transaction.date]) {
+        acc[transaction.date] = [];
+      }
+
+      acc[transaction.date].push(transaction);
+      return acc;
+    }, {});
+  }, [transactions, monthKey]);
+
+  const fixedExpensesByDate = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const daysInMonth = getDaysInMonth(currentDate);
+    const mappedExpenses = {};
 
-    return fixedExpenses
-      .filter(expense => {
-        // 비활성화되거나 날짜가 맞지 않으면 제외
-        if (!expense.isActive || expense.autoRegisterDate !== day) {
-          return false;
-        }
+    for (let day = 1; day <= daysInMonth; day++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 
-        // 무기한 고정지출은 항상 표시
-        if (expense.isUnlimited !== false) {
+      const dayExpenses = fixedExpenses
+        .filter(expense => {
+          if (!expense.isActive || expense.autoRegisterDate !== day) {
+            return false;
+          }
+
+          if (expense.isUnlimited !== false) {
+            return true;
+          }
+
+          if (expense.startDate && dateStr < expense.startDate) {
+            return false;
+          }
+
+          if (expense.endDate && dateStr > expense.endDate) {
+            return false;
+          }
+
           return true;
-        }
+        })
+        .map(expense => {
+          const monthsSinceBase = calculateMonthsSince(expense.baseDate, dateStr);
+          const monthlyIncrease = expense.monthlyIncrease || 0;
+          const calculatedAmount = expense.amount + (monthlyIncrease * monthsSinceBase);
 
-        // 기간제 고정지출은 기간 내에만 표시
-        if (expense.startDate && dateStr < expense.startDate) {
-          return false;
-        }
+          return {
+            ...expense,
+            amount: calculatedAmount,
+            originalAmount: expense.amount,
+            monthsSinceBase
+          };
+        });
 
-        if (expense.endDate && dateStr > expense.endDate) {
-          return false;
-        }
+      mappedExpenses[dateStr] = dayExpenses;
+    }
 
-        return true;
-      })
-      .map(expense => {
-        // 기준일 기반 월 계산하여 금액 업데이트
-        const monthsSinceBase = calculateMonthsSince(expense.baseDate, dateStr);
-        const monthlyIncrease = expense.monthlyIncrease || 0;
-        const calculatedAmount = expense.amount + (monthlyIncrease * monthsSinceBase);
+    return mappedExpenses;
+  }, [currentDate, fixedExpenses]);
 
-        return {
-          ...expense,
-          amount: calculatedAmount,
-          originalAmount: expense.amount, // 원래 금액 보존
-          monthsSinceBase // 디버깅용
-        };
-      });
-  }, [fixedExpenses, currentDate]);
+  const buildDateString = useCallback((day, month, year) => {
+    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  }, []);
+
+  // 특정 날짜의 거래 내역 가져오기 (useCallback으로 메모이제이션)
+  const getDayTransactions = useCallback((day, month, year) => {
+    const dateStr = buildDateString(day, month, year);
+    return transactionsByDate[dateStr] || [];
+  }, [buildDateString, transactionsByDate]);
+
+  // 특정 날짜의 고정지출 가져오기 (useCallback으로 메모이제이션)
+  const getFixedExpensesForDay = useCallback((day, month, year) => {
+    const dateStr = buildDateString(day, month, year);
+    return fixedExpensesByDate[dateStr] || [];
+  }, [buildDateString, fixedExpensesByDate]);
+
+  const shouldOpenDayModal = useCallback((itemsCount) => {
+    if (isDesktop) {
+      return itemsCount > 0;
+    }
+
+    return itemsCount > 2;
+  }, [isDesktop]);
+
+  const openDayModal = useCallback((day, month, year, allItems) => {
+    setSelectedDayData({ day, month, year, allItems });
+    setShowDayModal(true);
+  }, []);
+
+  const handleDayCellClick = useCallback((day, month, year, allItems) => {
+    if (!shouldOpenDayModal(allItems.length)) {
+      return;
+    }
+
+    openDayModal(day, month, year, allItems);
+  }, [openDayModal, shouldOpenDayModal]);
+
+  const handleInlineItemClick = useCallback((event, item) => {
+    if (isDesktop || item.type === 'fixed') {
+      return;
+    }
+
+    event.stopPropagation();
+    onEditTransaction(item);
+  }, [isDesktop, onEditTransaction]);
+
+  const handleInlineDeleteClick = useCallback((event, itemId) => {
+    event.stopPropagation();
+    if (!window.confirm('이 거래를 삭제하시겠습니까?')) {
+      return;
+    }
+    onDeleteTransaction(itemId);
+  }, [onDeleteTransaction]);
+
+  const handleDeleteClick = useCallback((event, itemId, closeModal = false) => {
+    event.stopPropagation();
+    if (!window.confirm('이 거래를 삭제하시겠습니까?')) {
+      return;
+    }
+    onDeleteTransaction(itemId);
+    if (closeModal) {
+      setShowDayModal(false);
+    }
+  }, [onDeleteTransaction]);
 
 
   // 월 이동 핸들러 (useCallback으로 최적화)
@@ -132,7 +214,7 @@ export const CalendarPage = ({
     // 현재 달 날짜들
     for (let day = 1; day <= daysInMonth; day++) {
       const dayTransactions = getDayTransactions(day, month, year);
-      const fixedExpensesForDay = getFixedExpensesForDay(day);
+      const fixedExpensesForDay = getFixedExpensesForDay(day, month, year);
       const today = new Date();
       const isToday =
         day === today.getDate() &&
@@ -150,18 +232,7 @@ export const CalendarPage = ({
           className={`h-16 sm:h-24 border border-gray-200 p-0.5 sm:p-1 hover:bg-gray-50 transition-colors cursor-pointer ${
             isToday ? 'ring-2 ring-blue-500' : ''
           }`}
-          onClick={() => {
-            // 데스크톱 모드: 항상 모달 열기
-            if (isDesktop && allItems.length > 0) {
-              setSelectedDayData({ day, month, year, allItems });
-              setShowDayModal(true);
-            }
-            // 모바일 모드: 3개 이상일 때만 모달 열기 (기존 동작)
-            else if (!isDesktop && allItems.length > 2) {
-              setSelectedDayData({ day, month, year, allItems });
-              setShowDayModal(true);
-            }
-          }}
+          onClick={() => handleDayCellClick(day, month, year, allItems)}
         >
           <div className="text-xs sm:text-sm font-medium mb-0.5 sm:mb-1">{day}</div>
           {allItems.length > 0 ? (
@@ -178,13 +249,7 @@ export const CalendarPage = ({
                   >
                     <div
                       className="flex items-center space-x-0.5 sm:space-x-1 flex-1 cursor-pointer min-w-0"
-                      onClick={(e) => {
-                        // 모바일 모드에서만 직접 편집 허용
-                        if (!isDesktop && item.type !== 'fixed') {
-                          e.stopPropagation();
-                          onEditTransaction(item);
-                        }
-                      }}
+                      onClick={(e) => handleInlineItemClick(e, item)}
                     >
                       <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0 ${
                         item.type === 'fixed' ? 'bg-orange-500' :
@@ -200,10 +265,7 @@ export const CalendarPage = ({
                     {item.type !== 'fixed' && !isDesktop && (
                       <button
                         type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDeleteTransaction(item.id);
-                        }}
+                        onClick={(e) => handleInlineDeleteClick(e, item.id)}
                         className="opacity-0 group-hover:opacity-100 p-0.5 text-red-500 hover:text-red-700 transition-all flex-shrink-0"
                         title="삭제"
                       >
@@ -241,7 +303,7 @@ export const CalendarPage = ({
 
     return days;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentDate, getDayTransactions, getFixedExpensesForDay, onEditTransaction, onDeleteTransaction, isDesktop]);
+  }, [currentDate, getDayTransactions, getFixedExpensesForDay, handleDayCellClick, handleInlineDeleteClick, handleInlineItemClick]);
 
   // 모바일 하루 뷰 데이터 계산 (useMemo로 최적화)
   const mobileDayData = useMemo(() => {
@@ -250,7 +312,7 @@ export const CalendarPage = ({
     const month = currentDate.getMonth();
 
     const dayTransactions = getDayTransactions(currentDay, month, year);
-    const fixedExpensesForDay = getFixedExpensesForDay(currentDay);
+    const fixedExpensesForDay = getFixedExpensesForDay(currentDay, month, year);
     const todayDate = new Date();
     const isToday =
       currentDay === todayDate.getDate() &&
@@ -465,8 +527,7 @@ export const CalendarPage = ({
                         <button
                           type="button"
                           onClick={(e) => {
-                            e.stopPropagation();
-                            onDeleteTransaction(item.id);
+                            handleDeleteClick(e, item.id);
                           }}
                           className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                           title="삭제"
@@ -624,9 +685,7 @@ export const CalendarPage = ({
                       <button
                         type="button"
                         onClick={(e) => {
-                          e.stopPropagation();
-                          onDeleteTransaction(item.id);
-                          setShowDayModal(false);
+                          handleDeleteClick(e, item.id, true);
                         }}
                         className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
                         title="삭제"

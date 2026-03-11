@@ -3,13 +3,33 @@
     "users": {
       "$userId": {
         ".read": "$userId === auth.uid",
-        ".write": "$userId === auth.uid"
+        ".write": "$userId === auth.uid",
+        "transactions": {
+          "$transactionId": {
+            ".validate": "newData.hasChildren(['id', 'type', 'category', 'amount', 'date', 'userId']) && newData.child('id').isNumber() && (newData.child('type').val() === 'income' || newData.child('type').val() === 'expense') && newData.child('category').isString() && newData.child('amount').isNumber() && newData.child('amount').val() >= 0 && newData.child('date').isString() && newData.child('date').val().matches(/^\\d{4}-\\d{2}-\\d{2}$/) && newData.child('userId').isString() && (!newData.child('subcategory').exists() || newData.child('subcategory').isString()) && (!newData.child('paymentMethod').exists() || newData.child('paymentMethod').isString()) && (!newData.child('memo').exists() || newData.child('memo').isString()) && (!newData.child('isPocketMoney').exists() || newData.child('isPocketMoney').isBoolean())"
+          }
+        },
+        "fixedExpenses": {
+          "$expenseId": {
+            ".validate": "newData.hasChildren(['id', 'name', 'category', 'amount', 'autoRegisterDate', 'isActive']) && newData.child('id').isNumber() && newData.child('name').isString() && newData.child('category').isString() && newData.child('amount').isNumber() && newData.child('amount').val() >= 0 && newData.child('autoRegisterDate').isNumber() && newData.child('autoRegisterDate').val() >= 1 && newData.child('autoRegisterDate').val() <= 31 && newData.child('isActive').isBoolean() && (!newData.child('monthlyIncrease').exists() || newData.child('monthlyIncrease').isNumber()) && (!newData.child('baseDate').exists() || newData.child('baseDate').isString()) && (!newData.child('paymentMethod').exists() || newData.child('paymentMethod').isString()) && (!newData.child('memo').exists() || newData.child('memo').isString()) && (!newData.child('isUnlimited').exists() || newData.child('isUnlimited').isBoolean()) && (!newData.child('startDate').exists() || newData.child('startDate').isString()) && (!newData.child('endDate').exists() || newData.child('endDate').isString()) && (!(newData.child('startDate').exists() && newData.child('endDate').exists()) || newData.child('startDate').val() <= newData.child('endDate').val()) && ((!newData.child('monthlyIncrease').exists() || newData.child('monthlyIncrease').val() === 0) || newData.child('baseDate').exists())"
+          }
+        }
       }
     },
     "families": {
       "$familyId": {
         ".read": "root.child('families').child($familyId).child('members').child(auth.uid).exists()",
         ".write": "root.child('families').child($familyId).child('members').child(auth.uid).exists()",
+        "transactions": {
+          "$transactionId": {
+            ".validate": "newData.hasChildren(['id', 'type', 'category', 'amount', 'date', 'userId']) && newData.child('id').isNumber() && (newData.child('type').val() === 'income' || newData.child('type').val() === 'expense') && newData.child('category').isString() && newData.child('amount').isNumber() && newData.child('amount').val() >= 0 && newData.child('date').isString() && newData.child('date').val().matches(/^\\d{4}-\\d{2}-\\d{2}$/) && newData.child('userId').isString() && (!newData.child('subcategory').exists() || newData.child('subcategory').isString()) && (!newData.child('paymentMethod').exists() || newData.child('paymentMethod').isString()) && (!newData.child('memo').exists() || newData.child('memo').isString()) && (!newData.child('isPocketMoney').exists() || newData.child('isPocketMoney').isBoolean())"
+          }
+        },
+        "fixedExpenses": {
+          "$expenseId": {
+            ".validate": "newData.hasChildren(['id', 'name', 'category', 'amount', 'autoRegisterDate', 'isActive']) && newData.child('id').isNumber() && newData.child('name').isString() && newData.child('category').isString() && newData.child('amount').isNumber() && newData.child('amount').val() >= 0 && newData.child('autoRegisterDate').isNumber() && newData.child('autoRegisterDate').val() >= 1 && newData.child('autoRegisterDate').val() <= 31 && newData.child('isActive').isBoolean() && (!newData.child('monthlyIncrease').exists() || newData.child('monthlyIncrease').isNumber()) && (!newData.child('baseDate').exists() || newData.child('baseDate').isString()) && (!newData.child('paymentMethod').exists() || newData.child('paymentMethod').isString()) && (!newData.child('memo').exists() || newData.child('memo').isString()) && (!newData.child('isUnlimited').exists() || newData.child('isUnlimited').isBoolean()) && (!newData.child('startDate').exists() || newData.child('startDate').isString()) && (!newData.child('endDate').exists() || newData.child('endDate').isString()) && (!(newData.child('startDate').exists() && newData.child('endDate').exists()) || newData.child('startDate').val() <= newData.child('endDate').val()) && ((!newData.child('monthlyIncrease').exists() || newData.child('monthlyIncrease').val() === 0) || newData.child('baseDate').exists())"
+          }
+        },
         "members": {
           "$memberId": {
             ".write": "root.child('families').child($familyId).child('members').child(auth.uid).child('role').val() === 'admin' || $memberId === auth.uid"

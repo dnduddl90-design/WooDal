@@ -1,10 +1,32 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   saveStock,
   updateStock,
   deleteStock,
   onStocksChange
 } from '../firebase/databaseService';
+import { fetchStockPrice } from '../services/stockPriceService';
+import { loadFromStorage, saveToStorage, STORAGE_KEYS } from '../utils';
+
+const PRICE_CACHE_TTL_MS = 10 * 60 * 1000;
+
+const getFreshCachedPrice = (cache, symbol) => {
+  const cachedEntry = cache?.[symbol];
+  if (!cachedEntry?.price || !cachedEntry?.fetchedAt) {
+    return null;
+  }
+
+  const fetchedAt = new Date(cachedEntry.fetchedAt).getTime();
+  if (Number.isNaN(fetchedAt)) {
+    return null;
+  }
+
+  if (Date.now() - fetchedAt > PRICE_CACHE_TTL_MS) {
+    return null;
+  }
+
+  return Number(cachedEntry.price) || null;
+};
 
 /**
  * 주식 관리 커스텀 훅 (Firebase 사용)
@@ -14,6 +36,9 @@ export const useStocks = (currentUser) => {
   const [stocks, setStocks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [currentPrices, setCurrentPrices] = useState({});
+  const [isRefreshingPrices, setIsRefreshingPrices] = useState(false);
+  const [lastPriceUpdatedAt, setLastPriceUpdatedAt] = useState(null);
+  const [priceRefreshStatus, setPriceRefreshStatus] = useState(null);
 
   /**
    * Firebase에서 주식 데이터 로드 및 실시간 리스너 설정
@@ -31,10 +56,12 @@ export const useStocks = (currentUser) => {
         setStocks(firebaseStocks);
         setLoading(false);
 
-        // 현재가는 DB에 저장된 값 사용 (수동 입력)
+        // 현재가는 DB 저장값과 로컬 캐시를 함께 사용
+        const cachedPrices = loadFromStorage(STORAGE_KEYS.STOCK_PRICE_CACHE, {});
         const prices = {};
         firebaseStocks.forEach(stock => {
-          prices[stock.symbol] = stock.currentPrice || stock.buyPrice; // DB의 currentPrice 사용
+          const cachedPrice = getFreshCachedPrice(cachedPrices, stock.symbol);
+          prices[stock.symbol] = cachedPrice || stock.currentPrice || stock.buyPrice;
         });
         setCurrentPrices(prices);
       }
@@ -43,6 +70,144 @@ export const useStocks = (currentUser) => {
     // 클린업: 컴포넌트 언마운트 시 리스너 제거
     return () => unsubscribe();
   }, [currentUser?.firebaseId]);
+
+  /**
+   * 한국 주식 현재가 자동 갱신
+   * 페이지 진입 시 1회 호출하는 용도
+   */
+  const refreshMarketPrices = useCallback(async ({ force = false } = {}) => {
+    const targetStocks = stocks.filter((stock) => stock.market === 'KR' && stock.symbol);
+
+    if (targetStocks.length === 0) {
+      const emptyStatus = {
+        type: 'idle',
+        message: '조회할 한국 주식이 없습니다.'
+      };
+      setPriceRefreshStatus(emptyStatus);
+      return { successCount: 0, totalCount: 0 };
+    }
+
+    const cachedPrices = loadFromStorage(STORAGE_KEYS.STOCK_PRICE_CACHE, {});
+    const nextCache = { ...cachedPrices };
+    const nextPrices = {};
+    const symbolsToFetch = [];
+
+    targetStocks.forEach((stock) => {
+      const cachedPrice = force ? null : getFreshCachedPrice(cachedPrices, stock.symbol);
+
+      if (cachedPrice) {
+        nextPrices[stock.symbol] = cachedPrice;
+        return;
+      }
+
+      if (!symbolsToFetch.includes(stock.symbol)) {
+        symbolsToFetch.push(stock.symbol);
+      }
+    });
+
+    setIsRefreshingPrices(true);
+
+    try {
+      const fetchedEntries = await Promise.all(
+        symbolsToFetch.map(async (symbol) => {
+          const price = await fetchStockPrice('KR', symbol);
+          return { symbol, price };
+        })
+      );
+
+      let successCount = 0;
+
+      fetchedEntries.forEach(({ symbol, price }) => {
+        if (!price) {
+          return;
+        }
+
+        successCount += 1;
+        nextPrices[symbol] = price;
+        nextCache[symbol] = {
+          price,
+          fetchedAt: new Date().toISOString()
+        };
+      });
+
+      if (Object.keys(nextPrices).length > 0) {
+        setCurrentPrices((prevPrices) => ({
+          ...prevPrices,
+          ...nextPrices
+        }));
+      }
+
+      const stocksToPersist = targetStocks
+        .map((stock) => {
+          const nextPrice = nextPrices[stock.symbol];
+          if (!nextPrice || Number(stock.currentPrice) === Number(nextPrice)) {
+            return null;
+          }
+
+          return {
+            id: stock.id,
+            stock: {
+              ...stock,
+              currentPrice: nextPrice,
+              updatedAt: new Date().toISOString()
+            }
+          };
+        })
+        .filter(Boolean);
+
+      if (stocksToPersist.length > 0 && currentUser?.firebaseId) {
+        await Promise.all(
+          stocksToPersist.map(({ id, stock }) =>
+            updateStock(currentUser.firebaseId, id, stock)
+          )
+        );
+      }
+
+      if (successCount > 0) {
+        saveToStorage(STORAGE_KEYS.STOCK_PRICE_CACHE, nextCache);
+        setLastPriceUpdatedAt(new Date().toISOString());
+      }
+
+      const failedCount = symbolsToFetch.length - successCount;
+      const cachedCount = targetStocks.length - symbolsToFetch.length;
+
+      let status;
+      if (symbolsToFetch.length === 0 && cachedCount > 0) {
+        status = {
+          type: 'cached',
+          message: `${cachedCount}개 종목은 최근 조회한 캐시를 사용했습니다.`
+        };
+      } else if (successCount > 0 && failedCount === 0) {
+        status = {
+          type: 'success',
+          message:
+            cachedCount > 0
+              ? `${successCount}개 종목 시세를 새로 조회했고 ${cachedCount}개는 캐시를 사용했습니다.`
+              : `${successCount}개 종목 시세를 정상 조회했습니다.`
+        };
+      } else if (successCount > 0) {
+        status = {
+          type: 'partial',
+          message: `${successCount}개 종목 조회 성공, ${failedCount}개 종목 조회 실패${cachedCount > 0 ? `, ${cachedCount}개 캐시 사용` : ''}.`
+        };
+      } else {
+        status = {
+          type: 'error',
+          message: '시세 조회에 실패했습니다. 저장된 현재가 또는 캐시 값을 확인해주세요.'
+        };
+      }
+
+      setPriceRefreshStatus(status);
+
+      return {
+        successCount,
+        totalCount: symbolsToFetch.length,
+        cachedCount
+      };
+    } finally {
+      setIsRefreshingPrices(false);
+    }
+  }, [currentUser?.firebaseId, stocks]);
 
   /**
    * 주식 추가 (동일 종목이면 holdings 배열에 추가)
@@ -98,6 +263,8 @@ export const useStocks = (currentUser) => {
           holdings: updatedHoldings,
           quantity: totalQuantity,
           buyPrice: Math.round(avgBuyPrice * 100) / 100,
+          categoryId: formData.categoryId || existingStock.categoryId || '',
+          categoryName: formData.categoryName || existingStock.categoryName || '미분류',
           currentPrice: formData.currentPrice || existingStock.currentPrice,
           updatedAt: new Date().toISOString()
         };
@@ -109,6 +276,8 @@ export const useStocks = (currentUser) => {
         const newStock = {
           ...formData,
           userId: currentUser?.id,
+          categoryId: formData.categoryId || '',
+          categoryName: formData.categoryName || '미분류',
           currentPrice: formData.currentPrice || formData.buyPrice,
           holdings: [
             {
@@ -169,6 +338,8 @@ export const useStocks = (currentUser) => {
             holdings: updatedHoldings,
             quantity: totalQuantity,
             buyPrice: averageBuyPrice,
+            categoryId: formData.categoryId || existingStock.categoryId || '',
+            categoryName: formData.categoryName || existingStock.categoryName || '미분류',
             currentPrice: formData.currentPrice || existingStock.currentPrice,
             updatedAt: new Date().toISOString()
           };
@@ -297,10 +468,14 @@ export const useStocks = (currentUser) => {
     stocks,
     loading,
     currentPrices,
+    isRefreshingPrices,
+    lastPriceUpdatedAt,
+    priceRefreshStatus,
     handleAddStock,
     handleUpdateStock,
     handleDeleteStock,
     updateCurrentPrice,
-    updateMultiplePrices
+    updateMultiplePrices,
+    refreshMarketPrices
   };
 };

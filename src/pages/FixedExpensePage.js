@@ -1,6 +1,6 @@
-import React, { useMemo } from 'react';
-import { Plus, Eye, EyeOff, Edit2, StopCircle, Receipt, AlertCircle } from 'lucide-react';
-import { CATEGORIES } from '../constants';
+import React, { useMemo, useState } from 'react';
+import { Plus, Eye, EyeOff, Edit2, StopCircle, Receipt, AlertCircle, Filter, PauseCircle } from 'lucide-react';
+import { CATEGORIES, PAYMENT_METHODS } from '../constants';
 import { formatCurrency, formatDate } from '../utils';
 import { Button } from '../components/common';
 
@@ -15,8 +15,12 @@ export const FixedExpensePage = ({
   onEdit,
   onDelete,
   onCancel,
-  onToggleActive
+  onToggleActive,
+  onDeactivateMultiple
 }) => {
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+
   // 오늘 날짜
   const today = formatDate(new Date());
 
@@ -35,6 +39,39 @@ export const FixedExpensePage = ({
   const inactiveCount = validFixedExpenses.length - activeExpenses.length;
   const monthlyTotal = activeExpenses.reduce((sum, f) => sum + f.amount, 0);
 
+  const getFixedStatus = (fixed) => {
+    if (!fixed.isActive) {
+      return { label: '일시중지', className: 'bg-gray-200 text-gray-700' };
+    }
+
+    if (fixed.isUnlimited === false && fixed.endDate) {
+      if (fixed.endDate < today) {
+        return { label: '해지됨', className: 'bg-red-100 text-red-700' };
+      }
+      return { label: '종료 예정', className: 'bg-amber-100 text-amber-700' };
+    }
+
+    return { label: '활성', className: 'bg-green-100 text-green-700' };
+  };
+
+  const filteredExpenses = validFixedExpenses.filter((fixed) => {
+    const status = getFixedStatus(fixed).label;
+    const matchesStatus = statusFilter === 'all'
+      || (statusFilter === 'active' && status === '활성')
+      || (statusFilter === 'paused' && status === '일시중지')
+      || (statusFilter === 'scheduled' && status === '종료 예정');
+    const matchesCategory = categoryFilter === 'all' || fixed.category === categoryFilter;
+
+    return matchesStatus && matchesCategory;
+  });
+
+  const scheduledCount = validFixedExpenses.filter((fixed) => getFixedStatus(fixed).label === '종료 예정').length;
+  const pausedCount = validFixedExpenses.filter((fixed) => getFixedStatus(fixed).label === '일시중지').length;
+  const hasActiveFilters = statusFilter !== 'all' || categoryFilter !== 'all';
+  const upcomingExpenses = [...activeExpenses]
+    .sort((a, b) => (a.autoRegisterDate || 99) - (b.autoRegisterDate || 99))
+    .slice(0, 3);
+
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in pb-20 sm:pb-6">
       {/* 헤더 */}
@@ -52,7 +89,7 @@ export const FixedExpensePage = ({
       </div>
 
       {/* 요약 카드들 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-6">
         {/* 활성 고정지출 개수 */}
         <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow card-hover">
           <div className="flex items-center justify-between">
@@ -83,35 +120,151 @@ export const FixedExpensePage = ({
           </div>
         </div>
 
-        {/* 전체 항목 */}
+        {/* 일시중지 */}
         <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow card-hover">
           <div className="flex items-center justify-between">
             <div className="min-w-0">
-              <p className="text-xs sm:text-sm text-gray-600 mb-1">전체 항목</p>
+              <p className="text-xs sm:text-sm text-gray-600 mb-1">일시중지</p>
               <p className="text-lg sm:text-2xl font-bold text-gray-800">
-                {validFixedExpenses.length}개
+                {pausedCount}개
+              </p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                자동 등록 중단 상태
+              </p>
+            </div>
+            <div className="p-3 sm:p-4 rounded-full bg-gray-100 text-gray-600 flex-shrink-0">
+              <PauseCircle size={24} className="sm:w-8 sm:h-8" />
+            </div>
+          </div>
+        </div>
+
+        {/* 종료 예정/전체 */}
+        <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-shadow card-hover">
+          <div className="flex items-center justify-between">
+            <div className="min-w-0">
+              <p className="text-xs sm:text-sm text-gray-600 mb-1">종료 예정 / 전체</p>
+              <p className="text-lg sm:text-2xl font-bold text-gray-800">
+                {scheduledCount} / {validFixedExpenses.length}
               </p>
               {inactiveCount > 0 && (
                 <p className="text-xs sm:text-sm text-gray-500 mt-1">
-                  (비활성 {inactiveCount}개)
+                  비활성 {inactiveCount}개 포함
                 </p>
               )}
             </div>
-            <div className="p-3 sm:p-4 rounded-full bg-gray-100 text-gray-600 flex-shrink-0">
-              <Receipt size={24} className="sm:w-8 sm:h-8" />
+            <div className="p-3 sm:p-4 rounded-full bg-amber-100 text-amber-600 flex-shrink-0">
+              <AlertCircle size={24} className="sm:w-8 sm:h-8" />
             </div>
           </div>
         </div>
       </div>
 
+      {upcomingExpenses.length > 0 && (
+        <div className="glass-effect rounded-xl p-4 sm:p-5 shadow-lg bg-gradient-to-r from-emerald-50 via-white to-blue-50">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-gray-800">다음 자동 등록 예정</p>
+              <p className="text-xs sm:text-sm text-gray-600">
+                활성 고정지출 중 등록일이 가장 가까운 항목입니다.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {upcomingExpenses.map((fixed) => (
+                <div key={fixed.id} className="rounded-full bg-white/90 px-3 py-2 text-xs sm:text-sm shadow-sm border border-emerald-100">
+                  <span className="font-semibold text-gray-800">{fixed.name}</span>
+                  <span className="mx-2 text-gray-400">|</span>
+                  <span className="text-emerald-700">매월 {fixed.autoRegisterDate}일</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* 고정지출 목록 */}
       <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
-        <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">고정지출 목록</h3>
+        <div className="flex flex-col gap-3 mb-4">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <h3 className="text-base sm:text-lg font-bold text-gray-800">고정지출 목록</h3>
+            {activeExpenses.length > 1 && (
+              <Button
+                variant="secondary"
+                size="sm"
+                icon={PauseCircle}
+                onClick={() => {
+                  if (window.confirm(`활성 고정지출 ${activeExpenses.length}개를 모두 비활성화하시겠습니까?`)) {
+                    onDeactivateMultiple(activeExpenses.map((fixed) => fixed.id));
+                  }
+                }}
+              >
+                전체 비활성화
+              </Button>
+            )}
+          </div>
 
-        {validFixedExpenses.length === 0 ? (
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Filter size={16} />
+              <span>필터</span>
+            </div>
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-xl text-sm"
+            >
+              <option value="all">전체 상태</option>
+              <option value="active">활성</option>
+              <option value="paused">일시중지</option>
+              <option value="scheduled">종료 예정</option>
+            </select>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-xl text-sm"
+            >
+              <option value="all">전체 카테고리</option>
+              {CATEGORIES.expense.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setStatusFilter('all');
+                  setCategoryFilter('all');
+                }}
+              >
+                필터 초기화
+              </Button>
+            )}
+          </div>
+
+          {hasActiveFilters && (
+            <div className="flex flex-wrap gap-2 text-xs sm:text-sm">
+              {statusFilter !== 'all' && (
+                <span className="rounded-full bg-blue-50 px-3 py-1 text-blue-700">
+                  상태: {statusFilter === 'active' ? '활성' : statusFilter === 'paused' ? '일시중지' : '종료 예정'}
+                </span>
+              )}
+              {categoryFilter !== 'all' && (
+                <span className="rounded-full bg-purple-50 px-3 py-1 text-purple-700">
+                  카테고리: {CATEGORIES.expense.find((category) => category.id === categoryFilter)?.name || categoryFilter}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {filteredExpenses.length === 0 ? (
           <div className="text-center py-8 sm:py-12">
             <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">📋</div>
-            <p className="text-sm sm:text-base text-gray-500 mb-1 sm:mb-2">등록된 고정지출이 없습니다</p>
+            <p className="text-sm sm:text-base text-gray-500 mb-1 sm:mb-2">
+              {validFixedExpenses.length === 0 ? '등록된 고정지출이 없습니다' : '조건에 맞는 고정지출이 없습니다'}
+            </p>
             <p className="text-xs sm:text-sm text-gray-400 mb-4 sm:mb-6">
               월세, 구독료 등 매달 반복되는 지출을 등록하세요
             </p>
@@ -126,9 +279,11 @@ export const FixedExpensePage = ({
           </div>
         ) : (
           <div className="space-y-3 sm:space-y-4">
-            {validFixedExpenses.map(fixed => {
+            {filteredExpenses.map(fixed => {
               const category = CATEGORIES.expense.find(c => c.id === fixed.category);
               const Icon = category?.icon;
+              const statusMeta = getFixedStatus(fixed);
+              const paymentMethod = PAYMENT_METHODS.find((method) => method.id === fixed.paymentMethod);
 
               return (
                 <div
@@ -154,16 +309,14 @@ export const FixedExpensePage = ({
                             {fixed.name}
                           </h4>
                           <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium flex-shrink-0 ${
-                            fixed.isActive
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-gray-200 text-gray-600'
+                            statusMeta.className
                           }`}>
-                            {fixed.isActive ? '활성' : '비활성'}
+                            {statusMeta.label}
                           </span>
                         </div>
 
                         <div className="space-y-0.5 sm:space-y-1 text-xs sm:text-sm text-gray-600">
-                          <p className="font-bold text-gray-800 truncate">
+                          <p className="font-bold text-gray-800 break-words">
                             {formatCurrency(fixed.amount)}원
                             {fixed.monthlyIncrease > 0 && (
                               <span className="text-orange-600 ml-2">
@@ -183,12 +336,12 @@ export const FixedExpensePage = ({
                               ♾️ 무기한
                             </p>
                           )}
-                          <p className="truncate">카테고리: {category?.name || '기타'}</p>
+                          <p className="break-words">카테고리: {category?.name || '기타'}</p>
                           {fixed.paymentMethod && (
-                            <p className="truncate">결제 수단: {fixed.paymentMethod}</p>
+                            <p className="break-words">결제 수단: {paymentMethod?.name || fixed.paymentMethod}</p>
                           )}
                           {fixed.memo && (
-                            <p className="text-gray-500 truncate">메모: {fixed.memo}</p>
+                            <p className="text-gray-500 break-words">메모: {fixed.memo}</p>
                           )}
                         </div>
                       </div>

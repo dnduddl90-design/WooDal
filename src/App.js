@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 
 // Hooks
-import { useAuth, useTransactions, useFixedExpenses, useStocks, useStockSymbols, useSettings, useTheme, useBranding } from './hooks';
+import { useAuth, useTransactions, useFixedExpenses, useStocks, useStockSymbols, useStockCategories, useSettings, useTheme, useBranding } from './hooks';
 
 // Pages
 import {
@@ -86,6 +86,7 @@ export default function App() {
     handleDeleteFixedExpense,
     handleCancelFixedExpense,
     handleToggleActive,
+    handleDeactivateMultiple,
     handleSubmitFixed,
     resetFixedForm
   } = useFixedExpenses(currentUser, familyInfo);
@@ -95,11 +96,15 @@ export default function App() {
     stocks,
     loading: stocksLoading,
     currentPrices,
+    isRefreshingPrices,
+    lastPriceUpdatedAt,
+    priceRefreshStatus,
     handleAddStock,
     handleUpdateStock,
     handleDeleteStock,
     updateCurrentPrice,
-    updateMultiplePrices
+    updateMultiplePrices,
+    refreshMarketPrices
   } = useStocks(currentUser);
 
   // ===== 4-1. 주식 종목 상태 (useStockSymbols 훅 사용) =====
@@ -111,8 +116,15 @@ export default function App() {
     handleDeleteSymbol
   } = useStockSymbols(currentUser);
 
+  const {
+    stockCategories,
+    handleAddCategory,
+    handleUpdateCategory,
+    handleDeleteCategory
+  } = useStockCategories(currentUser);
+
   // ===== 5. 설정 상태 (useSettings 훅 사용) =====
-  const { settings, updateSettings } = useSettings(currentUser);
+  const { settings, updateSettings, saveStatus } = useSettings(currentUser);
 
   // ===== 5-1. 브랜딩 상태 (useBranding 훅 사용) =====
   const {
@@ -562,9 +574,14 @@ export default function App() {
               onDeleteStock={handleDeleteStock}
               onUpdateCurrentPrice={updateCurrentPrice}
               onUpdateMultiplePrices={updateMultiplePrices}
+              onRefreshMarketPrices={refreshMarketPrices}
               currentUser={currentUser}
               stockSymbols={stockSymbols}
+              stockCategories={stockCategories}
               symbolsLoading={symbolsLoading}
+              isRefreshingPrices={isRefreshingPrices}
+              lastPriceUpdatedAt={lastPriceUpdatedAt}
+              priceRefreshStatus={priceRefreshStatus}
             />
           )}
 
@@ -576,6 +593,7 @@ export default function App() {
               onDelete={handleDeleteFixedExpense}
               onCancel={handleCancelFixedExpense}
               onToggleActive={handleToggleActive}
+              onDeactivateMultiple={handleDeactivateMultiple}
             />
           )}
 
@@ -606,6 +624,8 @@ export default function App() {
               settings={settings}
               transactions={transactions}
               fixedExpenses={fixedExpenses}
+              stocks={stocks}
+              saveStatus={saveStatus}
               onUpdateSettings={updateSettings}
               onExportData={exportData}
               onImportData={importData}
@@ -624,9 +644,13 @@ export default function App() {
               userAvatar={userAvatar}
               onChangeAvatar={handleChangeAvatar}
               stockSymbols={stockSymbols}
+              stockCategories={stockCategories}
               onAddSymbol={handleAddSymbol}
               onUpdateSymbol={handleUpdateSymbol}
               onDeleteSymbol={handleDeleteSymbol}
+              onAddCategory={handleAddCategory}
+              onUpdateCategory={handleUpdateCategory}
+              onDeleteCategory={handleDeleteCategory}
               brandingSettings={brandingSettings}
               onUpdateBranding={updateBrandingSettings}
             />

@@ -1,119 +1,111 @@
 import React, { useMemo, useState } from 'react';
-import { Plus, Edit2, Trash2, TrendingUp, Search } from 'lucide-react';
+import { Plus, Edit2, Trash2, FolderTree, Search } from 'lucide-react';
 import { Button, Input, Modal } from '../common';
 
 /**
- * 주식 종목 관리 컴포넌트
- * SRP: 종목 추가/수정/삭제 UI만 담당
+ * 주식 분류 관리 컴포넌트
+ * SRP: 주식 분류 추가/수정/삭제 UI만 담당
  */
-export const StockSymbolManager = ({
-  stockSymbols = [],
-  onAddSymbol,
-  onUpdateSymbol,
-  onDeleteSymbol,
+export const StockCategoryManager = ({
+  stockCategories = [],
+  onAddCategory,
+  onUpdateCategory,
+  onDeleteCategory,
   currentUser
 }) => {
   const [showForm, setShowForm] = useState(false);
-  const [editingSymbol, setEditingSymbol] = useState(null);
-  const [formData, setFormData] = useState({ symbol: '', name: '' });
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [formData, setFormData] = useState({ name: '' });
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('name');
 
-  // 관리자 권한 확인
   const isAdmin = currentUser?.role === 'admin';
 
-  // 폼 열기
   const handleAdd = () => {
-    setEditingSymbol(null);
-    setFormData({ symbol: '', name: '' });
+    setEditingCategory(null);
+    setFormData({ name: '' });
     setShowForm(true);
   };
 
-  // 수정 모드로 폼 열기
-  const handleEdit = (symbol) => {
-    setEditingSymbol(symbol);
-    setFormData({ symbol: symbol.symbol, name: symbol.name });
+  const handleEdit = (category) => {
+    setEditingCategory(category);
+    setFormData({ name: category.name });
     setShowForm(true);
   };
 
-  // 폼 제출
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.symbol || !formData.name) {
-      alert('종목 코드와 이름을 모두 입력해주세요.');
+    const normalizedName = formData.name.trim();
+    if (!normalizedName) {
+      alert('분류 이름을 입력해주세요.');
       return;
     }
 
-    // 중복 체크
-    const isDuplicate = stockSymbols.some(s =>
-      s.symbol === formData.symbol && (!editingSymbol || s.id !== editingSymbol.id)
+    const isDuplicate = stockCategories.some((category) =>
+      category.name?.trim().toLowerCase() === normalizedName.toLowerCase() &&
+      (!editingCategory || category.id !== editingCategory.id)
     );
 
     if (isDuplicate) {
-      alert('이미 등록된 종목 코드입니다.');
+      alert('이미 등록된 분류 이름입니다.');
       return;
     }
 
-    if (editingSymbol) {
-      onUpdateSymbol(editingSymbol.id, formData);
+    const payload = { name: normalizedName };
+    if (editingCategory) {
+      onUpdateCategory(editingCategory.id, payload);
     } else {
-      onAddSymbol(formData);
+      onAddCategory(payload);
     }
 
     setShowForm(false);
-    setFormData({ symbol: '', name: '' });
+    setFormData({ name: '' });
   };
 
-  // 삭제
-  const handleDelete = (symbol) => {
-    if (window.confirm(`'${symbol.name}' 종목을 삭제하시겠습니까?`)) {
-      onDeleteSymbol(symbol.id);
+  const handleDelete = (category) => {
+    if (window.confirm(`'${category.name}' 분류를 삭제하시겠습니까?`)) {
+      onDeleteCategory(category.id);
     }
   };
 
-  const filteredSymbols = useMemo(() => {
+  const filteredCategories = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
-    const searchedSymbols = stockSymbols.filter((symbol) => {
+    const searchedCategories = stockCategories.filter((category) => {
       if (!normalizedQuery) {
         return true;
       }
 
-      return (
-        symbol.name?.toLowerCase().includes(normalizedQuery) ||
-        symbol.symbol?.toLowerCase().includes(normalizedQuery)
-      );
+      return category.name?.toLowerCase().includes(normalizedQuery);
     });
 
-    return [...searchedSymbols].sort((a, b) => {
-      if (sortBy === 'symbol') {
-        return (a.symbol || '').localeCompare(b.symbol || '', 'ko');
+    return [...searchedCategories].sort((a, b) => {
+      if (sortBy === 'recent') {
+        return (b.id || '').localeCompare(a.id || '', 'ko');
       }
 
       return (a.name || '').localeCompare(b.name || '', 'ko');
     });
-  }, [searchQuery, sortBy, stockSymbols]);
+  }, [searchQuery, sortBy, stockCategories]);
 
-  // 권한이 없는 경우
   if (!isAdmin) {
     return (
       <div className="glass-effect p-6 rounded-xl">
         <div className="flex items-center gap-3 mb-4">
-          <TrendingUp className="text-indigo-600" size={24} />
-          <h3 className="text-lg font-bold text-gray-800">주식 종목 관리</h3>
+          <FolderTree className="text-emerald-600" size={24} />
+          <h3 className="text-lg font-bold text-gray-800">주식 분류 관리</h3>
         </div>
-        <p className="text-gray-600 text-sm">관리자만 종목을 관리할 수 있습니다.</p>
+        <p className="text-gray-600 text-sm">관리자만 주식 분류를 관리할 수 있습니다.</p>
       </div>
     );
   }
 
   return (
     <div className="glass-effect p-6 rounded-xl">
-      {/* 헤더 */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <TrendingUp className="text-indigo-600" size={24} />
-          <h3 className="text-lg font-bold text-gray-800">주식 종목 관리</h3>
+          <FolderTree className="text-emerald-600" size={24} />
+          <h3 className="text-lg font-bold text-gray-800">주식 분류 관리</h3>
         </div>
         <Button
           variant="primary"
@@ -121,7 +113,7 @@ export const StockSymbolManager = ({
           icon={Plus}
           onClick={handleAdd}
         >
-          종목 추가
+          분류 추가
         </Button>
       </div>
 
@@ -130,7 +122,7 @@ export const StockSymbolManager = ({
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="종목명 또는 코드 검색"
+            placeholder="분류 검색"
             icon={Search}
           />
         </div>
@@ -140,42 +132,41 @@ export const StockSymbolManager = ({
           className="px-4 py-2 border border-gray-300 rounded-xl bg-white/80 text-sm"
         >
           <option value="name">이름순</option>
-          <option value="symbol">코드순</option>
+          <option value="recent">최근 추가순</option>
         </select>
       </div>
 
-      {/* 종목 목록 */}
-      {stockSymbols.length === 0 ? (
+      {stockCategories.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
-          <TrendingUp size={48} className="mx-auto mb-2 opacity-30" />
-          <p className="text-sm">등록된 종목이 없습니다.</p>
+          <FolderTree size={48} className="mx-auto mb-2 opacity-30" />
+          <p className="text-sm">등록된 분류가 없습니다.</p>
+          <p className="text-xs mt-1">예: 국내ETF, 배당, 안전자산</p>
         </div>
-      ) : filteredSymbols.length === 0 ? (
+      ) : filteredCategories.length === 0 ? (
         <div className="text-center py-8 text-gray-500">
           <Search size={40} className="mx-auto mb-2 opacity-30" />
           <p className="text-sm">검색 결과가 없습니다.</p>
         </div>
       ) : (
         <div className="space-y-2 lg:max-h-96 lg:overflow-y-auto">
-          {filteredSymbols.map((symbol) => (
+          {filteredCategories.map((category) => (
             <div
-              key={symbol.id}
+              key={category.id}
               className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <div className="flex-1">
-                <div className="font-medium text-gray-800">{symbol.name}</div>
-                <div className="text-xs text-gray-500">{symbol.symbol}</div>
+                <div className="font-medium text-gray-800">{category.name}</div>
               </div>
               <div className="flex gap-2">
                 <button
-                  onClick={() => handleEdit(symbol)}
+                  onClick={() => handleEdit(category)}
                   className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                   title="수정"
                 >
                   <Edit2 size={16} />
                 </button>
                 <button
-                  onClick={() => handleDelete(symbol)}
+                  onClick={() => handleDelete(category)}
                   className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                   title="삭제"
                 >
@@ -187,27 +178,19 @@ export const StockSymbolManager = ({
         </div>
       )}
 
-      {/* 종목 추가/수정 모달 */}
       <Modal
         isOpen={showForm}
         onClose={() => setShowForm(false)}
-        title={editingSymbol ? '종목 수정' : '종목 추가'}
+        title={editingCategory ? '분류 수정' : '분류 추가'}
         size="sm"
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            label="종목 코드"
-            required
-            value={formData.symbol}
-            onChange={(e) => setFormData({ ...formData, symbol: e.target.value })}
-            placeholder="예: 411060"
-          />
-          <Input
-            label="종목 이름"
+            label="분류 이름"
             required
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="예: ACE KRX금현물"
+            placeholder="예: 안전자산"
           />
           <div className="flex gap-3 pt-4">
             <Button
@@ -223,7 +206,7 @@ export const StockSymbolManager = ({
               variant="primary"
               className="flex-1"
             >
-              {editingSymbol ? '수정' : '추가'}
+              {editingCategory ? '수정' : '추가'}
             </Button>
           </div>
         </form>

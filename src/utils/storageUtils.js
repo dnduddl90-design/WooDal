@@ -6,7 +6,8 @@
 const STORAGE_KEYS = {
   TRANSACTIONS: 'budget_app_transactions',
   FIXED_EXPENSES: 'budget_app_fixed_expenses',
-  SETTINGS: 'budget_app_settings'
+  SETTINGS: 'budget_app_settings',
+  STOCK_PRICE_CACHE: 'budget_app_stock_price_cache'
 };
 
 /**

@@ -10,6 +10,7 @@ import { loadFromStorage, saveToStorage, STORAGE_KEYS } from '../utils/storageUt
  * @returns {Object} - settings, updateSettings 함수
  */
 export const useSettings = (currentUser) => {
+  const [saveStatus, setSaveStatus] = useState('idle');
   const [settings, setSettings] = useState({
     budget: {
       monthly: 0,
@@ -91,23 +92,40 @@ export const useSettings = (currentUser) => {
     };
 
     setSettings(newSettings);
+    setSaveStatus('saving');
 
     // Firebase 또는 LocalStorage에 저장
     if (currentUser) {
       try {
         await saveSettings(currentUser.firebaseId, newSettings);
+        setSaveStatus('saved');
       } catch (error) {
         console.error('❌ 설정 저장 실패:', error);
+        setSaveStatus('error');
         alert('설정 저장에 실패했습니다.');
       }
     } else {
       // 로그인하지 않은 경우 LocalStorage에 저장
       saveToStorage(STORAGE_KEYS.SETTINGS, newSettings);
+      setSaveStatus('saved');
     }
   };
 
+  useEffect(() => {
+    if (saveStatus !== 'saved') {
+      return undefined;
+    }
+
+    const timerId = setTimeout(() => {
+      setSaveStatus('idle');
+    }, 2000);
+
+    return () => clearTimeout(timerId);
+  }, [saveStatus]);
+
   return {
     settings,
-    updateSettings
+    updateSettings,
+    saveStatus
   };
 };

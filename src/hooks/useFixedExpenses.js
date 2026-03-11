@@ -11,6 +11,18 @@ import {
 } from '../firebase/databaseService';
 import { STORAGE_KEYS, loadFromStorage, getTodayDateString } from '../utils';
 
+const createNormalizedFixedExpense = (formData, fallbackDate) => ({
+  ...formData,
+  amount: parseInt(formData.amount, 10) || 0,
+  autoRegisterDate: parseInt(formData.autoRegisterDate, 10) || 1,
+  monthlyIncrease: parseInt(formData.monthlyIncrease, 10) || 0,
+  startDate: formData.startDate || fallbackDate,
+  baseDate: (parseInt(formData.monthlyIncrease, 10) || 0) !== 0
+    ? (formData.baseDate || formData.startDate || fallbackDate)
+    : '',
+  endDate: formData.isUnlimited ? '' : formData.endDate || ''
+});
+
 /**
  * 고정지출 관리 커스텀 훅 (Firebase 사용)
  * SRP: 고정지출 상태 및 CRUD 로직만 담당
@@ -99,15 +111,23 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
    */
   const handleAddFixedExpense = async (formData) => {
     try {
-      // startDate 보장: 비어있으면 오늘 날짜로 설정
       const today = getTodayDateString();
+      const normalizedFixed = createNormalizedFixedExpense(formData, today);
+      const duplicateFixed = fixedExpenses.find((fixed) =>
+        fixed.name?.trim() === normalizedFixed.name?.trim() &&
+        fixed.category === normalizedFixed.category &&
+        Number(fixed.amount) === Number(normalizedFixed.amount) &&
+        Number(fixed.autoRegisterDate) === Number(normalizedFixed.autoRegisterDate) &&
+        fixed.isActive
+      );
+
+      if (duplicateFixed && !window.confirm(`'${normalizedFixed.name}'와 거의 같은 고정지출이 이미 있습니다. 그래도 추가하시겠습니까?`)) {
+        return;
+      }
+
       const newFixed = {
         id: Date.now(),
-        ...formData,
-        amount: parseInt(formData.amount) || 0,
-        autoRegisterDate: parseInt(formData.autoRegisterDate) || 1,
-        monthlyIncrease: parseInt(formData.monthlyIncrease) || 0,
-        startDate: formData.startDate || today
+        ...normalizedFixed
       };
 
       const isFamilyMode = familyInfo && familyInfo.id;
@@ -132,12 +152,10 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
   const handleUpdateFixedExpense = async (id, formData) => {
     try {
       const existingFixed = fixedExpenses.find(f => f.id === id);
+      const today = getTodayDateString();
       const updatedFixed = {
         ...existingFixed,
-        ...formData,
-        amount: parseInt(formData.amount) || 0,
-        autoRegisterDate: parseInt(formData.autoRegisterDate) || 1,
-        monthlyIncrease: parseInt(formData.monthlyIncrease) || 0
+        ...createNormalizedFixedExpense(formData, today)
       };
 
       const isFamilyMode = familyInfo && familyInfo.id;
@@ -201,6 +219,34 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
     } catch (error) {
       console.error('❌ 고정지출 토글 실패:', error);
       alert('고정지출 상태 변경에 실패했습니다.');
+    }
+  };
+
+  const handleDeactivateMultiple = async (ids) => {
+    try {
+      const targets = fixedExpenses.filter((fixed) => ids.includes(fixed.id) && fixed.isActive);
+
+      if (targets.length === 0) {
+        return;
+      }
+
+      const isFamilyMode = familyInfo && familyInfo.id;
+      const updateFunction = isFamilyMode ? updateFamilyFixedExpense : updateFixedExpense;
+      const dataId = isFamilyMode ? familyInfo.id : currentUser.firebaseId;
+
+      await Promise.all(
+        targets.map((fixed) =>
+          updateFunction(dataId, fixed.id, {
+            ...fixed,
+            isActive: false
+          })
+        )
+      );
+
+      alert(`${targets.length}개의 고정지출을 비활성화했습니다.`);
+    } catch (error) {
+      console.error('❌ 고정지출 일괄 비활성화 실패:', error);
+      alert('고정지출 일괄 비활성화에 실패했습니다.');
     }
   };
 
@@ -349,6 +395,7 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
     handleDeleteFixedExpense,
     handleCancelFixedExpense,
     handleToggleActive,
+    handleDeactivateMultiple,
     getFixedExpensesForDay,
     startAddFixed,
     startEditFixed,

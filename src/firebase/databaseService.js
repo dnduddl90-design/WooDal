@@ -840,6 +840,61 @@ export const onStockSymbolsChange = (userId, callback) => {
   });
 };
 
+// ==================== 주식 분류 (Stock Categories) ====================
+
+export const getStockCategories = async (userId) => {
+  const categoriesRef = ref(database, getUserPath(userId, 'stockCategories'));
+  const snapshot = await get(categoriesRef);
+
+  if (snapshot.exists()) {
+    const data = snapshot.val();
+    return Object.entries(data).map(([id, category]) => ({
+      ...category,
+      id
+    }));
+  }
+  return [];
+};
+
+export const saveStockCategory = async (userId, categoryData) => {
+  const categoriesRef = ref(database, getUserPath(userId, 'stockCategories'));
+  const newCategoryRef = push(categoriesRef);
+  await set(newCategoryRef, categoryData);
+  return newCategoryRef.key;
+};
+
+export const updateStockCategory = async (userId, categoryId, updates) => {
+  const categoryRef = ref(
+    database,
+    getUserPath(userId, `stockCategories/${categoryId}`)
+  );
+  await update(categoryRef, updates);
+};
+
+export const deleteStockCategory = async (userId, categoryId) => {
+  const categoryRef = ref(
+    database,
+    getUserPath(userId, `stockCategories/${categoryId}`)
+  );
+  await remove(categoryRef);
+};
+
+export const onStockCategoriesChange = (userId, callback) => {
+  const categoriesRef = ref(database, getUserPath(userId, 'stockCategories'));
+  return onValue(categoriesRef, (snapshot) => {
+    if (snapshot.exists()) {
+      const data = snapshot.val();
+      const categories = Object.entries(data).map(([id, category]) => ({
+        ...category,
+        id
+      }));
+      callback(categories);
+    } else {
+      callback([]);
+    }
+  });
+};
+
 // ==================== 브랜딩 설정 (Branding) ====================
 
 /**

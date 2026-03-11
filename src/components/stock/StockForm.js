@@ -16,7 +16,8 @@ export const StockForm = ({
   initialData = null,
   holdingIndex = null, // 계좌별 수정 시 holding 인덱스
   stockSymbols = [], // Firebase에서 가져온 종목 목록
-  symbolsLoading = false
+  symbolsLoading = false,
+  stockCategories = []
 }) => {
   // 계좌별 수정인 경우 해당 holding 데이터 사용
   const getInitialFormData = () => {
@@ -31,7 +32,9 @@ export const StockForm = ({
         buyPrice: holding.buyPrice.toString(),
         currentPrice: initialData.currentPrice?.toString() || '',
         buyDate: holding.buyDate,
-        memo: holding.memo || initialData.memo || ''
+        memo: holding.memo || initialData.memo || '',
+        categoryId: initialData.categoryId || '',
+        categoryName: initialData.categoryName || '미분류'
       };
     } else if (initialData) {
       // 전체 수정인 경우 기존 로직
@@ -44,7 +47,9 @@ export const StockForm = ({
         buyPrice: initialData.buyPrice?.toString() || '',
         currentPrice: initialData.currentPrice?.toString() || '',
         buyDate: initialData.buyDate || getTodayDateString(),
-        memo: initialData.memo || ''
+        memo: initialData.memo || '',
+        categoryId: initialData.categoryId || '',
+        categoryName: initialData.categoryName || '미분류'
       };
     } else {
       // 새 추가
@@ -57,7 +62,9 @@ export const StockForm = ({
         buyPrice: '',
         currentPrice: '',
         buyDate: getTodayDateString(),
-        memo: ''
+        memo: '',
+        categoryId: '',
+        categoryName: '미분류'
       };
     }
   };
@@ -80,6 +87,24 @@ export const StockForm = ({
       ...formData,
       symbol: stock.symbol,
       name: stock.name
+    });
+  };
+
+  const handleCategoryChange = (categoryId) => {
+    if (!categoryId) {
+      setFormData({
+        ...formData,
+        categoryId: '',
+        categoryName: '미분류'
+      });
+      return;
+    }
+
+    const category = stockCategories.find((item) => item.id === categoryId);
+    setFormData({
+      ...formData,
+      categoryId,
+      categoryName: category?.name || '미분류'
     });
   };
 
@@ -192,6 +217,27 @@ export const StockForm = ({
               </button>
             ))}
           </div>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            분류
+          </label>
+          <select
+            value={formData.categoryId}
+            onChange={(e) => handleCategoryChange(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200"
+          >
+            <option value="">미분류</option>
+            {stockCategories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+          <p className="mt-1 text-xs text-gray-500">
+            상단 그래프와 요약은 이 분류 기준으로 묶어 보여줍니다.
+          </p>
         </div>
 
         {/* ETF 종목 선택 (현금이 아닐 때만 표시, 계좌별 수정 시 숨김) */}

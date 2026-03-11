@@ -38,6 +38,3 @@ export const googleProvider = new GoogleAuthProvider();
 
 // Realtime Database 초기화
 export const database = getDatabase(app);
-
-// 기본 export
-export default app;

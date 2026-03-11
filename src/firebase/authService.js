@@ -46,10 +46,3 @@ export const onAuthChange = (callback) => {
   return onAuthStateChanged(auth, callback);
 };
 
-/**
- * 현재 로그인된 사용자 가져오기
- * @returns {User|null} Firebase User 객체 또는 null
- */
-export const getCurrentUser = () => {
-  return auth.currentUser;
-};

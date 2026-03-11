@@ -40,33 +40,5 @@ export const loadFromStorage = (key, defaultValue = null) => {
   }
 };
 
-/**
- * 데이터 삭제
- */
-export const removeFromStorage = (key) => {
-  try {
-    localStorage.removeItem(key);
-    return true;
-  } catch (error) {
-    console.error('Failed to remove from localStorage:', error);
-    return false;
-  }
-};
-
-/**
- * 모든 데이터 삭제
- */
-export const clearAllStorage = () => {
-  try {
-    Object.values(STORAGE_KEYS).forEach(key => {
-      localStorage.removeItem(key);
-    });
-    return true;
-  } catch (error) {
-    console.error('Failed to clear localStorage:', error);
-    return false;
-  }
-};
-
 // Export storage keys
 export { STORAGE_KEYS };

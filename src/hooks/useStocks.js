@@ -9,6 +9,8 @@ import { fetchStockPrice } from '../services/stockPriceService';
 import { loadFromStorage, saveToStorage, STORAGE_KEYS } from '../utils';
 
 const PRICE_CACHE_TTL_MS = 10 * 60 * 1000;
+const AUTO_REFRESH_COOLDOWN_MS = 3 * 60 * 1000;
+const LAST_AUTO_REFRESH_KEY = 'stock_last_auto_refresh_at';
 
 const getFreshCachedPrice = (cache, symbol) => {
   const cachedEntry = cache?.[symbol];
@@ -76,6 +78,15 @@ export const useStocks = (currentUser) => {
    * 페이지 진입 시 1회 호출하는 용도
    */
   const refreshMarketPrices = useCallback(async ({ force = false } = {}) => {
+    const lastAutoRefreshAt = Number(loadFromStorage(LAST_AUTO_REFRESH_KEY, 0));
+    if (!force && lastAutoRefreshAt && Date.now() - lastAutoRefreshAt < AUTO_REFRESH_COOLDOWN_MS) {
+      setPriceRefreshStatus({
+        type: 'cached',
+        message: '최근 자동 조회를 이미 시도했습니다. 잠시 후 다시 시도합니다.'
+      });
+      return { successCount: 0, totalCount: 0, cachedCount: 0 };
+    }
+
     const targetStocks = stocks.filter((stock) => stock.market === 'KR' && stock.symbol);
 
     if (targetStocks.length === 0) {
@@ -106,6 +117,9 @@ export const useStocks = (currentUser) => {
     });
 
     setIsRefreshingPrices(true);
+    if (!force) {
+      saveToStorage(LAST_AUTO_REFRESH_KEY, Date.now());
+    }
 
     try {
       const fetchedEntries = await Promise.all(

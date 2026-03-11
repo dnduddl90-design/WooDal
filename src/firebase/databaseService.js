@@ -26,6 +26,18 @@ const USER_BACKUP_PATHS = [
   'branding'
 ];
 
+const subscribeWithLogging = (targetRef, handleValue, label) => onValue(
+  targetRef,
+  handleValue,
+  (error) => {
+    console.error(`❌ Firebase listener denied: ${label}`, {
+      path: targetRef.toString(),
+      code: error?.code,
+      message: error?.message
+    });
+  }
+);
+
 /**
  * 데이터 경로 생성 헬퍼
  * @param {string} userId - 사용자 ID
@@ -100,7 +112,7 @@ export const deleteTransaction = async (userId, transactionId) => {
  */
 export const onTransactionsChange = (userId, callback) => {
   const transactionsRef = ref(database, getUserPath(userId, 'transactions'));
-  return onValue(transactionsRef, (snapshot) => {
+  return subscribeWithLogging(transactionsRef, (snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
       const transactions = Object.entries(data).map(([id, transaction]) => ({
@@ -180,7 +192,7 @@ export const deleteFixedExpense = async (userId, expenseId) => {
  */
 export const onFixedExpensesChange = (userId, callback) => {
   const fixedExpensesRef = ref(database, getUserPath(userId, 'fixedExpenses'));
-  return onValue(fixedExpensesRef, (snapshot) => {
+  return subscribeWithLogging(fixedExpensesRef, (snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
       const expenses = Object.entries(data).map(([id, expense]) => ({
@@ -223,9 +235,9 @@ export const saveSettings = async (userId, settings) => {
  */
 export const onSettingsChange = (userId, callback) => {
   const settingsRef = ref(database, getUserPath(userId, 'settings'));
-  return onValue(settingsRef, (snapshot) => {
+  return subscribeWithLogging(settingsRef, (snapshot) => {
     callback(snapshot.exists() ? snapshot.val() : null);
-  });
+  }, `users/${userId}/settings`);
 };
 
 /**
@@ -353,9 +365,9 @@ export const addFamilyMember = async (familyId, userId, userName, userAvatar = '
  */
 export const onFamilyChange = (familyId, callback) => {
   const familyRef = ref(database, `families/${familyId}`);
-  return onValue(familyRef, (snapshot) => {
+  return subscribeWithLogging(familyRef, (snapshot) => {
     callback(snapshot.exists() ? snapshot.val() : null);
-  });
+  }, `families/${familyId}`);
 };
 
 // ==================== 가족 공유 데이터 ====================
@@ -367,7 +379,7 @@ export const onFamilyChange = (familyId, callback) => {
  */
 export const onFamilyTransactionsChange = (familyId, callback) => {
   const transactionsRef = ref(database, getFamilyPath(familyId, 'transactions'));
-  return onValue(transactionsRef, (snapshot) => {
+  return subscribeWithLogging(transactionsRef, (snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
       const transactions = Object.entries(data).map(([id, transaction]) => ({
@@ -378,7 +390,7 @@ export const onFamilyTransactionsChange = (familyId, callback) => {
     } else {
       callback([]);
     }
-  });
+  }, `families/${familyId}/transactions`);
 };
 
 /**
@@ -427,7 +439,7 @@ export const deleteFamilyTransaction = async (familyId, transactionId) => {
  */
 export const onFamilyFixedExpensesChange = (familyId, callback) => {
   const fixedExpensesRef = ref(database, getFamilyPath(familyId, 'fixedExpenses'));
-  return onValue(fixedExpensesRef, (snapshot) => {
+  return subscribeWithLogging(fixedExpensesRef, (snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
       const expenses = Object.entries(data).map(([id, expense]) => ({
@@ -438,7 +450,7 @@ export const onFamilyFixedExpensesChange = (familyId, callback) => {
     } else {
       callback([]);
     }
-  });
+  }, `families/${familyId}/fixedExpenses`);
 };
 
 /**
@@ -546,7 +558,7 @@ export const onInvitationsChange = (userEmail, callback) => {
   const invitationsRef = ref(database, 'invitations');
   const normalizedEmail = userEmail.toLowerCase();
 
-  return onValue(invitationsRef, (snapshot) => {
+  return subscribeWithLogging(invitationsRef, (snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
       const pendingInvitations = Object.entries(data)
@@ -637,9 +649,9 @@ export const getUserAvatar = async (userId) => {
  */
 export const onAvatarChange = (userId, callback) => {
   const avatarRef = ref(database, `users/${userId}/avatar`);
-  return onValue(avatarRef, (snapshot) => {
+  return subscribeWithLogging(avatarRef, (snapshot) => {
     callback(snapshot.exists() ? snapshot.val() : null);
-  });
+  }, `users/${userId}/avatar`);
 };
 
 // ==================== 주식 (Stocks) ====================
@@ -708,7 +720,7 @@ export const deleteStock = async (userId, stockId) => {
  */
 export const onStocksChange = (userId, callback) => {
   const stocksRef = ref(database, getUserPath(userId, 'stocks'));
-  return onValue(stocksRef, (snapshot) => {
+  return subscribeWithLogging(stocksRef, (snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
       const stocks = Object.entries(data).map(([id, stock]) => ({
@@ -719,7 +731,7 @@ export const onStocksChange = (userId, callback) => {
     } else {
       callback([]);
     }
-  });
+  }, `users/${userId}/stocks`);
 };
 
 // ==================== 용돈 관리 (Pocket Money) ====================
@@ -790,7 +802,7 @@ export const deletePocketMoneyTransaction = async (userId, transactionId) => {
  */
 export const onPocketMoneyTransactionsChange = (userId, callback) => {
   const transactionsRef = ref(database, getUserPath(userId, 'pocketMoney/transactions'));
-  return onValue(transactionsRef, (snapshot) => {
+  return subscribeWithLogging(transactionsRef, (snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
       const transactions = Object.entries(data).map(([id, transaction]) => ({
@@ -801,7 +813,7 @@ export const onPocketMoneyTransactionsChange = (userId, callback) => {
     } else {
       callback([]);
     }
-  });
+  }, `users/${userId}/pocketMoney/transactions`);
 };
 
 // ==================== 주식 종목 (Stock Symbols) ====================
@@ -870,7 +882,7 @@ export const deleteStockSymbol = async (userId, symbolId) => {
  */
 export const onStockSymbolsChange = (userId, callback) => {
   const symbolsRef = ref(database, getUserPath(userId, 'stockSymbols'));
-  return onValue(symbolsRef, (snapshot) => {
+  return subscribeWithLogging(symbolsRef, (snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
       const symbols = Object.entries(data).map(([id, symbol]) => ({
@@ -881,7 +893,7 @@ export const onStockSymbolsChange = (userId, callback) => {
     } else {
       callback([]);
     }
-  });
+  }, `users/${userId}/stockSymbols`);
 };
 
 // ==================== 주식 분류 (Stock Categories) ====================
@@ -925,7 +937,7 @@ export const deleteStockCategory = async (userId, categoryId) => {
 
 export const onStockCategoriesChange = (userId, callback) => {
   const categoriesRef = ref(database, getUserPath(userId, 'stockCategories'));
-  return onValue(categoriesRef, (snapshot) => {
+  return subscribeWithLogging(categoriesRef, (snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
       const categories = Object.entries(data).map(([id, category]) => ({
@@ -936,7 +948,7 @@ export const onStockCategoriesChange = (userId, callback) => {
     } else {
       callback([]);
     }
-  });
+  }, `users/${userId}/stockCategories`);
 };
 
 // ==================== 브랜딩 설정 (Branding) ====================
@@ -974,9 +986,9 @@ export const saveFamilyBranding = async (familyId, branding) => {
  */
 export const onFamilyBrandingChange = (familyId, callback) => {
   const brandingRef = ref(database, getFamilyPath(familyId, 'branding'));
-  return onValue(brandingRef, (snapshot) => {
+  return subscribeWithLogging(brandingRef, (snapshot) => {
     callback(snapshot.exists() ? snapshot.val() : null);
-  });
+  }, `families/${familyId}/branding`);
 };
 
 /**
@@ -1012,7 +1024,7 @@ export const savePersonalBranding = async (userId, branding) => {
  */
 export const onPersonalBrandingChange = (userId, callback) => {
   const brandingRef = ref(database, getUserPath(userId, 'branding'));
-  return onValue(brandingRef, (snapshot) => {
+  return subscribeWithLogging(brandingRef, (snapshot) => {
     callback(snapshot.exists() ? snapshot.val() : null);
-  });
+  }, `users/${userId}/branding`);
 };

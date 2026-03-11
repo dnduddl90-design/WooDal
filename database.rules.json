@@ -19,7 +19,7 @@
         },
         "stocks": {
           "$stockId": {
-            ".validate": "newData.hasChildren(['name', 'type']) && newData.child('name').isString() && newData.child('type').isString() && (!newData.child('quantity').exists() || newData.child('quantity').isNumber()) && (!newData.child('buyPrice').exists() || newData.child('buyPrice').isNumber()) && (!newData.child('currentPrice').exists() || newData.child('currentPrice').isNumber()) && (!newData.child('purchaseDate').exists() || newData.child('purchaseDate').isString()) && (!newData.child('updatedAt').exists() || newData.child('updatedAt').isString()) && (!newData.child('symbol').exists() || newData.child('symbol').isString()) && (!newData.child('categoryId').exists() || newData.child('categoryId').isString()) && (!newData.child('categoryName').exists() || newData.child('categoryName').isString())"
+            ".validate": "!newData.exists() || ((!newData.child('name').exists() || newData.child('name').isString()) && (!newData.child('type').exists() || newData.child('type').isString()) && (!newData.child('quantity').exists() || newData.child('quantity').isNumber()) && (!newData.child('buyPrice').exists() || newData.child('buyPrice').isNumber()) && (!newData.child('currentPrice').exists() || newData.child('currentPrice').isNumber()) && (!newData.child('purchaseDate').exists() || newData.child('purchaseDate').isString()) && (!newData.child('updatedAt').exists() || newData.child('updatedAt').isString()) && (!newData.child('symbol').exists() || newData.child('symbol').isString()) && (!newData.child('categoryId').exists() || newData.child('categoryId').isString()) && (!newData.child('categoryName').exists() || newData.child('categoryName').isString()))"
           }
         },
         "stockSymbols": {
@@ -49,8 +49,8 @@
     },
     "families": {
       "$familyId": {
-        ".read": "root.child('families').child($familyId).child('members').child(auth.uid).exists()",
-        ".write": "root.child('families').child($familyId).child('members').child(auth.uid).exists()",
+        ".read": "root.child('users').child(auth.uid).child('familyId').val() === $familyId || root.child('families').child($familyId).child('members').child(auth.uid).exists()",
+        ".write": "root.child('users').child(auth.uid).child('familyId').val() === $familyId || root.child('families').child($familyId).child('members').child(auth.uid).exists()",
         "transactions": {
           "$transactionId": {
             ".validate": "newData.hasChildren(['id', 'type', 'category', 'amount', 'date', 'userId']) && newData.child('id').isNumber() && (newData.child('type').val() === 'income' || newData.child('type').val() === 'expense') && newData.child('category').isString() && newData.child('amount').isNumber() && newData.child('amount').val() >= 0 && newData.child('date').isString() && newData.child('date').val().matches(/^\\d{4}-\\d{2}-\\d{2}$/) && newData.child('userId').isString() && (!newData.child('subcategory').exists() || newData.child('subcategory').isString()) && (!newData.child('paymentMethod').exists() || newData.child('paymentMethod').isString()) && (!newData.child('memo').exists() || newData.child('memo').isString()) && (!newData.child('isPocketMoney').exists() || newData.child('isPocketMoney').isBoolean())"

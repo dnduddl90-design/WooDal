@@ -209,9 +209,9 @@ export const StockSummary = ({ stocks, currentPrices }) => {
         </div>
 
         {/* 파이 차트 */}
-        <div className="bg-white rounded-lg p-3 sm:p-4 mb-4">
-          <div className="w-full h-[240px] sm:h-[300px] lg:h-[350px]">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="bg-white rounded-lg p-3 sm:p-4 mb-4 min-w-0">
+          <div className="w-full min-w-0 h-[240px] sm:h-[300px] lg:h-[350px]">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <RechartsPieChart>
               <Pie
                 data={pieChartData}

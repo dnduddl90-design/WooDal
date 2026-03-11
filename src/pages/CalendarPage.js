@@ -266,7 +266,7 @@ export const CalendarPage = ({
                       <button
                         type="button"
                         onClick={(e) => handleInlineDeleteClick(e, item.id)}
-                        className="opacity-0 group-hover:opacity-100 p-0.5 text-red-500 hover:text-red-700 transition-all flex-shrink-0"
+                        className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-0.5 text-red-500 hover:text-red-700 transition-all flex-shrink-0"
                         title="삭제"
                       >
                         <X size={10} className="sm:w-3 sm:h-3" />

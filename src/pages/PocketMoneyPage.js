@@ -47,6 +47,9 @@ export const PocketMoneyPage = ({ currentUser }) => {
   const {
     transactions,
     monthlyBudget,
+    loading,
+    statusMessage,
+    setStatusMessage,
     updateBudget,
     addTransaction,
     updateTransaction,
@@ -296,6 +299,29 @@ export const PocketMoneyPage = ({ currentUser }) => {
           &gt;
         </Button>
       </div>
+
+      {loading && (
+        <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+          용돈 데이터를 불러오는 중입니다.
+        </div>
+      )}
+
+      {statusMessage && (
+        <div className={`rounded-xl border px-4 py-3 text-sm flex items-center justify-between gap-3 ${
+          statusMessage.type === 'error'
+            ? 'border-red-200 bg-red-50 text-red-700'
+            : 'border-green-200 bg-green-50 text-green-700'
+        }`}>
+          <span>{statusMessage.text}</span>
+          <button
+            type="button"
+            onClick={() => setStatusMessage(null)}
+            className="text-xs font-semibold"
+          >
+            닫기
+          </button>
+        </div>
+      )}
 
       <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-6 shadow-xl text-white">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
@@ -547,14 +573,14 @@ export const PocketMoneyPage = ({ currentUser }) => {
                     </div>
                     <button
                       onClick={() => openEditTransactionModal(transaction)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-blue-100 rounded-lg"
+                      className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-2 hover:bg-blue-100 rounded-lg"
                       title="수정"
                     >
                       <Edit size={18} className="text-blue-500" />
                     </button>
                     <button
                       onClick={() => handleDeleteTransaction(transaction.id)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-red-100 rounded-lg"
+                      className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-2 hover:bg-red-100 rounded-lg"
                       title="삭제"
                     >
                       <Trash2 size={18} className="text-red-500" />

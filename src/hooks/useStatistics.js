@@ -27,7 +27,7 @@ const getPaymentMethodName = (paymentMethodId) => {
   return paymentMethod ? paymentMethod.name : paymentMethodId || '미지정';
 };
 
-const createMonthSummary = ({
+export const createMonthSummary = ({
   monthDate,
   monthTransactions,
   fixedExpenses,
@@ -67,9 +67,11 @@ const createMonthSummary = ({
   const savings = transactionSavings + fixedSavingsTotal;
   const transactionExpenseTotal = TransactionService.calculateTotal(expenseTransactions);
   const fixedExpenseTotal = monthFixedExpenses.reduce((sum, fixed) => sum + fixed.calculatedAmount, 0);
+  const fixedNonSavingsTotal = fixedNonSavings.reduce((sum, fixed) => sum + fixed.calculatedAmount, 0);
+  const variableExpense = transactionExpenseTotal - transactionSavings;
+  const totalConsumption = variableExpense + fixedNonSavingsTotal;
   const expenseTotal = transactionExpenseTotal + fixedExpenseTotal;
-  const expense = expenseTotal - savings;
-  const totalOutflow = expense + savings;
+  const totalOutflow = expenseTotal;
 
   const categoryTotals = {};
   const categoryDetails = {};
@@ -143,14 +145,16 @@ const createMonthSummary = ({
 
   return {
     income,
-    expense,
+    expense: variableExpense,
+    variableExpense,
+    totalConsumption,
     savings,
     savingRate,
     expenseTotal,
     totalOutflow,
     transactionExpenseTotal,
     fixedExpenseTotal,
-    fixedNonSavingsTotal: fixedNonSavings.reduce((sum, fixed) => sum + fixed.calculatedAmount, 0),
+    fixedNonSavingsTotal,
     transactionSavings,
     fixedSavingsTotal,
     fixedShareRate,

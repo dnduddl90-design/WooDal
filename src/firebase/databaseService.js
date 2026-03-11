@@ -15,6 +15,17 @@ import {
 } from 'firebase/database';
 import { database } from './config';
 
+const USER_BACKUP_PATHS = [
+  'transactions',
+  'fixedExpenses',
+  'settings',
+  'stocks',
+  'stockSymbols',
+  'stockCategories',
+  'pocketMoney',
+  'branding'
+];
+
 /**
  * 데이터 경로 생성 헬퍼
  * @param {string} userId - 사용자 ID
@@ -215,6 +226,39 @@ export const onSettingsChange = (userId, callback) => {
   return onValue(settingsRef, (snapshot) => {
     callback(snapshot.exists() ? snapshot.val() : null);
   });
+};
+
+/**
+ * 사용자 백업 데이터 가져오기
+ * @param {string} userId - 사용자 ID
+ */
+export const getUserBackupData = async (userId) => {
+  const userRef = ref(database, `users/${userId}`);
+  const snapshot = await get(userRef);
+  const userData = snapshot.exists() ? snapshot.val() : {};
+
+  const backupData = USER_BACKUP_PATHS.reduce((acc, key) => {
+    acc[key] = userData[key] || null;
+    return acc;
+  }, {});
+
+  return backupData;
+};
+
+/**
+ * 사용자 백업 데이터 복원
+ * @param {string} userId - 사용자 ID
+ * @param {Object} backupData - 복원할 데이터
+ */
+export const restoreUserBackupData = async (userId, backupData) => {
+  const operations = USER_BACKUP_PATHS.map((path) =>
+    set(
+      ref(database, getUserPath(userId, path)),
+      backupData[path] ?? null
+    )
+  );
+
+  await Promise.all(operations);
 };
 
 // ==================== 가족 (Family) - 공유 가계부 ====================

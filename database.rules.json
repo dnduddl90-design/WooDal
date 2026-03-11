@@ -13,6 +13,37 @@
           "$expenseId": {
             ".validate": "newData.hasChildren(['id', 'name', 'category', 'amount', 'autoRegisterDate', 'isActive']) && newData.child('id').isNumber() && newData.child('name').isString() && newData.child('category').isString() && newData.child('amount').isNumber() && newData.child('amount').val() >= 0 && newData.child('autoRegisterDate').isNumber() && newData.child('autoRegisterDate').val() >= 1 && newData.child('autoRegisterDate').val() <= 31 && newData.child('isActive').isBoolean() && (!newData.child('monthlyIncrease').exists() || newData.child('monthlyIncrease').isNumber()) && (!newData.child('baseDate').exists() || newData.child('baseDate').isString()) && (!newData.child('paymentMethod').exists() || newData.child('paymentMethod').isString()) && (!newData.child('memo').exists() || newData.child('memo').isString()) && (!newData.child('isUnlimited').exists() || newData.child('isUnlimited').isBoolean()) && (!newData.child('startDate').exists() || newData.child('startDate').isString()) && (!newData.child('endDate').exists() || newData.child('endDate').isString()) && (!(newData.child('startDate').exists() && newData.child('endDate').exists()) || newData.child('startDate').val() <= newData.child('endDate').val()) && ((!newData.child('monthlyIncrease').exists() || newData.child('monthlyIncrease').val() === 0) || newData.child('baseDate').exists())"
           }
+        },
+        "settings": {
+          ".validate": "!newData.exists() || (newData.hasChildren([]) && (!newData.child('budget').exists() || newData.child('budget').hasChildren([])) && (!newData.child('notifications').exists() || newData.child('notifications').hasChildren([])) && (!newData.child('backup').exists() || newData.child('backup').hasChildren([])))"
+        },
+        "stocks": {
+          "$stockId": {
+            ".validate": "newData.hasChildren(['name', 'type']) && newData.child('name').isString() && newData.child('type').isString() && (!newData.child('quantity').exists() || newData.child('quantity').isNumber()) && (!newData.child('buyPrice').exists() || newData.child('buyPrice').isNumber()) && (!newData.child('currentPrice').exists() || newData.child('currentPrice').isNumber()) && (!newData.child('purchaseDate').exists() || newData.child('purchaseDate').isString()) && (!newData.child('updatedAt').exists() || newData.child('updatedAt').isString()) && (!newData.child('symbol').exists() || newData.child('symbol').isString()) && (!newData.child('categoryId').exists() || newData.child('categoryId').isString()) && (!newData.child('categoryName').exists() || newData.child('categoryName').isString())"
+          }
+        },
+        "stockSymbols": {
+          "$symbolId": {
+            ".validate": "newData.hasChildren(['symbol', 'name']) && newData.child('symbol').isString() && newData.child('name').isString() && (!newData.child('market').exists() || newData.child('market').isString())"
+          }
+        },
+        "stockCategories": {
+          "$categoryId": {
+            ".validate": "newData.hasChildren(['name']) && newData.child('name').isString() && (!newData.child('description').exists() || newData.child('description').isString())"
+          }
+        },
+        "pocketMoney": {
+          "budget": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "transactions": {
+            "$transactionId": {
+              ".validate": "newData.hasChildren(['category', 'amount', 'date']) && newData.child('category').isString() && newData.child('amount').isNumber() && newData.child('amount').val() >= 0 && newData.child('date').isString() && newData.child('date').val().matches(/^\\d{4}-\\d{2}-\\d{2}$/) && (!newData.child('memo').exists() || newData.child('memo').isString()) && (!newData.child('createdAt').exists() || newData.child('createdAt').isString())"
+            }
+          }
+        },
+        "branding": {
+          ".validate": "!newData.exists() || newData.hasChildren([])"
         }
       }
     },

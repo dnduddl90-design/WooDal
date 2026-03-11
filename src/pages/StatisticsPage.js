@@ -136,7 +136,8 @@ export const StatisticsPage = ({
   };
 
   const currentIncome = currentSummary.income;
-  const currentExpense = currentSummary.expense;
+  const currentExpense = currentSummary.variableExpense;
+  const totalConsumption = currentSummary.totalConsumption;
   const currentSavings = currentSummary.savings;
   const currentExpenseTotal = currentSummary.expenseTotal;
   const fixedExpenseTotal = currentSummary.fixedExpenseTotal;
@@ -144,7 +145,7 @@ export const StatisticsPage = ({
   const totalPocketMoney = currentSummary.totalPocketMoney;
   const savingRate = currentSummary.savingRate;
   const monthlyBudget = parseInt(settings?.budget?.monthly, 10) || 0;
-  const budgetRate = monthlyBudget > 0 ? (currentExpense / monthlyBudget) * 100 : 0;
+  const budgetRate = monthlyBudget > 0 ? (totalConsumption / monthlyBudget) * 100 : 0;
 
   const categoryEntries = useMemo(() => {
     return Object.entries(currentSummary.categoryTotals).sort(([, a], [, b]) => b - a);
@@ -225,9 +226,9 @@ export const StatisticsPage = ({
     ? `${pocketMoneyEntries.length}명 정산 필요`
     : '정산 대기 내역 없음';
 
-  const analysisMessage = currentIncome >= currentExpense
-    ? `이번 달은 소비 ${formatCurrency(currentExpense)}원, 저축 ${formatCurrency(currentSavings)}원으로 흑자 흐름입니다.`
-    : `이번 달은 소비가 수입보다 ${formatCurrency(currentExpense - currentIncome)}원 많습니다. 지출 점검이 필요합니다.`;
+  const analysisMessage = currentIncome >= currentExpenseTotal
+    ? `이번 달은 변동 소비 ${formatCurrency(currentExpense)}원, 고정지출 ${formatCurrency(fixedNonSavingsTotal)}원, 저축 ${formatCurrency(currentSavings)}원으로 흑자 흐름입니다.`
+    : `이번 달 총 유출이 수입보다 ${formatCurrency(currentExpenseTotal - currentIncome)}원 많습니다. 지출 점검이 필요합니다.`;
 
   const filteredCategoryAverage = categoryModalTransactions.length > 0
     ? Math.round(categoryModalTransactions.reduce((sum, item) => sum + item.amount, 0) / categoryModalTransactions.length)
@@ -277,7 +278,7 @@ export const StatisticsPage = ({
           tone="green"
         />
         <SummaryCard
-          label="소비 지출"
+          label="변동 소비"
           value={`${formatCurrency(currentExpense)}원`}
           detail={expenseChange !== 0 ? `전월 대비 ${expenseChange > 0 ? '+' : ''}${expenseChange.toFixed(1)}%` : '전월 대비 변화 없음'}
           icon={Receipt}
@@ -300,7 +301,7 @@ export const StatisticsPage = ({
         <SummaryCard
           label="총 유출"
           value={`${formatCurrency(currentExpenseTotal)}원`}
-          detail={`소비 ${formatCurrency(currentExpense)}원 + 저축 ${formatCurrency(currentSavings)}원`}
+          detail={`변동 ${formatCurrency(currentExpense)}원 + 고정 ${formatCurrency(fixedExpenseTotal)}원`}
           icon={Wallet}
           tone="amber"
         />
@@ -342,13 +343,13 @@ export const StatisticsPage = ({
               <div className="space-y-3 text-sm">
                 <div>
                   <div className="flex justify-between mb-1">
-                    <span className="text-gray-600">일반 지출</span>
-                    <span className="font-semibold text-gray-800">{formatCurrency(currentSummary.transactionExpenseTotal)}원</span>
+                    <span className="text-gray-600">변동 소비</span>
+                    <span className="font-semibold text-gray-800">{formatCurrency(currentSummary.variableExpense)}원</span>
                   </div>
                   <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
                     <div
                       className="h-full bg-gradient-to-r from-slate-400 to-slate-600"
-                      style={{ width: `${currentExpenseTotal > 0 ? (currentSummary.transactionExpenseTotal / currentExpenseTotal) * 100 : 0}%` }}
+                      style={{ width: `${currentExpenseTotal > 0 ? (currentSummary.variableExpense / currentExpenseTotal) * 100 : 0}%` }}
                     />
                   </div>
                 </div>
@@ -417,7 +418,7 @@ export const StatisticsPage = ({
         isOpen={sections.budget}
         onToggle={() => toggleSection('budget')}
         badge={monthlyBudget > 0 ? (
-          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${currentExpense <= monthlyBudget ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+          <span className={`px-3 py-1 rounded-full text-xs font-semibold ${totalConsumption <= monthlyBudget ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
             {budgetRate.toFixed(1)}%
           </span>
         ) : null}
@@ -427,13 +428,13 @@ export const StatisticsPage = ({
             <div className="rounded-xl border border-gray-200 bg-white/80 p-4 sm:p-5">
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-sm sm:text-base font-semibold text-gray-800">월 예산 진행률</h4>
-                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${currentExpense <= monthlyBudget ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${totalConsumption <= monthlyBudget ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                   {budgetRate.toFixed(1)}%
                 </span>
               </div>
               <div className="h-8 rounded-full bg-gray-200 overflow-hidden">
                 <div
-                  className={`h-full ${currentExpense <= monthlyBudget ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-red-400 to-red-600'}`}
+                  className={`h-full ${totalConsumption <= monthlyBudget ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-red-400 to-red-600'}`}
                   style={{ width: `${Math.min(budgetRate, 100)}%` }}
                 />
               </div>
@@ -444,11 +445,11 @@ export const StatisticsPage = ({
                 </div>
                 <div className="rounded-lg bg-red-50 p-3">
                   <p className="text-[11px] sm:text-xs text-gray-500">사용</p>
-                  <p className="text-sm sm:text-base font-bold text-red-700">{formatCurrency(currentExpense)}원</p>
+                  <p className="text-sm sm:text-base font-bold text-red-700">{formatCurrency(totalConsumption)}원</p>
                 </div>
                 <div className="rounded-lg bg-purple-50 p-3">
                   <p className="text-[11px] sm:text-xs text-gray-500">남은 예산</p>
-                  <p className="text-sm sm:text-base font-bold text-purple-700">{formatCurrency(Math.max(monthlyBudget - currentExpense, 0))}원</p>
+                  <p className="text-sm sm:text-base font-bold text-purple-700">{formatCurrency(Math.max(monthlyBudget - totalConsumption, 0))}원</p>
                 </div>
               </div>
             </div>

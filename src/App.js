@@ -23,9 +23,6 @@ import { TransactionForm, FixedExpenseForm } from './components/forms';
 
 // Utils
 import {
-  STORAGE_KEYS,
-  saveToStorage,
-  clearAllStorage,
   updatePWAMetadata,
   getTodayDateString,
   sortByDateDesc
@@ -277,51 +274,76 @@ export default function App() {
 
   // ===== 설정 관련 함수들 (useCallback으로 최적화) =====
   const exportData = useCallback(() => {
-    const exportObj = {
-      transactions,
-      fixedExpenses,
-      settings,
-      exportDate: new Date().toISOString(),
-      version: '1.0'
-    };
-    const dataStr = JSON.stringify(exportObj, null, 2);
-    setBackupData(dataStr);
-    setShowBackupModal(true);
-  }, [transactions, fixedExpenses, settings]);
+    if (!currentUser?.firebaseId) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
 
-  const importData = useCallback((jsonStr) => {
+    import('./firebase/databaseService')
+      .then(async ({ getUserBackupData }) => {
+        const latestUserBackup = await getUserBackupData(currentUser.firebaseId);
+        const exportObj = {
+          ...latestUserBackup,
+          exportDate: new Date().toISOString(),
+          version: '2.0',
+          metadata: {
+            userId: currentUser.firebaseId,
+            userName: currentUser.name,
+            appTitle: getAppTitle()
+          }
+        };
+        const dataStr = JSON.stringify(exportObj, null, 2);
+        setBackupData(dataStr);
+        setShowBackupModal(true);
+      })
+      .catch((error) => {
+        console.error('❌ 백업 생성 실패:', error);
+        alert('백업 데이터를 생성하지 못했습니다.');
+      });
+  }, [currentUser, getAppTitle]);
+
+  const importData = useCallback(async (jsonStr) => {
+    if (!currentUser?.firebaseId) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
     try {
       const importObj = JSON.parse(jsonStr);
 
-      // 데이터 유효성 검사
-      if (!importObj.transactions || !Array.isArray(importObj.transactions)) {
-        alert('❌ 유효하지 않은 데이터 형식입니다.\n거래 내역을 찾을 수 없습니다.');
+      if (!importObj || typeof importObj !== 'object') {
+        alert('❌ 유효하지 않은 백업 파일입니다.');
         return;
       }
 
-      if (!importObj.fixedExpenses || !Array.isArray(importObj.fixedExpenses)) {
-        alert('❌ 유효하지 않은 데이터 형식입니다.\n고정지출 내역을 찾을 수 없습니다.');
-        return;
-      }
+      const transactionCount = Object.keys(importObj.transactions || {}).length;
+      const fixedExpenseCount = Object.keys(importObj.fixedExpenses || {}).length;
+      const stockCount = Object.keys(importObj.stocks || {}).length;
+      const pocketMoneyCount = Object.keys(importObj.pocketMoney?.transactions || {}).length;
 
-      // 확인 다이얼로그
       const confirmed = window.confirm(
         `📥 데이터 가져오기\n\n` +
-        `거래 내역: ${importObj.transactions.length}건\n` +
-        `고정지출: ${importObj.fixedExpenses.length}건\n` +
-        `백업 날짜: ${new Date(importObj.exportDate).toLocaleString('ko-KR')}\n\n` +
-        `⚠️ 현재 데이터는 모두 삭제되고 백업 데이터로 대체됩니다.\n계속하시겠습니까?`
+        `거래 내역: ${transactionCount}건\n` +
+        `고정지출: ${fixedExpenseCount}건\n` +
+        `주식: ${stockCount}건\n` +
+        `용돈 거래: ${pocketMoneyCount}건\n` +
+        `백업 날짜: ${importObj.exportDate ? new Date(importObj.exportDate).toLocaleString('ko-KR') : '알 수 없음'}\n\n` +
+        `⚠️ 현재 사용자 데이터가 백업 데이터로 대체됩니다.\n계속하시겠습니까?`
       );
 
       if (!confirmed) return;
 
-      // 데이터 저장
-      saveToStorage(STORAGE_KEYS.TRANSACTIONS, importObj.transactions);
-      saveToStorage(STORAGE_KEYS.FIXED_EXPENSES, importObj.fixedExpenses);
-
-      if (importObj.settings) {
-        saveToStorage(STORAGE_KEYS.SETTINGS, importObj.settings);
-      }
+      const { restoreUserBackupData } = await import('./firebase/databaseService');
+      await restoreUserBackupData(currentUser.firebaseId, {
+        transactions: importObj.transactions || null,
+        fixedExpenses: importObj.fixedExpenses || null,
+        settings: importObj.settings || null,
+        stocks: importObj.stocks || null,
+        stockSymbols: importObj.stockSymbols || null,
+        stockCategories: importObj.stockCategories || null,
+        pocketMoney: importObj.pocketMoney || null,
+        branding: importObj.branding || null
+      });
 
       alert('✅ 데이터를 성공적으로 가져왔습니다!\n\n페이지를 새로고침합니다.');
       window.location.reload();
@@ -330,22 +352,35 @@ export default function App() {
       console.error('Import error:', error);
       alert('❌ 데이터 가져오기 실패\n\n잘못된 JSON 형식이거나 파일이 손상되었습니다.');
     }
-  }, []);
+  }, [currentUser]);
 
-  const resetAllData = useCallback(() => {
+  const resetAllData = useCallback(async () => {
+    if (!currentUser?.firebaseId) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
     if (window.confirm('⚠️ 정말로 모든 데이터를 초기화하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.')) {
-      // 모든 localStorage 데이터 삭제
-      const success = clearAllStorage();
-
-      if (success) {
+      try {
+        const { restoreUserBackupData } = await import('./firebase/databaseService');
+        await restoreUserBackupData(currentUser.firebaseId, {
+          transactions: null,
+          fixedExpenses: null,
+          settings: null,
+          stocks: null,
+          stockSymbols: null,
+          stockCategories: null,
+          pocketMoney: null,
+          branding: null
+        });
         alert('✅ 모든 데이터가 초기화되었습니다.\n\n페이지를 새로고침합니다.');
-        // 페이지 새로고침으로 초기 상태로 복원
         window.location.reload();
-      } else {
+      } catch (error) {
+        console.error('❌ 데이터 초기화 실패:', error);
         alert('❌ 데이터 초기화 중 오류가 발생했습니다.');
       }
     }
-  }, []);
+  }, [currentUser]);
 
   const downloadBackup = useCallback(() => {
     const blob = new Blob([backupData], { type: 'application/json' });

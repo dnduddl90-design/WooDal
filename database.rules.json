@@ -15,7 +15,7 @@
           }
         },
         "settings": {
-          ".validate": "!newData.exists() || (newData.hasChildren([]) && (!newData.child('budget').exists() || newData.child('budget').hasChildren([])) && (!newData.child('notifications').exists() || newData.child('notifications').hasChildren([])) && (!newData.child('backup').exists() || newData.child('backup').hasChildren([])))"
+          ".validate": "true"
         },
         "stocks": {
           "$stockId": {
@@ -43,7 +43,7 @@
           }
         },
         "branding": {
-          ".validate": "!newData.exists() || newData.hasChildren([])"
+          ".validate": "true"
         }
       }
     },

@@ -20,6 +20,7 @@ import { Header, Sidebar } from './components/layout';
 
 // Form Components
 import { TransactionForm, FixedExpenseForm } from './components/forms';
+import { ToastContainer } from './components/common';
 
 // Utils
 import {
@@ -37,6 +38,7 @@ import {
  * DIP: 각 컴포넌트는 props를 통해 의존성 주입받음
  */
 export default function App() {
+  const [toasts, setToasts] = useState([]);
   // ===== 1. 인증 상태 (useAuth 훅 사용) =====
   const {
     isAuthenticated,
@@ -155,6 +157,40 @@ export default function App() {
   const [deferredPrompt, setDeferredPrompt] = useState(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
+  const dismissToast = useCallback((id) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  }, []);
+
+  const pushToast = useCallback((message) => {
+    const normalizedMessage = String(message || '').trim();
+    if (!normalizedMessage) return;
+
+    let type = 'info';
+    let title = '';
+
+    if (normalizedMessage.includes('❌') || normalizedMessage.includes('실패') || normalizedMessage.includes('오류')) {
+      type = 'error';
+      title = '오류';
+    } else if (normalizedMessage.includes('⚠️') || normalizedMessage.includes('경고')) {
+      type = 'warning';
+      title = '주의';
+    } else if (
+      normalizedMessage.includes('✅')
+      || normalizedMessage.includes('🎉')
+      || normalizedMessage.includes('성공')
+      || normalizedMessage.includes('완료')
+    ) {
+      type = 'success';
+      title = '완료';
+    }
+
+    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    setToasts((prev) => [...prev, { id, type, title, message: normalizedMessage }]);
+    window.setTimeout(() => {
+      setToasts((prev) => prev.filter((toast) => toast.id !== id));
+    }, 4500);
+  }, []);
+
   // PWA 설치 프롬프트 이벤트 감지
   useEffect(() => {
     const handleBeforeInstallPrompt = (e) => {
@@ -177,6 +213,17 @@ export default function App() {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     };
   }, []);
+
+  useEffect(() => {
+    const originalAlert = window.alert.bind(window);
+    window.alert = (message) => {
+      pushToast(message);
+    };
+
+    return () => {
+      window.alert = originalAlert;
+    };
+  }, [pushToast]);
 
   // PWA 메타데이터 동적 업데이트
   useEffect(() => {
@@ -550,6 +597,7 @@ export default function App() {
   // ===== 메인 앱 레이아웃 =====
   return (
     <div className="min-h-screen bg-animated pb-20 sm:pb-0">
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
       {/* 헤더 */}
       <Header
         user={currentUser}

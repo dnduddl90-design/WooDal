@@ -207,7 +207,7 @@ export const CalendarPage = ({
     // 이전 달 빈 칸
     for (let i = 0; i < firstDay; i++) {
       days.push(
-        <div key={`prev-${i}`} className="h-16 sm:h-24 border border-gray-100 p-1 bg-gray-50" />
+        <div key={`prev-${i}`} className="h-16 sm:h-24 border border-slate-100 p-1 bg-slate-50" />
       );
     }
 
@@ -229,8 +229,8 @@ export const CalendarPage = ({
       days.push(
         <div
           key={day}
-          className={`h-16 sm:h-24 border border-gray-200 p-0.5 sm:p-1 hover:bg-gray-50 transition-colors cursor-pointer ${
-            isToday ? 'ring-2 ring-blue-500' : ''
+          className={`h-16 sm:h-24 border border-slate-200 p-0.5 sm:p-1 hover:bg-slate-50 transition-colors cursor-pointer ${
+            isToday ? 'ring-2 ring-indigo-500' : ''
           }`}
           onClick={() => handleDayCellClick(day, month, year, allItems)}
         >
@@ -253,24 +253,37 @@ export const CalendarPage = ({
                     >
                       <div className={`w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full flex-shrink-0 ${
                         item.type === 'fixed' ? 'bg-orange-500' :
-                        user ? user.color : 'bg-gray-500'
+                        user ? user.color : 'bg-slate-500'
                       }`} />
                       <span className={`truncate ${
-                        item.type === 'expense' || item.type === 'fixed' ? 'text-red-600' : 'text-blue-600'
+                        item.type === 'expense' || item.type === 'fixed' ? 'text-rose-600' : 'text-indigo-600'
                       }`}>
                         {item.type === 'expense' || item.type === 'fixed' ? '-' : '+'}
                         {formatCurrency(item.amount)}
                       </span>
                     </div>
                     {item.type !== 'fixed' && !isDesktop && (
-                      <button
-                        type="button"
-                        onClick={(e) => handleInlineDeleteClick(e, item.id)}
-                        className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-0.5 text-red-500 hover:text-red-700 transition-all flex-shrink-0"
-                        title="삭제"
-                      >
-                        <X size={10} className="sm:w-3 sm:h-3" />
-                      </button>
+                      <div className="flex items-center gap-0.5 flex-shrink-0">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onEditTransaction(item);
+                          }}
+                          className="p-0.5 text-indigo-500 hover:text-indigo-700 transition-all"
+                          title="수정"
+                        >
+                          <span className="text-[9px] font-semibold">수정</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => handleInlineDeleteClick(e, item.id)}
+                          className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-0.5 text-rose-500 hover:text-rose-700 transition-all"
+                          title="삭제"
+                        >
+                          <X size={10} className="sm:w-3 sm:h-3" />
+                        </button>
+                      </div>
                     )}
                   </div>
                 );
@@ -295,8 +308,8 @@ export const CalendarPage = ({
     const usedCells = firstDay + daysInMonth;
     for (let i = 1; i <= totalCells - usedCells; i++) {
       days.push(
-        <div key={`next-${i}`} className="h-16 sm:h-24 border border-gray-100 p-0.5 sm:p-1 bg-blue-50">
-          <div className="text-xs sm:text-sm text-blue-400 mb-0.5 sm:mb-1">{i}</div>
+        <div key={`next-${i}`} className="h-16 sm:h-24 border border-slate-100 p-0.5 sm:p-1 bg-indigo-50">
+          <div className="text-xs sm:text-sm text-indigo-300 mb-0.5 sm:mb-1">{i}</div>
         </div>
       );
     }
@@ -403,7 +416,7 @@ export const CalendarPage = ({
         <div className="flex items-center justify-between bg-white rounded-xl p-4 shadow-md">
           <button
             onClick={handlePrevDay}
-            className="p-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-100"
+            className="p-2 rounded-lg transition-colors text-slate-700 hover:bg-slate-100"
           >
             <ChevronLeft size={24} />
           </button>
@@ -413,14 +426,14 @@ export const CalendarPage = ({
               <span className={`text-2xl font-bold ${
                 dayOfWeek === 0 ? 'text-red-600' :
                 dayOfWeek === 6 ? 'text-blue-600' :
-                'text-gray-800'
+                'text-slate-800'
               }`}>
                 {currentDay}일
               </span>
               <span className={`text-lg ${
                 dayOfWeek === 0 ? 'text-red-500' :
                 dayOfWeek === 6 ? 'text-blue-500' :
-                'text-gray-600'
+                'text-slate-600'
               }`}>
                 ({weekDays[dayOfWeek]})
               </span>
@@ -433,7 +446,7 @@ export const CalendarPage = ({
             {!isToday && (
               <button
                 onClick={handleTodayDay}
-                className="inline-block mt-1 text-xs px-3 py-1 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-colors"
+                className="inline-block mt-1 text-xs px-3 py-1 bg-slate-200 text-slate-700 rounded-full hover:bg-slate-300 transition-colors"
               >
                 오늘로 이동
               </button>
@@ -442,7 +455,7 @@ export const CalendarPage = ({
 
           <button
             onClick={handleNextDay}
-            className="p-2 rounded-lg transition-colors text-gray-700 hover:bg-gray-100"
+            className="p-2 rounded-lg transition-colors text-slate-700 hover:bg-slate-100"
           >
             <ChevronRight size={24} />
           </button>
@@ -467,7 +480,7 @@ export const CalendarPage = ({
         {/* 거래 리스트 */}
         <div className="bg-white rounded-xl shadow-md overflow-hidden">
           {allItems.length > 0 ? (
-            <div className="divide-y divide-gray-100">
+            <div className="divide-y divide-slate-100">
               {allItems.map((item, index) => {
                 const user = item.type === 'fixed'
                   ? null
@@ -493,24 +506,19 @@ export const CalendarPage = ({
                 return (
                   <div
                     key={index}
-                    className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
-                    onClick={() => {
-                      if (item.type !== 'fixed') {
-                        onEditTransaction(item);
-                      }
-                    }}
+                    className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
                   >
                     <div className="flex items-center gap-3 flex-1 min-w-0">
                       <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
                         item.type === 'fixed' ? 'bg-orange-500' :
-                        user ? user.color : 'bg-gray-500'
+                        user ? user.color : 'bg-slate-500'
                       }`} />
                       <div className="flex-1 min-w-0">
-                        <div className="text-base font-semibold text-gray-900 truncate">
+                        <div className="text-base font-semibold text-slate-900 truncate">
                           {categoryName}
                         </div>
                         {item.memo && (
-                          <div className="text-sm text-gray-600 truncate mt-0.5">
+                          <div className="text-sm text-slate-600 truncate mt-0.5">
                             {item.memo}
                           </div>
                         )}
@@ -518,22 +526,32 @@ export const CalendarPage = ({
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <span className={`text-lg font-bold ${
-                        item.type === 'expense' || item.type === 'fixed' ? 'text-red-600' : 'text-blue-600'
+                        item.type === 'expense' || item.type === 'fixed' ? 'text-rose-600' : 'text-indigo-600'
                       }`}>
                         {item.type === 'expense' || item.type === 'fixed' ? '-' : '+'}
                         {formatCurrency(item.amount)}
                       </span>
                       {item.type !== 'fixed' && (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            handleDeleteClick(e, item.id);
-                          }}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                          title="삭제"
-                        >
-                          <X size={18} />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => onEditTransaction(item)}
+                            className="px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                            title="수정"
+                          >
+                            수정
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              handleDeleteClick(e, item.id);
+                            }}
+                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            title="삭제"
+                          >
+                            <X size={18} />
+                          </button>
+                        </div>
                       )}
                     </div>
                   </div>
@@ -541,7 +559,7 @@ export const CalendarPage = ({
               })}
             </div>
           ) : (
-            <div className="text-center py-12 text-gray-400">
+            <div className="text-center py-12 text-slate-400">
               <div className="text-5xl mb-3">😴</div>
               <div className="text-base">거래 내역이 없습니다</div>
             </div>
@@ -562,7 +580,7 @@ export const CalendarPage = ({
         <div className="flex space-x-1 sm:space-x-3">
           <button
             onClick={handlePrevMonth}
-            className="p-2 sm:p-3 hover:bg-gray-100 rounded-xl transition-colors btn-animate"
+            className="p-2 sm:p-3 hover:bg-slate-100 rounded-xl transition-colors btn-animate"
           >
             <ChevronLeft size={18} className="sm:w-5 sm:h-5" />
           </button>
@@ -576,7 +594,7 @@ export const CalendarPage = ({
           </Button>
           <button
             onClick={handleNextMonth}
-            className="p-2 sm:p-3 hover:bg-gray-100 rounded-xl transition-colors btn-animate"
+            className="p-2 sm:p-3 hover:bg-slate-100 rounded-xl transition-colors btn-animate"
           >
             <ChevronRight size={18} className="sm:w-5 sm:h-5" />
           </button>
@@ -650,25 +668,19 @@ export const CalendarPage = ({
               return (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-                  onClick={() => {
-                    if (item.type !== 'fixed') {
-                      onEditTransaction(item);
-                      setShowDayModal(false);
-                    }
-                  }}
+                  className="flex items-center justify-between p-3 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className={`w-3 h-3 rounded-full flex-shrink-0 ${
                       item.type === 'fixed' ? 'bg-orange-500' :
-                      user ? user.color : 'bg-gray-500'
+                      user ? user.color : 'bg-slate-500'
                     }`} />
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm font-semibold text-gray-900 truncate">
+                      <div className="text-sm font-semibold text-slate-900 truncate">
                         {categoryName}
                       </div>
                       {item.memo && (
-                        <div className="text-xs text-gray-600 truncate">
+                        <div className="text-xs text-slate-600 truncate">
                           {item.memo}
                         </div>
                       )}
@@ -676,22 +688,35 @@ export const CalendarPage = ({
                   </div>
                   <div className="flex items-center gap-2">
                     <span className={`text-base font-bold ${
-                      item.type === 'expense' || item.type === 'fixed' ? 'text-red-600' : 'text-blue-600'
+                      item.type === 'expense' || item.type === 'fixed' ? 'text-rose-600' : 'text-indigo-600'
                     }`}>
                       {item.type === 'expense' || item.type === 'fixed' ? '-' : '+'}
                       {formatCurrency(item.amount)}
                     </span>
                     {item.type !== 'fixed' && (
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          handleDeleteClick(e, item.id, true);
-                        }}
-                        className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
-                        title="삭제"
-                      >
-                        <X size={16} />
-                      </button>
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onEditTransaction(item);
+                            setShowDayModal(false);
+                          }}
+                          className="px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-indigo-50 rounded transition-colors"
+                          title="수정"
+                        >
+                          수정
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            handleDeleteClick(e, item.id, true);
+                          }}
+                          className="p-1.5 text-red-500 hover:bg-red-50 rounded transition-colors"
+                          title="삭제"
+                        >
+                          <X size={16} />
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -699,16 +724,16 @@ export const CalendarPage = ({
             })}
           </div>
 
-          <div className="mt-4 pt-4 border-t border-gray-200 grid grid-cols-2 gap-4">
-            <div className="text-center p-3 bg-blue-50 rounded-lg">
-              <div className="text-xs text-gray-600 mb-1">수입</div>
-              <div className="text-base font-bold text-blue-600">
+          <div className="mt-4 pt-4 border-t border-slate-200 grid grid-cols-2 gap-4">
+            <div className="text-center p-3 bg-indigo-50 rounded-lg">
+              <div className="text-xs text-slate-600 mb-1">수입</div>
+              <div className="text-base font-bold text-indigo-600">
                 +{formatCurrency(selectedDayData.allItems.filter(i => i.type === 'income').reduce((sum, i) => sum + i.amount, 0))}원
               </div>
             </div>
-            <div className="text-center p-3 bg-red-50 rounded-lg">
-              <div className="text-xs text-gray-600 mb-1">지출</div>
-              <div className="text-base font-bold text-red-600">
+            <div className="text-center p-3 bg-rose-50 rounded-lg">
+              <div className="text-xs text-slate-600 mb-1">지출</div>
+              <div className="text-base font-bold text-rose-600">
                 -{formatCurrency(selectedDayData.allItems.filter(i => i.type === 'expense' || i.type === 'fixed').reduce((sum, i) => sum + i.amount, 0))}원
               </div>
             </div>

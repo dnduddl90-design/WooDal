@@ -34,17 +34,17 @@ const AccordionSection = ({ icon: Icon, title, description, isOpen, onToggle, ch
     >
       <div className="flex items-start gap-3 min-w-0">
         <div className="mt-0.5 p-2 rounded-lg bg-white/60">
-          <Icon size={18} className="text-gray-700" />
+          <Icon size={18} className="text-slate-700" />
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <h3 className="text-base sm:text-lg font-bold text-gray-800">{title}</h3>
+            <h3 className="text-base sm:text-lg font-bold text-slate-800">{title}</h3>
             {badge}
           </div>
-          {description && <p className="text-sm text-gray-600 mt-1">{description}</p>}
+          {description && <p className="text-sm text-slate-600 mt-1">{description}</p>}
         </div>
       </div>
-      {isOpen ? <ChevronUp size={18} className="text-gray-500 flex-shrink-0" /> : <ChevronDown size={18} className="text-gray-500 flex-shrink-0" />}
+      {isOpen ? <ChevronUp size={18} className="text-slate-500 flex-shrink-0" /> : <ChevronDown size={18} className="text-slate-500 flex-shrink-0" />}
     </button>
     {isOpen && <div className="px-4 pb-4 sm:px-6 sm:pb-6 border-t border-white/40">{children}</div>}
   </section>
@@ -135,10 +135,10 @@ export const SettingsPage = ({
   }, [transactions, fixedExpenses, stocks, stockSymbols, stockCategories, familyInfo]);
 
   const saveStatusMeta = {
-    idle: { text: '변경 대기', className: 'bg-gray-100 text-gray-600' },
-    saving: { text: '저장 중...', className: 'bg-blue-100 text-blue-700' },
-    saved: { text: '저장됨', className: 'bg-green-100 text-green-700' },
-    error: { text: '저장 실패', className: 'bg-red-100 text-red-700' }
+    idle: { text: '변경 대기', className: 'bg-slate-100 text-slate-600' },
+    saving: { text: '저장 중...', className: 'bg-indigo-100 text-indigo-700' },
+    saved: { text: '저장됨', className: 'bg-emerald-100 text-emerald-700' },
+    error: { text: '저장 실패', className: 'bg-rose-100 text-rose-700' }
   };
 
   const currentSaveStatus = saveStatusMeta[saveStatus] || saveStatusMeta.idle;
@@ -165,7 +165,7 @@ export const SettingsPage = ({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-lg sm:text-2xl font-bold gradient-text">설정</h2>
-          <p className="text-sm text-gray-600 mt-1">계정, 데이터, 주식, 가족 설정을 한 곳에서 관리합니다.</p>
+          <p className="text-sm text-slate-600 mt-1">계정, 데이터, 주식, 가족 설정을 한 곳에서 관리합니다.</p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${currentSaveStatus.className}`}>
@@ -200,36 +200,36 @@ export const SettingsPage = ({
       >
         <div className="pt-4 space-y-4">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            <div className="bg-gray-50 rounded-lg p-3 text-center">
-              <p className="text-lg font-bold text-blue-600">{transactions.length}</p>
-              <p className="text-xs text-gray-600 mt-1">거래</p>
+            <div className="bg-slate-50 rounded-lg p-3 text-center">
+              <p className="text-lg font-bold text-indigo-600">{transactions.length}</p>
+              <p className="text-xs text-slate-600 mt-1">거래</p>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3 text-center">
-              <p className="text-lg font-bold text-purple-600">{fixedExpenses.length}</p>
-              <p className="text-xs text-gray-600 mt-1">고정지출</p>
+            <div className="bg-slate-50 rounded-lg p-3 text-center">
+              <p className="text-lg font-bold text-violet-600">{fixedExpenses.length}</p>
+              <p className="text-xs text-slate-600 mt-1">고정지출</p>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3 text-center">
+            <div className="bg-slate-50 rounded-lg p-3 text-center">
               <p className="text-lg font-bold text-indigo-600">{stocks.length}</p>
-              <p className="text-xs text-gray-600 mt-1">주식</p>
+              <p className="text-xs text-slate-600 mt-1">주식</p>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3 text-center">
-              <p className="text-lg font-bold text-green-600">{stockSymbols.length}</p>
-              <p className="text-xs text-gray-600 mt-1">종목 목록</p>
+            <div className="bg-slate-50 rounded-lg p-3 text-center">
+              <p className="text-lg font-bold text-emerald-600">{stockSymbols.length}</p>
+              <p className="text-xs text-slate-600 mt-1">종목 목록</p>
             </div>
-            <div className="bg-gray-50 rounded-lg p-3 text-center">
+            <div className="bg-slate-50 rounded-lg p-3 text-center">
               <p className="text-lg font-bold text-emerald-600">{stockCategories.length}</p>
-              <p className="text-xs text-gray-600 mt-1">주식 분류</p>
+              <p className="text-xs text-slate-600 mt-1">주식 분류</p>
             </div>
-            <div className="bg-blue-50 rounded-lg p-3 text-center">
-              <p className="text-lg font-bold text-blue-700">{dataUsage.usageText}</p>
-              <p className="text-xs text-gray-600 mt-1">추정 저장 크기</p>
+            <div className="bg-indigo-50 rounded-lg p-3 text-center">
+              <p className="text-lg font-bold text-indigo-700">{dataUsage.usageText}</p>
+              <p className="text-xs text-slate-600 mt-1">추정 저장 크기</p>
             </div>
           </div>
 
           <div className={`rounded-lg px-4 py-3 text-sm border ${
             dataUsage.backupRecommended
               ? 'bg-amber-50 border-amber-200 text-amber-800'
-              : 'bg-green-50 border-green-200 text-green-800'
+              : 'bg-emerald-50 border-emerald-200 text-emerald-800'
           }`}>
             {dataUsage.backupRecommended
               ? '데이터가 꽤 쌓였습니다. 지금 백업해두는 것을 권장합니다.'
@@ -237,9 +237,9 @@ export const SettingsPage = ({
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-gray-200 bg-white/70 p-4 space-y-3">
+            <div className="rounded-xl border border-slate-200 bg-white/70 p-4 space-y-3">
               <div className="flex items-center justify-between gap-2">
-                <p className="font-semibold text-gray-800">백업 설정</p>
+                <p className="font-semibold text-slate-800">백업 설정</p>
                 <button
                   type="button"
                   onClick={() => onUpdateSettings({
@@ -249,7 +249,7 @@ export const SettingsPage = ({
                     }
                   })}
                   className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
-                    settings.backup.autoBackup ? 'bg-blue-600' : 'bg-gray-300'
+                    settings.backup.autoBackup ? 'bg-indigo-600' : 'bg-slate-300'
                   }`}
                 >
                   <span
@@ -262,7 +262,7 @@ export const SettingsPage = ({
 
               {settings.backup.autoBackup && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">백업 주기</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">백업 주기</label>
                   <select
                     value={settings.backup.backupFrequency}
                     onChange={(e) => onUpdateSettings({
@@ -271,7 +271,7 @@ export const SettingsPage = ({
                         backupFrequency: e.target.value
                       }
                     })}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-xl text-sm"
+                    className="w-full px-4 py-2 border border-slate-300 rounded-xl text-sm text-slate-700"
                   >
                     <option value="daily">매일</option>
                     <option value="weekly">매주</option>
@@ -290,13 +290,13 @@ export const SettingsPage = ({
               </Button>
             </div>
 
-            <div className="rounded-xl border border-gray-200 bg-white/70 p-4 space-y-3">
-              <p className="font-semibold text-gray-800">복원 및 참고</p>
+            <div className="rounded-xl border border-slate-200 bg-white/70 p-4 space-y-3">
+              <p className="font-semibold text-slate-800">복원 및 참고</p>
               <div>
                 <label htmlFor="import-file" className="block">
-                  <div className="w-full px-3 py-2 border-2 border-dashed border-gray-300 rounded-xl text-center cursor-pointer hover:border-blue-500 transition-colors">
+                  <div className="w-full px-3 py-2 border-2 border-dashed border-slate-300 rounded-xl text-center cursor-pointer hover:border-indigo-500 transition-colors">
                     <Upload className="inline-block mr-1" size={16} />
-                    <span className="text-sm font-medium text-gray-700">파일에서 가져오기</span>
+                    <span className="text-sm font-medium text-slate-700">파일에서 가져오기</span>
                   </div>
                 </label>
                 <input
@@ -307,7 +307,7 @@ export const SettingsPage = ({
                   className="hidden"
                 />
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-slate-500">
                 이 수치는 앱이 읽은 데이터 기준의 대략적인 JSON 크기입니다. Firebase Console의 실제 사용량과는 차이가 있을 수 있습니다.
               </p>
             </div>
@@ -323,11 +323,11 @@ export const SettingsPage = ({
         onToggle={() => toggleSection('account')}
       >
         <div className="pt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div className="rounded-xl border border-gray-200 bg-white/70 p-4 space-y-4">
+          <div className="rounded-xl border border-slate-200 bg-white/70 p-4 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">내 아바타</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">내 아바타</label>
               <div className="flex items-center gap-3">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-100 to-pink-100 rounded-2xl flex items-center justify-center text-3xl shadow-md">
+                <div className="w-16 h-16 bg-gradient-to-br from-indigo-100 to-sky-100 rounded-2xl flex items-center justify-center text-3xl shadow-md">
                   {userAvatar || DEFAULT_AVATARS.user1}
                 </div>
                 <Button
@@ -339,24 +339,24 @@ export const SettingsPage = ({
                   변경하기
                 </Button>
               </div>
-              <p className="text-xs text-gray-500 mt-2">헤더와 가족 구성원 정보에 표시됩니다.</p>
+              <p className="text-xs text-slate-500 mt-2">헤더와 가족 구성원 정보에 표시됩니다.</p>
             </div>
           </div>
 
-          <div className="rounded-xl border border-gray-200 bg-white/70 p-4 space-y-4">
+          <div className="rounded-xl border border-slate-200 bg-white/70 p-4 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">테마</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">테마</label>
               <select
                 value={theme || 'light'}
                 onChange={(e) => onChangeTheme(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-xl text-sm"
+                className="w-full px-4 py-2 border border-slate-300 rounded-xl text-sm text-slate-700"
               >
                 <option value="light">라이트 (기본)</option>
                 <option value="dark">다크</option>
                 <option value="colorful">컬러풀</option>
               </select>
             </div>
-            <div className="rounded-lg bg-gray-50 p-3 text-sm text-gray-600">
+            <div className="rounded-lg bg-slate-50 p-3 text-sm text-slate-600">
               저장 상태는 상단 배지에서 바로 확인할 수 있습니다. 변경 사항은 자동 저장됩니다.
             </div>
           </div>
@@ -395,7 +395,7 @@ export const SettingsPage = ({
         isOpen={openSections.family}
         onToggle={() => toggleSection('family')}
         badge={
-          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${familyInfo ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'}`}>
+          <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${familyInfo ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700'}`}>
             {familyInfo ? '공유 중' : '개인 모드'}
           </span>
         }
@@ -403,24 +403,24 @@ export const SettingsPage = ({
         <div className="pt-4 space-y-4">
           {familyInfo ? (
             <>
-              <div className="rounded-xl bg-blue-50 p-4">
-                <p className="text-sm text-gray-700">가족 이름</p>
-                <p className="text-lg font-bold text-gray-900 mt-1">{familyInfo.name}</p>
-                <p className="text-xs text-gray-500 mt-2">
+              <div className="rounded-xl bg-indigo-50 p-4">
+                <p className="text-sm text-slate-700">가족 이름</p>
+                <p className="text-lg font-bold text-slate-900 mt-1">{familyInfo.name}</p>
+                <p className="text-xs text-slate-500 mt-2">
                   현재 {familyMemberCount}명이 참여 중이며, {isFamilyAdmin ? '관리자 권한으로 초대와 멤버 관리를 할 수 있습니다.' : '멤버로 참여 중이며 데이터는 공유되지만 관리 권한은 제한됩니다.'}
                 </p>
               </div>
 
               <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-700">가족 구성원</p>
+                <p className="text-sm font-medium text-slate-700">가족 구성원</p>
                 {Object.values(familyInfo.members || {}).map((member) => (
-                  <div key={member.userId} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={member.userId} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
                     <div>
-                      <p className="font-medium text-gray-800 text-sm">{member.name}</p>
-                      <p className="text-xs text-gray-600">{member.role === 'admin' ? '관리자: 초대 및 멤버 관리 가능' : '멤버: 데이터 열람 및 작성 가능'}</p>
+                      <p className="font-medium text-slate-800 text-sm">{member.name}</p>
+                      <p className="text-xs text-slate-600">{member.role === 'admin' ? '관리자: 초대 및 멤버 관리 가능' : '멤버: 데이터 열람 및 작성 가능'}</p>
                     </div>
                     {member.userId === currentUser?.firebaseId && (
-                      <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">나</span>
+                      <span className="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded">나</span>
                     )}
                   </div>
                 ))}
@@ -447,7 +447,7 @@ export const SettingsPage = ({
             </>
           ) : (
             <>
-              <div className="rounded-xl bg-blue-50 p-4 text-sm text-blue-900">
+              <div className="rounded-xl bg-indigo-50 p-4 text-sm text-indigo-900">
                 <p className="font-semibold mb-2">가족 가계부 기능</p>
                 <p>실시간 거래 공유, 고정지출 공유, 함께하는 예산 관리가 가능합니다.</p>
               </div>
@@ -473,7 +473,7 @@ export const SettingsPage = ({
       >
         <div className="pt-4 space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">월 예산</label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">월 예산</label>
             <input
               type="number"
               value={settings.budget.monthly}
@@ -481,12 +481,12 @@ export const SettingsPage = ({
                 budget: { ...settings.budget, monthly: e.target.value }
               })}
               placeholder="0"
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl text-sm"
+              className="w-full px-4 py-2 border border-slate-300 rounded-xl text-sm text-slate-700"
             />
           </div>
 
-          <div className="border-t border-gray-200 pt-4">
-            <p className="text-sm font-medium text-gray-700 mb-3">카테고리별 예산</p>
+          <div className="border-t border-slate-200 pt-4">
+            <p className="text-sm font-medium text-slate-700 mb-3">카테고리별 예산</p>
             <div className="space-y-2 lg:max-h-[28vh] lg:overflow-y-auto pr-1">
               {CATEGORIES.expense.map((category) => {
                 const Icon = category.icon;
@@ -495,7 +495,7 @@ export const SettingsPage = ({
                     <div className={`p-1 rounded ${category.color} flex-shrink-0`}>
                       <Icon size={12} />
                     </div>
-                    <span className="text-xs font-medium text-gray-700 min-w-[56px] flex-shrink-0">{category.name}</span>
+                    <span className="text-xs font-medium text-slate-700 min-w-[56px] flex-shrink-0">{category.name}</span>
                     <input
                       type="number"
                       value={settings.budget.categories[category.id] || ''}
@@ -509,7 +509,7 @@ export const SettingsPage = ({
                         }
                       })}
                       placeholder="0"
-                      className="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-xl text-xs"
+                      className="flex-1 min-w-0 px-3 py-2 border border-slate-300 rounded-xl text-xs text-slate-700"
                     />
                   </div>
                 );
@@ -532,10 +532,10 @@ export const SettingsPage = ({
             { key: 'dailyReminder', label: '일일 기록 알림', desc: '매일 저녁 거래 기록을 알림합니다' },
             { key: 'weeklyReport', label: '주간 리포트', desc: '매주 월요일 지난 주 요약을 받습니다' }
           ].map(({ key, label, desc }) => (
-            <div key={key} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg gap-3">
+            <div key={key} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg gap-3">
               <div className="min-w-0">
-                <p className="font-medium text-gray-800 text-sm">{label}</p>
-                <p className="text-xs text-gray-500 mt-1">{desc}</p>
+                <p className="font-medium text-slate-800 text-sm">{label}</p>
+                <p className="text-xs text-slate-500 mt-1">{desc}</p>
               </div>
               <button
                 type="button"
@@ -546,7 +546,7 @@ export const SettingsPage = ({
                   }
                 })}
                 className={`relative inline-flex h-5 w-9 flex-shrink-0 items-center rounded-full transition-colors ${
-                  settings.notifications[key] ? 'bg-blue-600' : 'bg-gray-300'
+                  settings.notifications[key] ? 'bg-indigo-600' : 'bg-slate-300'
                 }`}
               >
                 <span
@@ -569,21 +569,21 @@ export const SettingsPage = ({
       >
         <div className="pt-4 space-y-4">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-2xl font-bold text-blue-600">{transactions.length}</p>
-              <p className="text-sm text-gray-600 mt-1">총 거래 수</p>
+            <div className="text-center p-4 bg-slate-50 rounded-lg">
+              <p className="text-2xl font-bold text-indigo-600">{transactions.length}</p>
+              <p className="text-sm text-slate-600 mt-1">총 거래 수</p>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-2xl font-bold text-purple-600">{fixedExpenses.length}</p>
-              <p className="text-sm text-gray-600 mt-1">고정지출 항목</p>
+            <div className="text-center p-4 bg-slate-50 rounded-lg">
+              <p className="text-2xl font-bold text-violet-600">{fixedExpenses.length}</p>
+              <p className="text-sm text-slate-600 mt-1">고정지출 항목</p>
             </div>
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <p className="text-2xl font-bold text-green-600">v1.0</p>
-              <p className="text-sm text-gray-600 mt-1">앱 버전</p>
+            <div className="text-center p-4 bg-slate-50 rounded-lg">
+              <p className="text-2xl font-bold text-emerald-600">v1.0</p>
+              <p className="text-sm text-slate-600 mt-1">앱 버전</p>
             </div>
-            <div className="text-center p-4 bg-gradient-to-r from-pink-100 to-blue-100 rounded-lg">
+            <div className="text-center p-4 bg-gradient-to-r from-indigo-100 to-sky-100 rounded-lg">
               <p className="text-2xl font-bold">💕</p>
-              <p className="text-sm text-gray-600 mt-1">{brandingSettings?.pwa?.shortName || '우영♥달림'}</p>
+              <p className="text-sm text-slate-600 mt-1">{brandingSettings?.pwa?.shortName || '우영♥달림'}</p>
             </div>
           </div>
 
@@ -594,8 +594,8 @@ export const SettingsPage = ({
             currentUser={currentUser}
           />
 
-          <p className="text-sm text-gray-500 text-center">
-            {brandingSettings?.appName || '우영달림 가계부'} • 2025 • Made with Claude Code
+          <p className="text-sm text-slate-500 text-center">
+            {brandingSettings?.appName || '우영달림 가계부'} • 2025
           </p>
         </div>
       </AccordionSection>
@@ -608,11 +608,11 @@ export const SettingsPage = ({
           size="lg"
         >
           <div className="space-y-4">
-            <p className="text-gray-700">아래 데이터를 복사하거나 파일로 다운로드하세요.</p>
+            <p className="text-slate-700">아래 데이터를 복사하거나 파일로 다운로드하세요.</p>
             <textarea
               value={backupData}
               readOnly
-              className="w-full h-64 px-4 py-3 border border-gray-300 rounded-xl font-mono text-sm"
+              className="w-full h-64 px-4 py-3 border border-slate-300 rounded-xl font-mono text-sm text-slate-700"
             />
             <div className="flex space-x-3">
               <Button
@@ -651,7 +651,7 @@ export const SettingsPage = ({
           <div className="space-y-4">
             {familyInfo ? (
               <>
-                <p className="text-gray-700">초대할 가족 구성원의 이메일 주소를 입력하세요.</p>
+                <p className="text-slate-700">초대할 가족 구성원의 이메일 주소를 입력하세요.</p>
                 <Input
                   label="이메일 주소"
                   type="email"
@@ -689,7 +689,7 @@ export const SettingsPage = ({
               </>
             ) : (
               <>
-                <p className="text-gray-700">우리 가족만의 가계부를 만들어보세요.</p>
+                <p className="text-slate-700">우리 가족만의 가계부를 만들어보세요.</p>
                 <Input
                   label="가족 이름"
                   type="text"
@@ -698,9 +698,9 @@ export const SettingsPage = ({
                   placeholder="예: 우리 가족, 홍길동 가족"
                   icon={Users}
                 />
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <p className="text-sm font-medium text-blue-900 mb-2">가족 만들기 후에는</p>
-                  <ul className="text-sm text-blue-800 space-y-1">
+                <div className="p-4 bg-indigo-50 rounded-lg">
+                  <p className="text-sm font-medium text-indigo-900 mb-2">가족 만들기 후에는</p>
+                  <ul className="text-sm text-indigo-800 space-y-1">
                     <li>• 가족 구성원을 초대할 수 있어요</li>
                     <li>• 모든 거래 내역이 실시간으로 공유돼요</li>
                     <li>• 함께 예산을 관리할 수 있어요</li>

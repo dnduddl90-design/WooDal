@@ -2,8 +2,8 @@ import { USERS } from '../constants';
 
 const ROLE_COLORS = {
   admin: 'bg-blue-500',
-  member: 'bg-pink-500',
-  user: 'bg-pink-500'
+  member: 'bg-indigo-500',
+  user: 'bg-indigo-500'
 };
 
 const shortenName = (name) => {

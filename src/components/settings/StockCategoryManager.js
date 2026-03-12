@@ -93,9 +93,9 @@ export const StockCategoryManager = ({
       <div className="glass-effect p-6 rounded-xl">
         <div className="flex items-center gap-3 mb-4">
           <FolderTree className="text-emerald-600" size={24} />
-          <h3 className="text-lg font-bold text-gray-800">주식 분류 관리</h3>
+          <h3 className="text-lg font-bold text-slate-800">주식 분류 관리</h3>
         </div>
-        <p className="text-gray-600 text-sm">관리자만 주식 분류를 관리할 수 있습니다.</p>
+        <p className="text-slate-600 text-sm">관리자만 주식 분류를 관리할 수 있습니다.</p>
       </div>
     );
   }
@@ -105,7 +105,7 @@ export const StockCategoryManager = ({
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
           <FolderTree className="text-emerald-600" size={24} />
-          <h3 className="text-lg font-bold text-gray-800">주식 분류 관리</h3>
+          <h3 className="text-lg font-bold text-slate-800">주식 분류 관리</h3>
         </div>
         <Button
           variant="primary"
@@ -129,7 +129,7 @@ export const StockCategoryManager = ({
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value)}
-          className="px-4 py-2 border border-gray-300 rounded-xl bg-white/80 text-sm"
+          className="px-4 py-2 border border-slate-300 rounded-xl bg-white/80 text-sm text-slate-700"
         >
           <option value="name">이름순</option>
           <option value="recent">최근 추가순</option>
@@ -137,13 +137,13 @@ export const StockCategoryManager = ({
       </div>
 
       {stockCategories.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-slate-500">
           <FolderTree size={48} className="mx-auto mb-2 opacity-30" />
           <p className="text-sm">등록된 분류가 없습니다.</p>
           <p className="text-xs mt-1">예: 국내ETF, 배당, 안전자산</p>
         </div>
       ) : filteredCategories.length === 0 ? (
-        <div className="text-center py-8 text-gray-500">
+        <div className="text-center py-8 text-slate-500">
           <Search size={40} className="mx-auto mb-2 opacity-30" />
           <p className="text-sm">검색 결과가 없습니다.</p>
         </div>
@@ -152,15 +152,15 @@ export const StockCategoryManager = ({
           {filteredCategories.map((category) => (
             <div
               key={category.id}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+              className="flex items-center justify-between p-3 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors"
             >
               <div className="flex-1">
-                <div className="font-medium text-gray-800">{category.name}</div>
+                <div className="font-medium text-slate-800">{category.name}</div>
               </div>
               <div className="flex gap-2">
                 <button
                   onClick={() => handleEdit(category)}
-                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
                   title="수정"
                 >
                   <Edit2 size={16} />

@@ -20,19 +20,19 @@ export const Input = ({
 }) => {
   const inputClasses = `w-full px-4 py-2 border rounded-xl transition-all duration-200 ${
     error ? 'border-red-500' : 'border-gray-300'
-  } ${disabled ? 'bg-gray-100/50 cursor-not-allowed' : 'bg-white/80 backdrop-blur-sm'} ${className}`;
+  } ${disabled ? 'bg-slate-100/70 text-slate-400 cursor-not-allowed' : 'bg-white/80 backdrop-blur-sm text-slate-800'} ${className}`;
 
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-slate-700 mb-2">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </label>
       )}
       <div className="relative">
         {Icon && (
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400">
             <Icon size={20} />
           </div>
         )}

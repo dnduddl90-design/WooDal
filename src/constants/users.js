@@ -15,7 +15,7 @@ export const USERS = {
     name: '달림',
     avatar: '👩',
     role: 'user',
-    color: 'bg-pink-500'
+    color: 'bg-indigo-500'
   }
 };
 

@@ -21,11 +21,12 @@ export const Button = ({
 
   // variant별 스타일 (OCP - 확장 가능)
   const variantClasses = {
-    primary: 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-lg',
-    secondary: 'bg-white/80 backdrop-blur-sm text-gray-700 hover:bg-white/90 border border-gray-200 shadow-md',
-    danger: 'bg-gradient-to-r from-red-500 to-pink-600 text-white hover:from-red-600 hover:to-pink-700 shadow-lg',
-    success: 'bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-lg',
-    outline: 'border-2 border-purple-500 text-purple-600 hover:bg-purple-50 bg-white/50 backdrop-blur-sm'
+    primary: 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-900/10',
+    secondary: 'bg-white/80 backdrop-blur-sm text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-md',
+    danger: 'bg-red-600 text-white hover:bg-red-700 shadow-lg shadow-red-900/10',
+    success: 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-lg shadow-emerald-900/10',
+    outline: 'border border-indigo-200 text-indigo-700 hover:bg-indigo-50 bg-white/60 backdrop-blur-sm',
+    ghost: 'text-slate-600 hover:bg-slate-100 bg-transparent'
   };
 
   // size별 스타일 (OCP - 확장 가능)

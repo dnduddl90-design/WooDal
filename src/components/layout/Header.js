@@ -22,7 +22,7 @@ export const Header = ({
   if (!user) return null;
 
   return (
-    <header className="glass-effect sticky top-0 z-40 backdrop-blur-md border-b border-white border-opacity-20">
+    <header className="glass-effect sticky top-0 z-40 backdrop-blur-md border-b border-slate-200/70">
       <div className="flex items-center justify-between px-3 sm:px-6 py-3 sm:py-4">
         {/* 로고 및 타이틀 */}
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
@@ -33,7 +33,7 @@ export const Header = ({
             <h1 className="text-lg sm:text-2xl font-bold gradient-text truncate">
               {appTitle}
             </h1>
-            <p className="text-xs sm:text-sm text-gray-600 truncate">
+            <p className="text-xs sm:text-sm text-slate-500 truncate">
               {user.name}님의 가계부
             </p>
           </div>
@@ -56,7 +56,7 @@ export const Header = ({
           {showInstallButton && (
             <button
               onClick={onInstallPWA}
-              className="sm:hidden p-2 rounded-full bg-blue-500 hover:bg-blue-600 transition-colors animate-pulse"
+              className="sm:hidden p-2 rounded-full bg-indigo-600 hover:bg-indigo-700 transition-colors"
               title="앱 설치"
             >
               <Download size={18} className="text-white" />
@@ -68,29 +68,29 @@ export const Header = ({
             <div className="relative">
               <button
                 onClick={() => setShowInvitations(!showInvitations)}
-                className="relative p-2 rounded-full hover:bg-gray-100 transition-colors"
+                className="relative p-2 rounded-full hover:bg-slate-100 transition-colors"
               >
-                <Bell size={20} className="text-blue-600 sm:w-6 sm:h-6" />
-                <span className="absolute top-0 right-0 w-4 h-4 sm:w-5 sm:h-5 bg-red-500 text-white text-[10px] sm:text-xs rounded-full flex items-center justify-center animate-pulse">
+                <Bell size={20} className="text-indigo-600 sm:w-6 sm:h-6" />
+                <span className="absolute top-0 right-0 w-4 h-4 sm:w-5 sm:h-5 bg-red-600 text-white text-[10px] sm:text-xs rounded-full flex items-center justify-center">
                   {pendingInvitations.length}
                 </span>
               </button>
 
               {/* 초대 드롭다운 */}
               {showInvitations && (
-                <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-md bg-white rounded-xl shadow-2xl border border-gray-200 z-50 animate-fade-in">
-                  <div className="p-3 sm:p-4 border-b border-gray-200">
-                    <h3 className="font-bold text-gray-800 text-sm sm:text-base">가족 초대 ({pendingInvitations.length})</h3>
+                <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-md bg-white rounded-xl shadow-2xl border border-slate-200 z-50 animate-fade-in">
+                  <div className="p-3 sm:p-4 border-b border-slate-200">
+                    <h3 className="font-bold text-slate-800 text-sm sm:text-base">가족 초대 ({pendingInvitations.length})</h3>
                   </div>
                   <div className="max-h-[60vh] sm:max-h-96 overflow-y-auto">
                     {pendingInvitations.map((invitation) => (
-                      <div key={invitation.id} className="p-3 sm:p-4 border-b border-gray-100 hover:bg-gray-50">
+                      <div key={invitation.id} className="p-3 sm:p-4 border-b border-slate-100 hover:bg-slate-50">
                         <div className="mb-3">
-                          <p className="font-medium text-gray-900 text-sm sm:text-base">{invitation.familyName}</p>
-                          <p className="text-xs sm:text-sm text-gray-600 mt-1">
+                          <p className="font-medium text-slate-900 text-sm sm:text-base">{invitation.familyName}</p>
+                          <p className="text-xs sm:text-sm text-slate-600 mt-1">
                             {invitation.inviterName}님이 초대했습니다
                           </p>
-                          <p className="text-[10px] sm:text-xs text-gray-500 mt-1">
+                          <p className="text-[10px] sm:text-xs text-slate-500 mt-1">
                             {new Date(invitation.createdAt).toLocaleString('ko-KR')}
                           </p>
                         </div>
@@ -140,10 +140,10 @@ export const Header = ({
           {/* 모바일 로그아웃 아이콘만 */}
           <button
             onClick={onLogout}
-            className="sm:hidden p-2 rounded-full hover:bg-gray-100 transition-colors"
+            className="sm:hidden p-2 rounded-full hover:bg-slate-100 transition-colors"
             title="로그아웃"
           >
-            <LogOut size={20} className="text-gray-600" />
+            <LogOut size={20} className="text-slate-600" />
           </button>
         </div>
       </div>

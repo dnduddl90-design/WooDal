@@ -1,5 +1,5 @@
-import React from 'react';
-import { Search, X, Edit2, Trash2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, X, Edit2, Trash2, SlidersHorizontal } from 'lucide-react';
 import { CATEGORIES, PAYMENT_METHODS } from '../constants';
 import { formatCurrency, getAvailableUsers, resolveUserInfo } from '../utils';
 import { Button, Input } from '../components/common';
@@ -22,7 +22,15 @@ export const SearchPage = ({
   onEditTransaction,
   onDeleteTransaction
 }) => {
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const availableUsers = getAvailableUsers(familyInfo, currentUser);
+  const hasActiveFilters = Object.entries(searchFilters).some(([key, value]) => {
+    if (key === 'type' || key === 'category' || key === 'user') {
+      return value !== 'all';
+    }
+
+    return value !== '';
+  });
 
   // 모든 카테고리 가져오기
   const getAllCategories = () => {
@@ -81,12 +89,12 @@ export const SearchPage = ({
           </div>
 
           {/* 필터 그리드 */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-[1fr_1fr_auto_auto] gap-2 sm:gap-4">
             {/* 타입 필터 */}
             <select
               value={searchFilters.type}
               onChange={(e) => onSearchFiltersChange({ ...searchFilters, type: e.target.value })}
-              className="px-2 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              className="px-2 sm:px-4 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 text-slate-700"
             >
               <option value="all">전체</option>
               <option value="income">수입</option>
@@ -97,26 +105,12 @@ export const SearchPage = ({
             <select
               value={searchFilters.category}
               onChange={(e) => onSearchFiltersChange({ ...searchFilters, category: e.target.value })}
-              className="px-2 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
+              className="px-2 sm:px-4 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 text-slate-700"
             >
               <option value="all">모든 카테고리</option>
               {getAllCategories().map(cat => (
                 <option key={cat.id} value={cat.id}>
                   {cat.name}
-                </option>
-              ))}
-            </select>
-
-            {/* 사용자 필터 */}
-            <select
-              value={searchFilters.user}
-              onChange={(e) => onSearchFiltersChange({ ...searchFilters, user: e.target.value })}
-              className="px-2 sm:px-4 py-2 text-xs sm:text-sm border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-            >
-              <option value="all">모든 사용자</option>
-              {availableUsers.map(user => (
-                <option key={user.id} value={user.id}>
-                  {user.name}
                 </option>
               ))}
             </select>
@@ -130,41 +124,115 @@ export const SearchPage = ({
             >
               검색
             </Button>
+
+            <Button
+              variant="outline"
+              icon={SlidersHorizontal}
+              onClick={() => setShowAdvancedFilters((prev) => !prev)}
+              className="text-xs sm:text-sm"
+            >
+              {showAdvancedFilters ? '고급 필터 닫기' : '고급 필터'}
+            </Button>
           </div>
 
-          {/* 날짜 범위 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-            <Input
-              label="시작 날짜"
-              type="date"
-              value={searchFilters.dateFrom}
-              onChange={(e) => onSearchFiltersChange({ ...searchFilters, dateFrom: e.target.value })}
-            />
-            <Input
-              label="종료 날짜"
-              type="date"
-              value={searchFilters.dateTo}
-              onChange={(e) => onSearchFiltersChange({ ...searchFilters, dateTo: e.target.value })}
-            />
-          </div>
+          {showAdvancedFilters && (
+            <div className="ui-surface-soft rounded-xl p-4 space-y-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-semibold text-slate-800">고급 필터</p>
+                  <p className="text-xs text-slate-500">사용자, 날짜, 금액 범위를 더 좁혀서 찾습니다.</p>
+                </div>
+                <span className="px-2 py-1 rounded-full bg-white text-xs font-medium text-slate-600">
+                  선택 사항
+                </span>
+              </div>
 
-          {/* 금액 범위 */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-            <Input
-              label="최소 금액"
-              type="number"
-              value={searchFilters.amountMin}
-              onChange={(e) => onSearchFiltersChange({ ...searchFilters, amountMin: e.target.value })}
-              placeholder="0"
-            />
-            <Input
-              label="최대 금액"
-              type="number"
-              value={searchFilters.amountMax}
-              onChange={(e) => onSearchFiltersChange({ ...searchFilters, amountMax: e.target.value })}
-              placeholder="무제한"
-            />
-          </div>
+              <select
+                value={searchFilters.user}
+                onChange={(e) => onSearchFiltersChange({ ...searchFilters, user: e.target.value })}
+                className="w-full px-3 sm:px-4 py-2 text-xs sm:text-sm border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 text-slate-700"
+              >
+                <option value="all">모든 사용자</option>
+                {availableUsers.map(user => (
+                  <option key={user.id} value={user.id}>
+                    {user.name}
+                  </option>
+                ))}
+              </select>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                <Input
+                  label="시작 날짜"
+                  type="date"
+                  value={searchFilters.dateFrom}
+                  onChange={(e) => onSearchFiltersChange({ ...searchFilters, dateFrom: e.target.value })}
+                />
+                <Input
+                  label="종료 날짜"
+                  type="date"
+                  value={searchFilters.dateTo}
+                  onChange={(e) => onSearchFiltersChange({ ...searchFilters, dateTo: e.target.value })}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+                <Input
+                  label="최소 금액"
+                  type="number"
+                  value={searchFilters.amountMin}
+                  onChange={(e) => onSearchFiltersChange({ ...searchFilters, amountMin: e.target.value })}
+                  placeholder="0"
+                />
+                <Input
+                  label="최대 금액"
+                  type="number"
+                  value={searchFilters.amountMax}
+                  onChange={(e) => onSearchFiltersChange({ ...searchFilters, amountMax: e.target.value })}
+                  placeholder="무제한"
+                />
+              </div>
+            </div>
+          )}
+
+          {hasActiveFilters && (
+            <div className="flex flex-wrap gap-2 text-xs sm:text-sm">
+              {searchFilters.type !== 'all' && (
+                <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700">
+                  유형: {searchFilters.type === 'income' ? '수입' : '지출'}
+                </span>
+              )}
+              {searchFilters.category !== 'all' && (
+                <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700">
+                  카테고리: {getAllCategories().find((cat) => cat.id === searchFilters.category)?.name || searchFilters.category}
+                </span>
+              )}
+              {searchFilters.user !== 'all' && (
+                <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700">
+                  사용자: {availableUsers.find((user) => user.id === searchFilters.user)?.name || searchFilters.user}
+                </span>
+              )}
+              {searchFilters.dateFrom && (
+                <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700">
+                  시작: {searchFilters.dateFrom}
+                </span>
+              )}
+              {searchFilters.dateTo && (
+                <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700">
+                  종료: {searchFilters.dateTo}
+                </span>
+              )}
+              {searchFilters.amountMin && (
+                <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700">
+                  최소: {formatCurrency(Number(searchFilters.amountMin))}원
+                </span>
+              )}
+              {searchFilters.amountMax && (
+                <span className="rounded-full bg-indigo-50 px-3 py-1 text-indigo-700">
+                  최대: {formatCurrency(Number(searchFilters.amountMax))}원
+                </span>
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -172,25 +240,25 @@ export const SearchPage = ({
       {searchResults.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
           <div className="glass-effect rounded-xl p-3 sm:p-4 shadow-lg">
-            <p className="text-xs sm:text-sm text-gray-600 mb-1">수입</p>
+            <p className="text-xs sm:text-sm text-slate-600 mb-1">수입</p>
             <p className="text-sm sm:text-lg font-bold text-green-600 truncate">
               {stats.incomeCount}건 / {formatCurrency(stats.incomeTotal)}원
             </p>
           </div>
           <div className="glass-effect rounded-xl p-3 sm:p-4 shadow-lg">
-            <p className="text-xs sm:text-sm text-gray-600 mb-1">지출</p>
+            <p className="text-xs sm:text-sm text-slate-600 mb-1">지출</p>
             <p className="text-sm sm:text-lg font-bold text-red-600 truncate">
               {stats.expenseCount}건 / {formatCurrency(stats.expenseTotal)}원
             </p>
           </div>
           <div className="glass-effect rounded-xl p-3 sm:p-4 shadow-lg">
-            <p className="text-xs sm:text-sm text-gray-600 mb-1">전체</p>
-            <p className="text-sm sm:text-lg font-bold text-gray-800">
+            <p className="text-xs sm:text-sm text-slate-600 mb-1">전체</p>
+            <p className="text-sm sm:text-lg font-bold text-slate-800">
               {stats.totalCount}건
             </p>
           </div>
           <div className="glass-effect rounded-xl p-3 sm:p-4 shadow-lg">
-            <p className="text-xs sm:text-sm text-gray-600 mb-1">차액</p>
+            <p className="text-xs sm:text-sm text-slate-600 mb-1">차액</p>
             <p className={`text-sm sm:text-lg font-bold truncate ${
               stats.netAmount >= 0 ? 'text-blue-600' : 'text-red-600'
             }`}>
@@ -202,7 +270,7 @@ export const SearchPage = ({
 
       {/* 검색 결과 */}
       <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
-        <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">
+        <h3 className="text-base sm:text-lg font-bold text-slate-800 mb-3 sm:mb-4">
           검색 결과 {searchResults.length > 0 && `(${searchResults.length}건)`}
         </h3>
 
@@ -211,11 +279,16 @@ export const SearchPage = ({
             <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">
               {searchQuery || Object.values(searchFilters).some(v => v !== 'all' && v !== '') ? '🔍' : '🔎'}
             </div>
-            <p className="text-sm sm:text-base text-gray-500">
+            <p className="text-sm sm:text-base text-slate-500">
               {searchQuery || Object.values(searchFilters).some(v => v !== 'all' && v !== '')
                 ? '검색 결과가 없습니다'
                 : '검색을 시작해보세요'}
             </p>
+            {(searchQuery || hasActiveFilters) && (
+              <p className="mt-2 text-xs sm:text-sm text-slate-400">
+                검색어를 바꾸거나 필터를 줄이면 더 많은 결과를 볼 수 있습니다.
+              </p>
+            )}
           </div>
         ) : (
           <div className="space-y-2 sm:space-y-3">
@@ -228,60 +301,48 @@ export const SearchPage = ({
               return (
                 <div
                   key={transaction.id}
-                  className="p-3 sm:p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-all duration-200 card-hover"
+                  className="p-3 sm:p-4 border border-slate-200 rounded-xl hover:bg-slate-50 transition-all duration-200 card-hover"
                 >
-                  <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4">
-                    {/* 왼쪽: 정보 */}
-                    <div className="flex items-start space-x-2 sm:space-x-4 flex-1 min-w-0 w-full sm:w-auto">
-                      {/* 아이콘 */}
-                      <div className={`p-2 sm:p-3 rounded-lg flex-shrink-0 ${category?.color || 'bg-gray-100 text-gray-600'}`}>
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2.5 rounded-lg flex-shrink-0 ${category?.color || 'bg-slate-100 text-slate-600'}`}>
                         {Icon && <Icon size={20} className="sm:w-6 sm:h-6" />}
                       </div>
-
-                      {/* 상세 정보 */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-1 sm:space-x-2 mb-1">
-                          <h4 className="text-base sm:text-lg font-bold text-gray-800 truncate">
-                            {category?.name || '기타'}
-                          </h4>
-                          {transaction.subcategory && (
-                            <span className="text-xs sm:text-sm text-gray-500 truncate">
-                              • {transaction.subcategory}
-                            </span>
-                          )}
-                          <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-medium flex-shrink-0 ${
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <h4 className="text-base sm:text-lg font-bold text-slate-800 truncate">
+                              {category?.name || '기타'}
+                              {transaction.subcategory ? ` · ${transaction.subcategory}` : ''}
+                            </h4>
+                            <p className="text-xs sm:text-sm text-slate-500 mt-1 truncate">
+                              {transaction.date} · {user?.name || '알 수 없음'} {paymentMethod ? `· ${paymentMethod.name}` : ''}
+                            </p>
+                          </div>
+                          <span className={`px-2 py-1 rounded-full text-[11px] sm:text-xs font-semibold flex-shrink-0 ${
                             transaction.type === 'income'
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-red-100 text-red-700'
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : 'bg-rose-100 text-rose-700'
                           }`}>
                             {transaction.type === 'income' ? '수입' : '지출'}
                           </span>
                         </div>
 
-                        <p className={`text-lg sm:text-xl font-bold mb-1 sm:mb-2 truncate ${
-                          transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                        <p className={`text-xl sm:text-2xl font-bold mt-3 ${
+                          transaction.type === 'income' ? 'text-emerald-600' : 'text-rose-600'
                         }`}>
                           {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}원
                         </p>
 
-                        <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-gray-600">
-                          <span>📅 {transaction.date}</span>
-                          <span>👤 {user?.name || '알 수 없음'}</span>
-                          {paymentMethod && (
-                            <span>💳 {paymentMethod.name}</span>
-                          )}
-                        </div>
-
                         {transaction.memo && (
-                          <p className="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-2 line-clamp-2">
-                            📝 {transaction.memo}
+                          <p className="text-xs sm:text-sm text-slate-500 mt-2 line-clamp-2">
+                            {transaction.memo}
                           </p>
                         )}
                       </div>
                     </div>
 
-                    {/* 오른쪽: 액션 버튼들 */}
-                    <div className="flex items-center space-x-1 sm:space-x-2 w-full sm:w-auto justify-end sm:justify-start">
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200">
                       <Button
                         variant="secondary"
                         size="sm"

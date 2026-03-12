@@ -282,16 +282,16 @@ export const PocketMoneyPage = ({ currentUser }) => {
           <Wallet className="w-8 h-8" />
           용돈 관리
         </h1>
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-slate-500">
           이번 달 시작 잔고와 사용 흐름을 기준으로 봅니다.
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-4 bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg">
+      <div className="flex items-center justify-center gap-4 bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-slate-200/70">
         <Button variant="secondary" onClick={handlePrevMonth}>
           &lt;
         </Button>
-        <div className="text-xl font-bold text-gray-800 flex items-center gap-2">
+        <div className="text-xl font-bold text-slate-800 flex items-center gap-2">
           <Calendar className="w-5 h-5" />
           {currentYear}년 {currentMonth + 1}월
         </div>
@@ -301,7 +301,7 @@ export const PocketMoneyPage = ({ currentUser }) => {
       </div>
 
       {loading && (
-        <div className="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+        <div className="rounded-xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-700">
           용돈 데이터를 불러오는 중입니다.
         </div>
       )}
@@ -323,7 +323,7 @@ export const PocketMoneyPage = ({ currentUser }) => {
         </div>
       )}
 
-      <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-6 shadow-xl text-white">
+      <div className="rounded-2xl p-6 shadow-xl text-white ui-accent-block">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-4 flex-1">
             <h2 className="text-lg font-semibold flex items-center gap-2">
@@ -343,7 +343,7 @@ export const PocketMoneyPage = ({ currentUser }) => {
                   value={balanceInput}
                   onChange={(e) => setBalanceInput(e.target.value)}
                   placeholder="금액 입력"
-                  className="bg-white text-gray-800"
+                  className="bg-white text-slate-800"
                   min="0"
                 />
                 <div className="grid grid-cols-2 gap-2">
@@ -374,21 +374,21 @@ export const PocketMoneyPage = ({ currentUser }) => {
           </div>
 
           <div className="grid grid-cols-2 gap-3 lg:w-[340px]">
-            <div className="bg-white/15 rounded-xl p-4">
+            <div className="bg-white/15 rounded-xl p-4 border border-white/10">
               <p className="text-xs text-white/80 mb-1">이번 달 시작 잔고</p>
               <p className="text-lg font-bold">{formatCurrency(monthStartBalance)}</p>
             </div>
-            <div className="bg-white/15 rounded-xl p-4">
+            <div className="bg-white/15 rounded-xl p-4 border border-white/10">
               <p className="text-xs text-white/80 mb-1">누적 충전/차감</p>
               <p className={`text-lg font-bold ${monthlyChangeAmount >= 0 ? 'text-green-100' : 'text-red-100'}`}>
                 {monthlyChangeAmount >= 0 ? '+' : '-'}{formatCurrency(Math.abs(monthlyChangeAmount))}
               </p>
             </div>
-            <div className="bg-white/15 rounded-xl p-4">
+            <div className="bg-white/15 rounded-xl p-4 border border-white/10">
               <p className="text-xs text-white/80 mb-1">이번 달 사용</p>
               <p className="text-lg font-bold">{formatCurrency(totalSpent)}</p>
             </div>
-            <div className="bg-white/15 rounded-xl p-4">
+            <div className="bg-white/15 rounded-xl p-4 border border-white/10">
               <p className="text-xs text-white/80 mb-1">현재 잔액</p>
               <p className="text-lg font-bold">{formatCurrency(remaining)}</p>
             </div>
@@ -396,35 +396,35 @@ export const PocketMoneyPage = ({ currentUser }) => {
         </div>
       </div>
 
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl space-y-4">
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl space-y-4 border border-slate-200/70">
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-gray-800">이번 달 지출 현황</h2>
+          <h2 className="text-lg font-semibold text-slate-800">이번 달 지출 현황</h2>
           <span className={`text-sm font-semibold ${getProgressTextColor()}`}>{summaryWarning}</span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
-            <p className="text-sm text-gray-600 mb-1">이번 달 시작 잔고</p>
-            <p className="text-lg font-bold text-blue-600">{formatCurrency(monthStartBalance)}</p>
+          <div className="p-4 bg-indigo-50 rounded-xl border border-indigo-200">
+            <p className="text-sm text-slate-600 mb-1">이번 달 시작 잔고</p>
+            <p className="text-lg font-bold text-indigo-700">{formatCurrency(monthStartBalance)}</p>
           </div>
-          <div className="p-4 bg-red-50 rounded-xl border border-red-200">
-            <p className="text-sm text-gray-600 mb-1">이번 달 지출</p>
-            <p className="text-lg font-bold text-red-500">{formatCurrency(totalSpent)}</p>
+          <div className="p-4 bg-rose-50 rounded-xl border border-rose-200">
+            <p className="text-sm text-slate-600 mb-1">이번 달 지출</p>
+            <p className="text-lg font-bold text-rose-600">{formatCurrency(totalSpent)}</p>
           </div>
-          <div className={`p-4 rounded-xl border ${remaining < 0 ? 'bg-red-100 border-red-300' : 'bg-green-50 border-green-200'}`}>
-            <p className="text-sm text-gray-600 mb-1">현재 잔액</p>
+          <div className={`p-4 rounded-xl border ${remaining < 0 ? 'bg-red-50 border-red-200' : 'bg-emerald-50 border-emerald-200'}`}>
+            <p className="text-sm text-slate-600 mb-1">현재 잔액</p>
             <p className={`text-lg font-bold ${getProgressTextColor()}`}>{formatCurrency(remaining)}</p>
           </div>
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-gray-600">잔액 진행률</span>
+            <span className="text-slate-600">잔액 진행률</span>
             <span className={`font-semibold ${getProgressTextColor()}`}>
               {remainingPercentage.toFixed(1)}%
             </span>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+          <div className="w-full bg-slate-200 rounded-full h-4 overflow-hidden">
             <div
               className={`h-full ${getProgressColor()} transition-all duration-300`}
               style={{ width: `${Math.max(0, Math.min(100, remainingPercentage))}%` }}
@@ -434,43 +434,43 @@ export const PocketMoneyPage = ({ currentUser }) => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg">
-          <div className="flex items-center gap-2 text-gray-600 mb-2">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-slate-200/70">
+          <div className="flex items-center gap-2 text-slate-600 mb-2">
             <TrendingDown className="w-4 h-4" />
             <span className="text-sm">일평균 지출</span>
           </div>
-          <div className="text-xl font-bold text-gray-800">{formatCurrency(Math.round(stats.averageDaily))}</div>
+          <div className="text-xl font-bold text-slate-800">{formatCurrency(Math.round(stats.averageDaily))}</div>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg">
-          <div className="flex items-center gap-2 text-gray-600 mb-2">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-slate-200/70">
+          <div className="flex items-center gap-2 text-slate-600 mb-2">
             <TrendingUp className="w-4 h-4" />
             <span className="text-sm">남은 기간 권장</span>
           </div>
-          <div className="text-xl font-bold text-gray-800">{formatCurrency(Math.round(stats.recommendedDaily))}</div>
+          <div className="text-xl font-bold text-slate-800">{formatCurrency(Math.round(stats.recommendedDaily))}</div>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg">
-          <div className="flex items-center gap-2 text-gray-600 mb-2">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-slate-200/70">
+          <div className="flex items-center gap-2 text-slate-600 mb-2">
             <Wallet className="w-4 h-4" />
             <span className="text-sm">최대 지출</span>
           </div>
-          <div className="text-xl font-bold text-gray-800">{formatCurrency(stats.maxSpending)}</div>
+          <div className="text-xl font-bold text-slate-800">{formatCurrency(stats.maxSpending)}</div>
         </div>
-        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg">
-          <div className="flex items-center gap-2 text-gray-600 mb-2">
+        <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-slate-200/70">
+          <div className="flex items-center gap-2 text-slate-600 mb-2">
             <Calendar className="w-4 h-4" />
             <span className="text-sm">가장 많이 쓴 카테고리</span>
           </div>
-          <div className="text-lg font-bold text-gray-800 truncate">
+          <div className="text-lg font-bold text-slate-800 truncate">
             {stats.topCategory ? `${stats.topCategory[0]} · ${formatCurrency(stats.topCategory[1])}` : '-'}
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-[0.7fr_1.3fr] gap-6">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-slate-200/70">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-800">카테고리 요약</h2>
-            <span className="text-sm text-gray-500">{stats.transactionCount}건</span>
+            <h2 className="text-lg font-semibold text-slate-800">카테고리 요약</h2>
+            <span className="text-sm text-slate-500">{stats.transactionCount}건</span>
           </div>
 
           {categoryBreakdown.length > 0 ? (
@@ -478,12 +478,12 @@ export const PocketMoneyPage = ({ currentUser }) => {
               {categoryBreakdown.map(([category, amount]) => (
                 <div key={category} className="space-y-1">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-gray-700">{category}</span>
-                    <span className="font-semibold text-gray-800">{formatCurrency(amount)}</span>
+                    <span className="font-medium text-slate-700">{category}</span>
+                    <span className="font-semibold text-slate-800">{formatCurrency(amount)}</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div className="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-pink-400 to-purple-500"
+                      className="h-full bg-gradient-to-r from-indigo-400 to-blue-500"
                       style={{ width: `${totalSpent > 0 ? (amount / totalSpent) * 100 : 0}%` }}
                     />
                   </div>
@@ -491,14 +491,14 @@ export const PocketMoneyPage = ({ currentUser }) => {
               ))}
             </div>
           ) : (
-            <div className="text-center py-8 text-gray-500">이번 달 사용 내역이 없습니다.</div>
+            <div className="text-center py-8 text-slate-500">이번 달 사용 내역이 없습니다.</div>
           )}
         </div>
 
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-slate-200/70">
           <div className="flex flex-col gap-3 mb-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-800">거래 내역</h2>
+              <h2 className="text-lg font-semibold text-slate-800">거래 내역</h2>
               <Button variant="primary" size="sm" onClick={openAddTransactionModal} icon={Plus}>
                 추가
               </Button>
@@ -515,7 +515,7 @@ export const PocketMoneyPage = ({ currentUser }) => {
               <select
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-xl bg-white/80"
+                className="px-4 py-2 border border-slate-300 rounded-xl bg-white/80 text-slate-700"
               >
                 <option value="all">전체 카테고리</option>
                 {allCategoryOptions.map((category) => (
@@ -525,7 +525,7 @@ export const PocketMoneyPage = ({ currentUser }) => {
               <select
                 value={sortOption}
                 onChange={(e) => setSortOption(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-xl bg-white/80"
+                className="px-4 py-2 border border-slate-300 rounded-xl bg-white/80 text-slate-700"
               >
                 <option value="dateDesc">최신순</option>
                 <option value="dateAsc">오래된순</option>
@@ -541,7 +541,7 @@ export const PocketMoneyPage = ({ currentUser }) => {
                     key={category}
                     type="button"
                     onClick={() => setTransactionForm((prev) => ({ ...prev, category }))}
-                    className="px-3 py-1.5 rounded-full bg-pink-50 text-pink-700 text-sm hover:bg-pink-100 transition-colors"
+                    className="px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-700 text-sm hover:bg-indigo-100 transition-colors"
                   >
                     최근 {category}
                   </button>
@@ -551,7 +551,7 @@ export const PocketMoneyPage = ({ currentUser }) => {
           </div>
 
           {filteredTransactions.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-slate-500">
               {currentMonthTransactions.length === 0 ? '아직 거래 내역이 없습니다' : '조건에 맞는 거래가 없습니다'}
             </div>
           ) : (
@@ -559,24 +559,24 @@ export const PocketMoneyPage = ({ currentUser }) => {
               {filteredTransactions.map((transaction) => (
                 <div
                   key={transaction.id}
-                  className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-gray-100 transition-colors group"
+                  className="flex items-center justify-between p-4 bg-slate-50 rounded-xl hover:bg-slate-100 transition-colors group"
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-800 break-words">{transaction.category}</div>
-                    <div className="text-sm text-gray-500 break-words">
+                    <div className="font-medium text-slate-800 break-words">{transaction.category}</div>
+                    <div className="text-sm text-slate-500 break-words">
                       {transaction.date} {transaction.memo && `· ${transaction.memo}`}
                     </div>
                   </div>
                   <div className="flex items-center gap-2 sm:gap-3 ml-3">
-                    <div className="text-lg font-bold text-red-500">
+                    <div className="text-lg font-bold text-rose-600">
                       -{formatCurrency(transaction.amount)}
                     </div>
                     <button
                       onClick={() => openEditTransactionModal(transaction)}
-                      className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-2 hover:bg-blue-100 rounded-lg"
+                      className="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity p-2 hover:bg-indigo-100 rounded-lg"
                       title="수정"
                     >
-                      <Edit size={18} className="text-blue-500" />
+                      <Edit size={18} className="text-indigo-500" />
                     </button>
                     <button
                       onClick={() => handleDeleteTransaction(transaction.id)}
@@ -601,11 +601,11 @@ export const PocketMoneyPage = ({ currentUser }) => {
       >
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">카테고리</label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">카테고리</label>
             <select
               value={transactionForm.category}
               onChange={(e) => setTransactionForm({ ...transactionForm, category: e.target.value })}
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl bg-white/80"
+              className="w-full px-4 py-2 border border-slate-300 rounded-xl bg-white/80 text-slate-700"
             >
               <option value="">카테고리 선택</option>
               {allCategoryOptions.map((category) => (
@@ -621,7 +621,7 @@ export const PocketMoneyPage = ({ currentUser }) => {
                   key={category}
                   type="button"
                   onClick={() => setTransactionForm({ ...transactionForm, category })}
-                  className="px-3 py-1.5 rounded-full bg-pink-50 text-pink-700 text-sm hover:bg-pink-100 transition-colors"
+                  className="px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-700 text-sm hover:bg-indigo-100 transition-colors"
                 >
                   {category}
                 </button>
@@ -648,13 +648,13 @@ export const PocketMoneyPage = ({ currentUser }) => {
           />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">메모</label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">메모</label>
             <textarea
               value={transactionForm.memo}
               onChange={(e) => setTransactionForm({ ...transactionForm, memo: e.target.value })}
               placeholder="메모 (선택사항)"
               rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 resize-none"
+              className="w-full px-4 py-2 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all duration-200 resize-none text-slate-800"
             />
           </div>
 

@@ -28,24 +28,24 @@ export const LoginPage = ({ onLogin, appSubtitle = "우영 ♥ 달림", appTitle
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-pink-50 flex items-center justify-center p-4 animate-fade-in">
+    <div className="min-h-screen bg-animated flex items-center justify-center p-4 animate-fade-in">
       <div className="glass-effect rounded-2xl shadow-2xl p-8 w-full max-w-md animate-scale-up">
         {/* 로고 섹션 */}
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-2 mb-4 animate-float">
             <span className="text-3xl">👨</span>
-            <Heart className="text-red-500" size={24} />
+            <Heart className="text-rose-500" size={24} />
             <span className="text-3xl">👩</span>
           </div>
           <h1 className="text-2xl font-bold gradient-text mb-2">
             {appSubtitle}
           </h1>
-          <p className="text-gray-600">부부 가계부</p>
+          <p className="text-slate-600">부부 가계부</p>
         </div>
 
         {/* 로그인 안내 */}
         <div className="mb-6 text-center">
-          <p className="text-gray-600 text-sm">
+          <p className="text-slate-600 text-sm">
             Google 계정으로 로그인하여<br />
             {appTitle}를 사용하세요
           </p>
@@ -81,7 +81,7 @@ export const LoginPage = ({ onLogin, appSubtitle = "우영 ♥ 달림", appTitle
         </div>
 
         {/* 안내 문구 */}
-        <div className="mt-6 text-center text-xs text-gray-500">
+        <div className="mt-6 text-center text-xs text-slate-500">
           <p>🔒 안전한 Firebase 인증을 사용합니다</p>
           <p className="mt-1">로그인하면 실시간 동기화가 가능합니다</p>
         </div>

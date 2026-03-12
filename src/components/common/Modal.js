@@ -34,18 +34,18 @@ export const Modal = ({
       <div className={`relative bg-white rounded-xl sm:rounded-2xl shadow-2xl ${sizeClasses[size]} w-full animate-scale-up glass-effect`}>
         {/* 헤더 */}
         {(title || showCloseButton) && (
-          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-200">
             {title && (
-              <h2 className="text-lg sm:text-2xl font-bold text-gray-800 gradient-text">
+              <h2 className="text-lg sm:text-2xl font-bold text-slate-800 gradient-text">
                 {title}
               </h2>
             )}
             {showCloseButton && (
               <button
                 onClick={onClose}
-                className="p-1.5 sm:p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg transition-colors"
               >
-                <X size={20} className="sm:w-6 sm:h-6 text-gray-600" />
+                <X size={20} className="sm:w-6 sm:h-6 text-slate-600" />
               </button>
             )}
           </div>

@@ -45,25 +45,25 @@ const SectionCard = ({ title, subtitle, isOpen, onToggle, children, badge = null
 
 const SummaryCard = ({ label, value, detail, icon: Icon, tone = 'blue', onClick = null }) => {
   const toneClasses = {
-    blue: 'bg-blue-100 text-blue-600',
-    green: 'bg-green-100 text-green-600',
-    red: 'bg-red-100 text-red-600',
-    amber: 'bg-amber-100 text-amber-600',
-    purple: 'bg-purple-100 text-purple-600',
-    orange: 'bg-orange-100 text-orange-600'
+    blue: 'bg-indigo-50 text-indigo-600',
+    green: 'bg-emerald-50 text-emerald-600',
+    red: 'bg-rose-50 text-rose-600',
+    amber: 'bg-amber-50 text-amber-700',
+    purple: 'bg-violet-50 text-violet-600',
+    orange: 'bg-orange-50 text-orange-700'
   };
 
   return (
     <button
       type="button"
       onClick={onClick || undefined}
-      className={`glass-effect rounded-xl p-4 sm:p-5 shadow-lg text-left w-full ${onClick ? 'hover:shadow-xl transition-shadow' : ''}`}
+      className={`glass-effect rounded-xl p-4 sm:p-5 shadow-lg text-left w-full border border-slate-200/70 ${onClick ? 'hover:shadow-xl transition-shadow' : ''}`}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs sm:text-sm text-gray-600 mb-1">{label}</p>
-          <p className="text-lg sm:text-2xl font-bold text-gray-800 truncate">{value}</p>
-          {detail && <p className="text-xs sm:text-sm text-gray-500 mt-1">{detail}</p>}
+          <p className="text-xs sm:text-sm text-slate-600 mb-1">{label}</p>
+          <p className="text-lg sm:text-2xl font-bold text-slate-800 truncate">{value}</p>
+          {detail && <p className="text-xs sm:text-sm text-slate-500 mt-1">{detail}</p>}
         </div>
         <div className={`p-3 rounded-full flex-shrink-0 ${toneClasses[tone] || toneClasses.blue}`}>
           <Icon size={22} className="sm:w-7 sm:h-7" />
@@ -248,7 +248,7 @@ export const StatisticsPage = ({
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrevMonth}
-            className="p-2 sm:p-3 hover:bg-gray-100 rounded-xl transition-colors btn-animate"
+            className="p-2 sm:p-3 hover:bg-slate-100 rounded-xl transition-colors btn-animate"
           >
             <ChevronLeft size={18} className="sm:w-5 sm:h-5" />
           </button>
@@ -262,7 +262,7 @@ export const StatisticsPage = ({
           </Button>
           <button
             onClick={handleNextMonth}
-            className="p-2 sm:p-3 hover:bg-gray-100 rounded-xl transition-colors btn-animate"
+            className="p-2 sm:p-3 hover:bg-slate-100 rounded-xl transition-colors btn-animate"
           >
             <ChevronRight size={18} className="sm:w-5 sm:h-5" />
           </button>
@@ -329,50 +329,50 @@ export const StatisticsPage = ({
         )}
       >
         <div className="space-y-4 pt-4">
-          <div className={`rounded-xl p-4 sm:p-5 ${currentIncome >= currentExpense ? 'bg-gradient-to-r from-green-50 to-blue-50' : 'bg-gradient-to-r from-red-50 to-orange-50'}`}>
-            <p className="text-sm sm:text-base font-semibold text-gray-800 mb-2">이번 달 해석</p>
-            <p className="text-sm sm:text-base text-gray-700">{analysisMessage}</p>
+          <div className={`rounded-xl p-4 sm:p-5 ${currentIncome >= currentExpense ? 'bg-gradient-to-r from-emerald-50 to-indigo-50' : 'bg-gradient-to-r from-rose-50 to-orange-50'}`}>
+            <p className="text-sm sm:text-base font-semibold text-slate-800 mb-2">이번 달 해석</p>
+            <p className="text-sm sm:text-base text-slate-700">{analysisMessage}</p>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="rounded-xl border border-gray-200 bg-white/80 p-4">
+            <div className="rounded-xl border border-slate-200 bg-white/80 p-4">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-semibold text-gray-800">지출 구성</p>
-                <span className="text-xs text-gray-500">소비/고정/저축 구분</span>
+                <p className="text-sm font-semibold text-slate-800">지출 구성</p>
+                <span className="text-xs text-slate-500">소비/고정/저축 구분</span>
               </div>
               <div className="space-y-3 text-sm">
                 <div>
                   <div className="flex justify-between mb-1">
-                    <span className="text-gray-600">변동 소비</span>
-                    <span className="font-semibold text-gray-800">{formatCurrency(currentSummary.variableExpense)}원</span>
+                    <span className="text-slate-600">변동 소비</span>
+                    <span className="font-semibold text-slate-800">{formatCurrency(currentSummary.variableExpense)}원</span>
                   </div>
                   <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-slate-400 to-slate-600"
+                      className="h-full bg-gradient-to-r from-slate-500 to-slate-700"
                       style={{ width: `${currentExpenseTotal > 0 ? (currentSummary.variableExpense / currentExpenseTotal) * 100 : 0}%` }}
                     />
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between mb-1">
-                    <span className="text-gray-600">고정지출</span>
-                    <span className="font-semibold text-purple-700">{formatCurrency(fixedExpenseTotal)}원</span>
+                    <span className="text-slate-600">고정지출</span>
+                    <span className="font-semibold text-violet-700">{formatCurrency(fixedExpenseTotal)}원</span>
                   </div>
                   <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-purple-400 to-purple-600"
+                      className="h-full bg-gradient-to-r from-violet-400 to-indigo-600"
                       style={{ width: `${currentExpenseTotal > 0 ? (fixedExpenseTotal / currentExpenseTotal) * 100 : 0}%` }}
                     />
                   </div>
                 </div>
                 <div>
                   <div className="flex justify-between mb-1">
-                    <span className="text-gray-600">저축</span>
-                    <span className="font-semibold text-blue-700">{formatCurrency(currentSavings)}원</span>
+                    <span className="text-slate-600">저축</span>
+                    <span className="font-semibold text-indigo-700">{formatCurrency(currentSavings)}원</span>
                   </div>
                   <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-blue-400 to-blue-600"
+                      className="h-full bg-gradient-to-r from-indigo-400 to-blue-600"
                       style={{ width: `${currentExpenseTotal > 0 ? (currentSavings / currentExpenseTotal) * 100 : 0}%` }}
                     />
                   </div>
@@ -380,24 +380,24 @@ export const StatisticsPage = ({
               </div>
             </div>
 
-            <div className="rounded-xl border border-gray-200 bg-white/80 p-4">
+            <div className="rounded-xl border border-slate-200 bg-white/80 p-4">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-semibold text-gray-800">결제수단 비중</p>
-                <span className="text-xs text-gray-500">거래 + 고정지출 포함</span>
+                <p className="text-sm font-semibold text-slate-800">결제수단 비중</p>
+                <span className="text-xs text-slate-500">거래 + 고정지출 포함</span>
               </div>
               {paymentMethodEntries.length > 0 ? (
                 <div className="space-y-3">
                   {paymentMethodEntries.slice(0, 5).map(([method, amount]) => (
                     <div key={method} className="space-y-1">
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">{method}</span>
-                        <span className="font-semibold text-gray-800">
+                        <span className="text-slate-600">{method}</span>
+                        <span className="font-semibold text-slate-800">
                           {formatCurrency(amount)}원
                         </span>
                       </div>
                       <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-cyan-400 to-blue-600"
+                          className="h-full bg-gradient-to-r from-sky-400 to-indigo-600"
                           style={{ width: `${currentExpenseTotal > 0 ? (amount / currentExpenseTotal) * 100 : 0}%` }}
                         />
                       </div>
@@ -405,7 +405,7 @@ export const StatisticsPage = ({
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-gray-500">표시할 결제수단 데이터가 없습니다.</p>
+                <p className="text-sm text-slate-500">표시할 결제수단 데이터가 없습니다.</p>
               )}
             </div>
           </div>
@@ -447,9 +447,9 @@ export const StatisticsPage = ({
                   <p className="text-[11px] sm:text-xs text-gray-500">사용</p>
                   <p className="text-sm sm:text-base font-bold text-red-700">{formatCurrency(totalConsumption)}원</p>
                 </div>
-                <div className="rounded-lg bg-purple-50 p-3">
+                <div className="rounded-lg bg-indigo-50 p-3">
                   <p className="text-[11px] sm:text-xs text-gray-500">남은 예산</p>
-                  <p className="text-sm sm:text-base font-bold text-purple-700">{formatCurrency(Math.max(monthlyBudget - totalConsumption, 0))}원</p>
+                  <p className="text-sm sm:text-base font-bold text-indigo-700">{formatCurrency(Math.max(monthlyBudget - totalConsumption, 0))}원</p>
                 </div>
               </div>
             </div>
@@ -522,7 +522,7 @@ export const StatisticsPage = ({
                     const percentage = maxAmount > 0 ? (amount / maxAmount) * 100 : 0;
                     const colors = [
                       'bg-blue-500', 'bg-red-500', 'bg-green-500',
-                      'bg-yellow-500', 'bg-purple-500', 'bg-pink-500', 'bg-indigo-500'
+                      'bg-amber-500', 'bg-violet-500', 'bg-sky-500', 'bg-indigo-500'
                     ];
 
                     return (
@@ -554,9 +554,9 @@ export const StatisticsPage = ({
             <div className="rounded-xl border border-gray-200 bg-white/80 p-4 sm:p-5">
               <h4 className="text-sm sm:text-base font-semibold text-gray-800 mb-4">고정지출 비중</h4>
               <div className="space-y-3 text-sm">
-                <div className="rounded-lg bg-purple-50 p-3">
+                <div className="rounded-lg bg-violet-50 p-3">
                   <p className="text-xs text-gray-500 mb-1">고정 소비 지출</p>
-                  <p className="font-bold text-purple-700">{formatCurrency(fixedNonSavingsTotal)}원</p>
+                  <p className="font-bold text-violet-700">{formatCurrency(fixedNonSavingsTotal)}원</p>
                 </div>
                 <div className="rounded-lg bg-slate-50 p-3">
                   <p className="text-xs text-gray-500 mb-1">전체 일반 지출</p>
@@ -718,7 +718,7 @@ export const StatisticsPage = ({
             </div>
           </div>
 
-          <div className="rounded-xl border border-gray-200 bg-gradient-to-r from-orange-50 to-yellow-50 p-4 sm:p-5">
+          <div className="rounded-xl border border-slate-200 bg-gradient-to-r from-amber-50 to-orange-50 p-4 sm:p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h4 className="text-sm sm:text-base font-semibold text-gray-800">용돈 정산 상태</h4>
@@ -760,7 +760,7 @@ export const StatisticsPage = ({
           size="lg"
         >
           <div className="space-y-4">
-            <div className="rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 p-4">
+            <div className="rounded-xl bg-gradient-to-r from-indigo-50 to-sky-50 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   {selectedCategory.icon && (
@@ -787,7 +787,7 @@ export const StatisticsPage = ({
                 </button>
                 {familyMembers.map((member, index) => {
                   const count = selectedCategory.transactions.filter((item) => item.userId === member.id).length;
-                  const colors = ['bg-blue-600', 'bg-pink-600', 'bg-purple-600', 'bg-green-600'];
+                  const colors = ['bg-indigo-600', 'bg-sky-600', 'bg-violet-600', 'bg-emerald-600'];
                   return (
                     <button
                       key={member.id}
@@ -888,7 +888,7 @@ export const StatisticsPage = ({
         size="lg"
       >
         <div className="space-y-4">
-          <div className="rounded-xl bg-gradient-to-r from-orange-50 to-yellow-50 p-4">
+          <div className="rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 p-4">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-lg font-bold text-gray-800">정산 필요 총액</p>

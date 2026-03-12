@@ -10,11 +10,11 @@ export const STOCK_MARKETS = {
 
 // 계좌 구분
 export const ACCOUNT_TYPES = {
-  ISA: { label: 'ISA', icon: '🏦', color: 'bg-blue-100 text-blue-700' },
-  PENSION: { label: '연금저축', icon: '👴', color: 'bg-green-100 text-green-700' },
-  GENERAL: { label: '일반', icon: '💼', color: 'bg-gray-100 text-gray-700' },
-  IRP: { label: 'IRP', icon: '🏢', color: 'bg-purple-100 text-purple-700' },
-  DC: { label: 'DC', icon: '💰', color: 'bg-yellow-100 text-yellow-700' }
+  ISA: { label: 'ISA', icon: '🏦', color: 'bg-indigo-50 text-indigo-700' },
+  PENSION: { label: '연금저축', icon: '👴', color: 'bg-emerald-50 text-emerald-700' },
+  GENERAL: { label: '일반', icon: '💼', color: 'bg-slate-100 text-slate-700' },
+  IRP: { label: 'IRP', icon: '🏢', color: 'bg-violet-50 text-violet-700' },
+  DC: { label: 'DC', icon: '💰', color: 'bg-amber-50 text-amber-700' }
 };
 
 // ETF 종목 리스트

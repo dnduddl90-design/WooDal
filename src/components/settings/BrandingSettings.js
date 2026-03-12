@@ -99,10 +99,10 @@ export const BrandingSettings = ({
     return (
       <div className="glass-effect rounded-xl p-4 sm:p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Settings className="w-5 h-5 text-purple-500" />
+          <Settings className="w-5 h-5 text-indigo-500" />
           <h3 className="text-base sm:text-lg font-semibold">앱 커스터마이징</h3>
         </div>
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-slate-600">
           브랜딩 설정은 관리자만 변경할 수 있습니다.
         </p>
       </div>
@@ -113,7 +113,7 @@ export const BrandingSettings = ({
     <div className="glass-effect rounded-xl p-4 sm:p-6">
       {/* 헤더 */}
       <div className="flex items-center gap-2 mb-4">
-        <Settings className="w-5 h-5 text-purple-500" />
+        <Settings className="w-5 h-5 text-indigo-500" />
         <h3 className="text-base sm:text-lg font-semibold">앱 커스터마이징</h3>
       </div>
 
@@ -126,14 +126,14 @@ export const BrandingSettings = ({
           placeholder="우영달림 가계부"
           maxLength={50}
         />
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-slate-500 mt-1">
           Header에 표시될 앱 이름입니다. (최대 50자)
         </p>
       </div>
 
       {/* 사용자 이름들 */}
       <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+        <label className="block text-sm font-medium text-slate-700 mb-2">
           사용자 표시 이름
         </label>
         <div className="space-y-2">
@@ -149,7 +149,7 @@ export const BrandingSettings = ({
             </div>
           ))}
           {(!familyInfo?.members || Object.keys(familyInfo.members).length === 0) && (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-500">
               가족 모드에서만 사용자 이름을 설정할 수 있습니다.
             </p>
           )}
@@ -160,7 +160,7 @@ export const BrandingSettings = ({
       <div className="mb-4 border-t pt-4">
         <button
           onClick={() => setShowAdvanced(!showAdvanced)}
-          className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-purple-600 transition-colors"
+          className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-indigo-600 transition-colors"
         >
           <span>{showAdvanced ? '▼' : '▶'}</span>
           PWA 설정 (고급)
@@ -175,7 +175,7 @@ export const BrandingSettings = ({
               placeholder="우영달림"
               maxLength={12}
             />
-            <p className="text-xs text-gray-500 -mt-2">
+            <p className="text-xs text-slate-500 -mt-2">
               PWA 홈 화면 아이콘에 표시될 짧은 이름입니다. (최대 12자)
             </p>
 
@@ -186,12 +186,12 @@ export const BrandingSettings = ({
               placeholder="우영♥달림 커플 가계부"
               maxLength={45}
             />
-            <p className="text-xs text-gray-500 -mt-2">
+            <p className="text-xs text-slate-500 -mt-2">
               PWA 스플래시 화면에 표시될 전체 이름입니다. (최대 45자)
             </p>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
                 설명
               </label>
               <textarea
@@ -200,9 +200,9 @@ export const BrandingSettings = ({
                 placeholder="커플을 위한 실시간 동기화 가계부 앱"
                 maxLength={200}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent resize-none"
+                className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none text-slate-800"
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 PWA 설명 및 검색 최적화에 사용됩니다. (최대 200자)
               </p>
             </div>
@@ -230,8 +230,8 @@ export const BrandingSettings = ({
       </div>
 
       {/* 안내 메시지 */}
-      <div className="mt-4 p-3 bg-purple-50 rounded-lg">
-        <p className="text-xs text-purple-800">
+      <div className="mt-4 p-3 bg-indigo-50 rounded-lg">
+        <p className="text-xs text-indigo-800">
           💡 <strong>Tip:</strong> 브랜딩 설정은 가족 구성원 모두에게 실시간으로 반영됩니다.
           PWA로 설치한 경우, 앱을 재설치하면 새 이름이 적용됩니다.
         </p>

@@ -120,8 +120,8 @@ export const StockPage = ({
       <div className="p-4 sm:p-8 flex items-center justify-center h-full">
         <div className="glass-effect p-12 rounded-xl text-center max-w-md">
           <div className="text-6xl mb-4">🔒</div>
-          <h3 className="text-xl font-bold text-gray-800 mb-2">접근 권한이 없습니다</h3>
-          <p className="text-gray-600">주식 포트폴리오는 관리자만 사용할 수 있습니다.</p>
+          <h3 className="text-xl font-bold text-slate-800 mb-2">접근 권한이 없습니다</h3>
+          <p className="text-slate-600">주식 포트폴리오는 관리자만 사용할 수 있습니다.</p>
         </div>
       </div>
     );
@@ -132,7 +132,7 @@ export const StockPage = ({
       <div className="p-4 sm:p-8 flex items-center justify-center h-full">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">주식 데이터 로딩 중...</p>
+          <p className="text-slate-600">주식 데이터 로딩 중...</p>
         </div>
       </div>
     );
@@ -143,10 +143,10 @@ export const StockPage = ({
       {/* 헤더 */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">주식 포트폴리오</h1>
-          <p className="text-sm text-gray-600 mt-1">보유 주식을 관리하고 수익률을 확인하세요</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">주식 포트폴리오</h1>
+          <p className="text-sm text-slate-600 mt-1">보유 주식을 관리하고 수익률을 확인하세요</p>
           {lastPriceUpdatedAt && (
-            <p className="text-xs text-gray-500 mt-2">
+            <p className="text-xs text-slate-500 mt-2">
               마지막 시세 갱신: {new Date(lastPriceUpdatedAt).toLocaleString('ko-KR')}
             </p>
           )}
@@ -186,14 +186,14 @@ export const StockPage = ({
         <div
           className={`rounded-xl px-4 py-3 text-sm border ${
             priceRefreshStatus.type === 'success'
-              ? 'bg-green-50 border-green-200 text-green-700'
+              ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
               : priceRefreshStatus.type === 'partial'
-                ? 'bg-yellow-50 border-yellow-200 text-yellow-700'
+                ? 'bg-amber-50 border-amber-200 text-amber-700'
                 : priceRefreshStatus.type === 'cached'
-                  ? 'bg-blue-50 border-blue-200 text-blue-700'
+                  ? 'bg-indigo-50 border-indigo-200 text-indigo-700'
                   : priceRefreshStatus.type === 'error'
-                    ? 'bg-red-50 border-red-200 text-red-700'
-                    : 'bg-gray-50 border-gray-200 text-gray-700'
+                    ? 'bg-rose-50 border-rose-200 text-rose-700'
+                    : 'bg-slate-50 border-slate-200 text-slate-700'
           }`}
         >
           {priceRefreshStatus.message}
@@ -207,7 +207,7 @@ export const StockPage = ({
               <FolderTree size={20} className="mt-0.5 flex-shrink-0" />
               <div>
                 <p className="font-semibold">미분류 종목이 {uncategorizedStocks.length}개 있습니다.</p>
-                <p className="text-sm text-amber-700">
+                <p className="text-sm text-amber-800">
                   분류를 지정하면 상단 그래프와 요약이 더 깔끔하게 정리됩니다.
                 </p>
               </div>
@@ -231,7 +231,7 @@ export const StockPage = ({
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
               selectedAccount === 'ALL'
                 ? 'bg-indigo-500 text-white shadow-md'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
             }`}
           >
             전체
@@ -243,7 +243,7 @@ export const StockPage = ({
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                 selectedAccount === key
                   ? 'bg-indigo-500 text-white shadow-md'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
               {account.icon} {account.label}
@@ -258,7 +258,7 @@ export const StockPage = ({
       {/* 주식 목록 */}
       {filteredStocks.length > 0 ? (
         <div>
-          <h2 className="text-lg font-bold text-gray-800 mb-4">
+          <h2 className="text-lg font-bold text-slate-800 mb-4">
             보유 종목 ({filteredStocks.length})
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -278,14 +278,14 @@ export const StockPage = ({
       ) : stocks.length > 0 ? (
         <div className="glass-effect p-12 rounded-xl text-center">
           <div className="text-6xl mb-4">🔍</div>
-          <h3 className="text-xl font-bold text-gray-800 mb-2">해당 계좌에 종목이 없습니다</h3>
-          <p className="text-gray-600">다른 계좌를 선택하거나 종목을 추가해보세요</p>
+          <h3 className="text-xl font-bold text-slate-800 mb-2">해당 계좌에 종목이 없습니다</h3>
+          <p className="text-slate-600">다른 계좌를 선택하거나 종목을 추가해보세요</p>
         </div>
       ) : (
         <div className="glass-effect p-12 rounded-xl text-center">
           <div className="text-6xl mb-4">📊</div>
-          <h3 className="text-xl font-bold text-gray-800 mb-2">아직 보유 중인 주식이 없습니다</h3>
-          <p className="text-gray-600 mb-6">주식 추가 버튼을 눌러 포트폴리오를 시작하세요</p>
+          <h3 className="text-xl font-bold text-slate-800 mb-2">아직 보유 중인 주식이 없습니다</h3>
+          <p className="text-slate-600 mb-6">주식 추가 버튼을 눌러 포트폴리오를 시작하세요</p>
           <Button
             variant="primary"
             icon={Plus}
@@ -328,18 +328,18 @@ export const StockPage = ({
           size="md"
         >
           <div className="space-y-3">
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-slate-600">
               아래 종목에 분류를 지정하면 상단 요약이 분류 기준으로 더 정확하게 묶입니다.
             </p>
             <div className="space-y-2">
               {uncategorizedStocks.map((stock) => (
                 <div
                   key={stock.id}
-                  className="flex flex-col gap-3 rounded-xl border border-gray-200 bg-gray-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div>
-                    <p className="font-medium text-gray-900">{stock.name}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="font-medium text-slate-900">{stock.name}</p>
+                    <p className="text-xs text-slate-500">
                       {stock.symbol} · {stock.quantity}주
                     </p>
                   </div>

@@ -21,11 +21,11 @@ export const Sidebar = ({ currentView, onViewChange, currentUser }) => {
   // 메뉴 아이템 정의 (OCP - 확장 가능)
   const menuItems = [
     { id: 'calendar', icon: Calendar, label: '달력', color: 'text-blue-600' },
-    { id: 'statistics', icon: BarChart3, label: '통계', color: 'text-purple-600' },
+    { id: 'statistics', icon: BarChart3, label: '통계', color: 'text-violet-600' },
     // 관리자만 주식 메뉴 표시
     ...(isAdmin ? [{ id: 'stocks', icon: TrendingUp, label: '주식', color: 'text-indigo-600' }] : []),
     { id: 'fixed', icon: Repeat, label: '고정지출', color: 'text-green-600' },
-    { id: 'pocketmoney', icon: Wallet, label: '용돈', color: 'text-pink-600' },
+    { id: 'pocketmoney', icon: Wallet, label: '용돈', color: 'text-indigo-600' },
     { id: 'search', icon: Search, label: '검색', color: 'text-orange-600' },
     { id: 'settings', icon: Settings, label: '설정', color: 'text-gray-600' }
   ];
@@ -33,7 +33,7 @@ export const Sidebar = ({ currentView, onViewChange, currentUser }) => {
   return (
     <>
       {/* 데스크톱 사이드바 */}
-      <aside className="glass-effect w-64 border-r border-white border-opacity-20 flex-shrink-0 sidebar-desktop">
+      <aside className="glass-effect w-64 border-r border-slate-200/70 flex-shrink-0 sidebar-desktop">
         <nav className="p-4 space-y-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -45,8 +45,8 @@ export const Sidebar = ({ currentView, onViewChange, currentUser }) => {
                 onClick={() => onViewChange(item.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                   isActive
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg scale-105'
-                    : 'hover:bg-gray-100 text-gray-700'
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/10 scale-[1.02]'
+                    : 'hover:bg-slate-100 text-slate-700'
                 }`}
               >
                 <Icon
@@ -61,7 +61,7 @@ export const Sidebar = ({ currentView, onViewChange, currentUser }) => {
       </aside>
 
       {/* 모바일 하단 네비게이션 */}
-      <nav className="fixed bottom-0 left-0 right-0 glass-effect border-t border-white border-opacity-20 z-50 safe-area-bottom sidebar-mobile">
+      <nav className="fixed bottom-0 left-0 right-0 glass-effect border-t border-slate-200/70 z-50 safe-area-bottom sidebar-mobile">
         <div className="flex justify-around items-center px-2 py-2">
           {menuItems.map((item) => {
             const Icon = item.icon;
@@ -73,15 +73,15 @@ export const Sidebar = ({ currentView, onViewChange, currentUser }) => {
                 onClick={() => onViewChange(item.id)}
                 className={`flex flex-col items-center gap-1 px-3 py-2 rounded-xl transition-all duration-200 ${
                   isActive
-                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white shadow-lg scale-105'
-                    : 'text-gray-700 active:bg-gray-100'
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/10 scale-[1.02]'
+                    : 'text-slate-700 active:bg-slate-100'
                 }`}
               >
                 <Icon
                   size={22}
                   className={isActive ? 'text-white' : item.color}
                 />
-                <span className={`text-xs font-medium ${isActive ? 'text-white' : 'text-gray-600'}`}>
+                <span className={`text-xs font-medium ${isActive ? 'text-white' : 'text-slate-500'}`}>
                   {item.label}
                 </span>
               </button>

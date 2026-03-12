@@ -25,9 +25,9 @@ export const AvatarPicker = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 overflow-hidden">
+      <div className="w-full max-w-md bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-slate-200/70 overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4 text-white">
+        <div className="bg-gradient-to-r from-indigo-600 to-blue-600 px-6 py-4 text-white">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="text-lg font-bold">아바타 선택</h3>
@@ -57,7 +57,7 @@ export const AvatarPicker = ({
         </div>
 
         {/* Category Tabs */}
-        <div className="flex overflow-x-auto bg-white/50 border-b border-gray-200">
+        <div className="flex overflow-x-auto bg-white/50 border-b border-slate-200">
           {categories.map(category => (
             <button
               key={category.id}
@@ -65,8 +65,8 @@ export const AvatarPicker = ({
               className={`
                 flex-shrink-0 px-4 py-3 text-sm font-medium transition-all
                 ${selectedCategory === category.id
-                  ? 'text-purple-600 border-b-2 border-purple-600 bg-white/80'
-                  : 'text-gray-600 hover:text-purple-600 hover:bg-white/50'
+                  ? 'text-indigo-600 border-b-2 border-indigo-600 bg-white/80'
+                  : 'text-slate-600 hover:text-indigo-600 hover:bg-white/50'
                 }
               `}
             >
@@ -86,8 +86,8 @@ export const AvatarPicker = ({
                   w-full aspect-square flex items-center justify-center
                   text-2xl rounded-lg transition-all hover:scale-110
                   ${emoji === currentAvatar
-                    ? 'bg-purple-100 ring-2 ring-purple-500 scale-110'
-                    : 'bg-white/50 hover:bg-purple-50'
+                    ? 'bg-indigo-100 ring-2 ring-indigo-500 scale-110'
+                    : 'bg-white/50 hover:bg-indigo-50'
                   }
                 `}
                 title={emoji}
@@ -99,8 +99,8 @@ export const AvatarPicker = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
-          <p className="text-xs text-gray-500 text-center">
+        <div className="px-6 py-4 bg-slate-50 border-t border-slate-200">
+          <p className="text-xs text-slate-500 text-center">
             이모지를 선택하면 자동으로 저장됩니다
           </p>
         </div>

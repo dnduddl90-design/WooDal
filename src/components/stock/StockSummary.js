@@ -5,8 +5,8 @@ import { calculatePortfolioStats, calculateStockValue, calculateProfit } from '.
 
 // 종목별 색상 팔레트
 const COLORS = [
-  '#6366f1', '#ec4899', '#8b5cf6', '#f59e0b', '#10b981', '#3b82f6',
-  '#f97316', '#06b6d4', '#84cc16', '#a855f7', '#14b8a6', '#ef4444'
+  '#4f46e5', '#2563eb', '#7c3aed', '#0f766e', '#15803d', '#b45309',
+  '#ea580c', '#0891b2', '#475569', '#0284c7', '#4338ca', '#dc2626'
 ];
 
 export const StockSummary = ({ stocks, currentPrices }) => {
@@ -15,7 +15,7 @@ export const StockSummary = ({ stocks, currentPrices }) => {
 
   if (!stocks || stocks.length === 0) {
     return (
-      <div className="glass-effect p-6 rounded-xl text-center text-gray-500">
+      <div className="glass-effect p-6 rounded-xl text-center text-slate-500">
         <PieChart size={48} className="mx-auto mb-3 opacity-50" />
         <p>보유 중인 주식이 없습니다.</p>
         <p className="text-sm mt-1">주식 추가 버튼을 눌러 시작하세요.</p>
@@ -94,9 +94,9 @@ export const StockSummary = ({ stocks, currentPrices }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       return (
-        <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
-          <p className="font-semibold text-gray-900">{data.name}</p>
-          <p className="text-sm text-gray-600">
+        <div className="bg-white p-3 rounded-lg shadow-lg border border-slate-200">
+          <p className="font-semibold text-slate-900">{data.name}</p>
+          <p className="text-sm text-slate-600">
             {data.value.toLocaleString()}원
           </p>
           <p className="text-sm font-medium text-indigo-600">
@@ -111,7 +111,7 @@ export const StockSummary = ({ stocks, currentPrices }) => {
   return (
     <div className="glass-effect p-6 rounded-xl space-y-4">
       {/* 타이틀 */}
-      <div className="flex items-center gap-2 text-gray-700 mb-2">
+      <div className="flex items-center gap-2 text-slate-700 mb-2">
         <PieChart size={20} />
         <h2 className="text-lg font-bold">포트폴리오 요약</h2>
       </div>
@@ -119,45 +119,45 @@ export const StockSummary = ({ stocks, currentPrices }) => {
       {/* 통계 그리드 */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* 총 매입금액 */}
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <div className="flex items-center gap-2 text-gray-600 mb-2">
+        <div className="bg-slate-50 p-4 rounded-lg">
+          <div className="flex items-center gap-2 text-slate-600 mb-2">
             <DollarSign size={16} />
             <p className="text-sm">총 매입금액</p>
           </div>
-          <p className="text-xl font-bold text-gray-900">
+          <p className="text-xl font-bold text-slate-900">
             {stats.totalBuyValue.toLocaleString()}원
           </p>
         </div>
 
         {/* 총 평가금액 */}
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <div className="flex items-center gap-2 text-gray-600 mb-2">
+        <div className="bg-slate-50 p-4 rounded-lg">
+          <div className="flex items-center gap-2 text-slate-600 mb-2">
             <DollarSign size={16} />
             <p className="text-sm">총 평가금액</p>
           </div>
-          <p className="text-xl font-bold text-gray-900">
+          <p className="text-xl font-bold text-slate-900">
             {stats.totalCurrentValue.toLocaleString()}원
           </p>
         </div>
 
         {/* 총 손익 */}
-        <div className={`p-4 rounded-lg ${isProfit ? 'bg-red-50' : 'bg-blue-50'}`}>
-          <div className={`flex items-center gap-2 mb-2 ${isProfit ? 'text-red-600' : 'text-blue-600'}`}>
+        <div className={`p-4 rounded-lg ${isProfit ? 'bg-rose-50' : 'bg-indigo-50'}`}>
+          <div className={`flex items-center gap-2 mb-2 ${isProfit ? 'text-rose-600' : 'text-indigo-600'}`}>
             {isProfit ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
             <p className="text-sm font-medium">총 손익</p>
           </div>
-          <p className={`text-xl font-bold ${isProfit ? 'text-red-600' : 'text-blue-600'}`}>
+          <p className={`text-xl font-bold ${isProfit ? 'text-rose-600' : 'text-indigo-600'}`}>
             {isProfit ? '+' : ''}{stats.totalProfit.toLocaleString()}원
           </p>
-          <p className={`text-sm font-semibold mt-1 ${isProfit ? 'text-red-600' : 'text-blue-600'}`}>
+          <p className={`text-sm font-semibold mt-1 ${isProfit ? 'text-rose-600' : 'text-indigo-600'}`}>
             {isProfit ? '+' : ''}{stats.totalProfitRate.toFixed(2)}%
           </p>
         </div>
       </div>
 
       {/* 포트폴리오 구성 */}
-      <div className="pt-3 border-t border-gray-200">
-        <div className="flex items-center gap-2 text-gray-700 mb-4">
+      <div className="pt-3 border-t border-slate-200">
+        <div className="flex items-center gap-2 text-slate-700 mb-4">
           <PieChart size={20} />
           <h3 className="text-base font-bold">분류별 포트폴리오 구성</h3>
         </div>
@@ -170,7 +170,7 @@ export const StockSummary = ({ stocks, currentPrices }) => {
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 sortBy === 'value'
                   ? 'bg-indigo-500 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
               평가금액순
@@ -181,7 +181,7 @@ export const StockSummary = ({ stocks, currentPrices }) => {
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 sortBy === 'profit'
                   ? 'bg-indigo-500 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
               손익순
@@ -192,7 +192,7 @@ export const StockSummary = ({ stocks, currentPrices }) => {
               className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                 sortBy === 'name'
                   ? 'bg-indigo-500 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
               }`}
             >
               이름순
@@ -201,7 +201,7 @@ export const StockSummary = ({ stocks, currentPrices }) => {
           <button
             type="button"
             onClick={() => setIsListCollapsed((prev) => !prev)}
-            className="inline-flex items-center gap-2 self-start rounded-lg bg-gray-100 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-200"
+            className="inline-flex items-center gap-2 self-start rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-200"
           >
             {isListCollapsed ? <ChevronDown size={14} /> : <ChevronUp size={14} />}
             {isListCollapsed ? '요약 펼치기' : '요약 접기'}
@@ -250,15 +250,15 @@ export const StockSummary = ({ stocks, currentPrices }) => {
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="w-3 h-3 rounded-full" style={{ backgroundColor: group.color }}></div>
                     <div className="min-w-0">
-                      <p className="font-medium text-gray-900 break-words">{group.name}</p>
-                      <p className="text-xs text-gray-600">{group.stockCount}개 종목</p>
+                      <p className="font-medium text-slate-900 break-words">{group.name}</p>
+                      <p className="text-xs text-slate-600">{group.stockCount}개 종목</p>
                     </div>
                   </div>
                   <div className="text-left sm:text-right">
-                    <p className={`font-bold text-sm ${isProfitable ? 'text-red-600' : 'text-blue-600'}`}>
+                    <p className={`font-bold text-sm ${isProfitable ? 'text-rose-600' : 'text-indigo-600'}`}>
                       {isProfitable ? '+' : ''}{group.profit.toLocaleString()}원
                     </p>
-                    <p className={`text-xs ${isProfitable ? 'text-red-500' : 'text-blue-500'}`}>
+                    <p className={`text-xs ${isProfitable ? 'text-rose-500' : 'text-indigo-500'}`}>
                       ({isProfitable ? '+' : ''}{group.profitRate.toFixed(2)}%)
                     </p>
                   </div>
@@ -267,10 +267,10 @@ export const StockSummary = ({ stocks, currentPrices }) => {
                 {/* 포트폴리오 비중 */}
                 <div className="mt-2">
                   <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs text-gray-600">포트폴리오 비중</span>
-                    <span className="text-xs font-semibold text-gray-900">{group.percentage.toFixed(1)}%</span>
+                    <span className="text-xs text-slate-600">포트폴리오 비중</span>
+                    <span className="text-xs font-semibold text-slate-900">{group.percentage.toFixed(1)}%</span>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="w-full bg-slate-200 rounded-full h-2">
                     <div
                       className="h-2 rounded-full transition-all duration-300"
                       style={{
@@ -279,10 +279,10 @@ export const StockSummary = ({ stocks, currentPrices }) => {
                       }}
                     />
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-slate-500 mt-1">
                     평가: {group.currentValue.toLocaleString()}원
                   </p>
-                  <p className="text-xs text-gray-400 mt-1 break-words">
+                  <p className="text-xs text-slate-400 mt-1 break-words">
                     {group.stockNames.join(', ')}
                   </p>
                 </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { onAuthChange, logout as firebaseLogout } from '../firebase';
-import { getUserFamilyId, getFamily, onInvitationsChange, onAvatarChange, saveUserAvatar } from '../firebase/databaseService';
+import { getUserFamilyId, onFamilyChange, onInvitationsChange, onAvatarChange, saveUserAvatar } from '../firebase/databaseService';
 import { DEFAULT_AVATARS } from '../constants';
 
 /**
@@ -15,6 +15,7 @@ export const useAuth = () => {
   const [pendingInvitations, setPendingInvitations] = useState([]);
   const [userAvatar, setUserAvatar] = useState(DEFAULT_AVATARS.user1);
   const [firebaseUser, setFirebaseUser] = useState(null);
+  const [familyId, setFamilyId] = useState(null);
 
   /**
    * Firebase 인증 상태 변경 감지 및 가족 정보 로드
@@ -26,15 +27,16 @@ export const useAuth = () => {
 
         // 가족 정보 로드
         try {
-          const familyId = await getUserFamilyId(fbUser.uid);
-          if (familyId) {
-            const family = await getFamily(familyId);
-            setFamilyInfo(family);
+          const nextFamilyId = await getUserFamilyId(fbUser.uid);
+          if (nextFamilyId) {
+            setFamilyId(nextFamilyId);
           } else {
+            setFamilyId(null);
             setFamilyInfo(null);
           }
         } catch (error) {
           console.error('❌ 가족 정보 로드 실패:', error);
+          setFamilyId(null);
           setFamilyInfo(null);
         }
 
@@ -42,6 +44,7 @@ export const useAuth = () => {
       } else {
         setFirebaseUser(null);
         setCurrentUser(null);
+        setFamilyId(null);
         setFamilyInfo(null);
         setIsAuthenticated(false);
       }
@@ -51,6 +54,19 @@ export const useAuth = () => {
     // 클린업: 컴포넌트 언마운트 시 리스너 제거
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!familyId) {
+      setFamilyInfo(null);
+      return undefined;
+    }
+
+    const unsubscribe = onFamilyChange(familyId, (family) => {
+      setFamilyInfo(family);
+    });
+
+    return () => unsubscribe();
+  }, [familyId]);
 
   /**
    * firebaseUser, userAvatar, familyInfo가 변경될 때 currentUser 업데이트

@@ -28,7 +28,8 @@ const createNormalizedFixedExpense = (formData, fallbackDate) => ({
  * SRP: 고정지출 상태 및 CRUD 로직만 담당
  * 가족 모드와 개인 모드를 모두 지원
  */
-export const useFixedExpenses = (currentUser, familyInfo) => {
+export const useFixedExpenses = (currentUser, familyInfo, options = {}) => {
+  const { onActivity } = options;
   const [fixedExpenses, setFixedExpenses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddFixed, setShowAddFixed] = useState(false);
@@ -135,6 +136,16 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
       // 가족 모드 or 개인 모드로 저장
       if (isFamilyMode) {
         await saveFamilyFixedExpense(familyInfo.id, newFixed);
+        await onActivity?.({
+          type: 'fixed_expense_added',
+          title: '고정지출 추가',
+          description: `${normalizedFixed.name} ${normalizedFixed.amount.toLocaleString()}원을 추가했습니다.`,
+          metadata: {
+            name: normalizedFixed.name,
+            amount: normalizedFixed.amount,
+            category: normalizedFixed.category
+          }
+        });
       } else {
         await saveFixedExpense(currentUser.firebaseId, newFixed);
       }
@@ -163,6 +174,16 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
       // 가족 모드 or 개인 모드로 업데이트
       if (isFamilyMode) {
         await updateFamilyFixedExpense(familyInfo.id, id, updatedFixed);
+        await onActivity?.({
+          type: 'fixed_expense_updated',
+          title: '고정지출 수정',
+          description: `${updatedFixed.name} 고정지출을 수정했습니다.`,
+          metadata: {
+            name: updatedFixed.name,
+            amount: updatedFixed.amount,
+            category: updatedFixed.category
+          }
+        });
       } else {
         await updateFixedExpense(currentUser.firebaseId, id, updatedFixed);
       }
@@ -180,10 +201,23 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
   const handleDeleteFixedExpense = async (id) => {
     try {
       const isFamilyMode = familyInfo && familyInfo.id;
+      const existingFixed = fixedExpenses.find((fixed) => fixed.id === id);
 
       // 가족 모드 or 개인 모드로 삭제
       if (isFamilyMode) {
         await deleteFamilyFixedExpense(familyInfo.id, id);
+        if (existingFixed) {
+          await onActivity?.({
+            type: 'fixed_expense_deleted',
+            title: '고정지출 삭제',
+            description: `${existingFixed.name} 고정지출을 삭제했습니다.`,
+            metadata: {
+              name: existingFixed.name,
+              amount: existingFixed.amount,
+              category: existingFixed.category
+            }
+          });
+        }
       } else {
         await deleteFixedExpense(currentUser.firebaseId, id);
       }
@@ -211,6 +245,15 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
       // 가족 모드 or 개인 모드로 업데이트
       if (isFamilyMode) {
         await updateFamilyFixedExpense(familyInfo.id, id, updatedFixed);
+        await onActivity?.({
+          type: 'fixed_expense_toggled',
+          title: updatedFixed.isActive ? '고정지출 활성화' : '고정지출 일시중지',
+          description: `${existingFixed.name} 상태를 ${updatedFixed.isActive ? '활성' : '일시중지'}로 변경했습니다.`,
+          metadata: {
+            name: existingFixed.name,
+            isActive: updatedFixed.isActive
+          }
+        });
       } else {
         await updateFixedExpense(currentUser.firebaseId, id, updatedFixed);
       }
@@ -242,6 +285,17 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
           })
         )
       );
+
+      if (isFamilyMode) {
+        await onActivity?.({
+          type: 'fixed_expense_bulk_paused',
+          title: '고정지출 일괄 비활성화',
+          description: `${targets.length}개의 고정지출을 한 번에 비활성화했습니다.`,
+          metadata: {
+            count: targets.length
+          }
+        });
+      }
 
       alert(`${targets.length}개의 고정지출을 비활성화했습니다.`);
     } catch (error) {
@@ -281,6 +335,15 @@ export const useFixedExpenses = (currentUser, familyInfo) => {
 
       if (isFamilyMode) {
         await updateFamilyFixedExpense(familyInfo.id, id, updatedExpense);
+        await onActivity?.({
+          type: 'fixed_expense_cancelled',
+          title: '고정지출 해지',
+          description: `${fixedExpense.name} 고정지출을 해지했습니다.`,
+          metadata: {
+            name: fixedExpense.name,
+            endDate: today
+          }
+        });
       } else {
         await updateFixedExpense(currentUser.firebaseId, id, updatedExpense);
       }

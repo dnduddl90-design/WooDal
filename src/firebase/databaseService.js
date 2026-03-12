@@ -293,11 +293,12 @@ export const createFamily = async (creatorId, creatorName, familyName, creatorAv
   const familiesRef = ref(database, 'families');
   const newFamilyRef = push(familiesRef);
   const familyId = newFamilyRef.key;
+  const createdAt = new Date().toISOString();
 
   const familyData = {
     id: familyId,
     name: familyName,
-    createdAt: new Date().toISOString(),
+    createdAt,
     createdBy: creatorId,
     members: {
       [creatorId]: {
@@ -305,7 +306,17 @@ export const createFamily = async (creatorId, creatorName, familyName, creatorAv
         name: creatorName,
         avatar: creatorAvatar,
         role: 'admin',
-        joinedAt: new Date().toISOString()
+        joinedAt: createdAt
+      }
+    },
+    activityLogs: {
+      initial: {
+        type: 'family_created',
+        title: '가족 가계부 생성',
+        description: `${creatorName}님이 '${familyName}' 가족 가계부를 만들었습니다.`,
+        actorId: creatorId,
+        actorName: creatorName,
+        createdAt
       }
     }
   };
@@ -368,6 +379,29 @@ export const onFamilyChange = (familyId, callback) => {
   return subscribeWithLogging(familyRef, (snapshot) => {
     callback(snapshot.exists() ? snapshot.val() : null);
   }, `families/${familyId}`);
+};
+
+/**
+ * 가족 활동 로그 추가
+ * @param {string} familyId - 가족 ID
+ * @param {Object} activity - 활동 로그 객체
+ */
+export const logFamilyActivity = async (familyId, activity) => {
+  const activityRef = ref(database, getFamilyPath(familyId, 'activityLogs'));
+  const newActivityRef = push(activityRef);
+  const createdAt = activity?.createdAt || new Date().toISOString();
+
+  await set(newActivityRef, {
+    type: activity?.type || 'general',
+    title: activity?.title || '활동',
+    description: activity?.description || '',
+    actorId: activity?.actorId || '',
+    actorName: activity?.actorName || '알 수 없음',
+    metadata: activity?.metadata || null,
+    createdAt
+  });
+
+  return newActivityRef.key;
 };
 
 // ==================== 가족 공유 데이터 ====================

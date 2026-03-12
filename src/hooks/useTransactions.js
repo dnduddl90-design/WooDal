@@ -17,7 +17,8 @@ import { STORAGE_KEYS, loadFromStorage, getTodayDateString, parseDateString } fr
  * SRP: 거래 내역 상태 및 CRUD 로직만 담당
  * 가족 모드와 개인 모드를 모두 지원
  */
-export const useTransactions = (currentUser, familyInfo) => {
+export const useTransactions = (currentUser, familyInfo, options = {}) => {
+  const { onActivity } = options;
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showAddTransaction, setShowAddTransaction] = useState(false);
@@ -139,6 +140,16 @@ export const useTransactions = (currentUser, familyInfo) => {
       // 가족 모드 or 개인 모드로 저장
       if (isFamilyMode) {
         await saveFamilyTransaction(familyInfo.id, newTransaction);
+        await onActivity?.({
+          type: 'transaction_added',
+          title: '거래 추가',
+          description: `${newTransaction.type === 'income' ? '수입' : '지출'} ${newTransaction.amount.toLocaleString()}원을 추가했습니다.`,
+          metadata: {
+            amount: newTransaction.amount,
+            category: newTransaction.category,
+            date: newTransaction.date
+          }
+        });
       } else {
         await saveTransaction(currentUser.firebaseId, newTransaction);
       }
@@ -166,6 +177,16 @@ export const useTransactions = (currentUser, familyInfo) => {
       // 가족 모드 or 개인 모드로 업데이트
       if (isFamilyMode) {
         await updateFamilyTransaction(familyInfo.id, id, updatedTransaction);
+        await onActivity?.({
+          type: 'transaction_updated',
+          title: '거래 수정',
+          description: `${updatedTransaction.type === 'income' ? '수입' : '지출'} ${updatedTransaction.amount.toLocaleString()}원 내역을 수정했습니다.`,
+          metadata: {
+            amount: updatedTransaction.amount,
+            category: updatedTransaction.category,
+            date: updatedTransaction.date
+          }
+        });
       } else {
         await updateTransaction(currentUser.firebaseId, id, updatedTransaction);
       }
@@ -183,10 +204,23 @@ export const useTransactions = (currentUser, familyInfo) => {
   const handleDeleteTransaction = async (id) => {
     try {
       const isFamilyMode = familyInfo && familyInfo.id;
+      const existingTransaction = transactions.find((transaction) => transaction.id === id);
 
       // 가족 모드 or 개인 모드로 삭제
       if (isFamilyMode) {
         await deleteFamilyTransaction(familyInfo.id, id);
+        if (existingTransaction) {
+          await onActivity?.({
+            type: 'transaction_deleted',
+            title: '거래 삭제',
+            description: `${existingTransaction.type === 'income' ? '수입' : '지출'} ${existingTransaction.amount.toLocaleString()}원 내역을 삭제했습니다.`,
+            metadata: {
+              amount: existingTransaction.amount,
+              category: existingTransaction.category,
+              date: existingTransaction.date
+            }
+          });
+        }
       } else {
         await deleteTransaction(currentUser.firebaseId, id);
       }
@@ -305,6 +339,18 @@ export const useTransactions = (currentUser, familyInfo) => {
       for (const transaction of pocketMoneyTransactions) {
         const updatedTransaction = { ...transaction, isPocketMoney: false };
         await updateFunction(dataId, transaction.id, updatedTransaction);
+      }
+      if (isFamilyMode && pocketMoneyTransactions.length > 0) {
+        await onActivity?.({
+          type: 'pocket_money_settled',
+          title: '용돈 정산 완료',
+          description: `${year}년 ${month + 1}월 용돈 사용 ${pocketMoneyTransactions.length}건을 정산했습니다.`,
+          metadata: {
+            year,
+            month: month + 1,
+            count: pocketMoneyTransactions.length
+          }
+        });
       }
       alert(`✅ ${pocketMoneyTransactions.length}건의 용돈 사용 내역 정산이 완료되었습니다!`);
 

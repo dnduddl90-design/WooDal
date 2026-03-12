@@ -87,6 +87,7 @@ export const StatisticsPage = ({
     familyMembers,
     getUserInfo,
     currentSummary,
+    previousSummary,
     incomeChange,
     expenseChange,
     last6Months
@@ -234,6 +235,34 @@ export const StatisticsPage = ({
     ? Math.round(categoryModalTransactions.reduce((sum, item) => sum + item.amount, 0) / categoryModalTransactions.length)
     : 0;
 
+  const monthlyClosingReport = useMemo(() => {
+    const topCategoryEntry = categoryEntries[0];
+    const topCategoryName = topCategoryEntry?.[0] || '없음';
+    const topCategoryAmount = topCategoryEntry?.[1] || 0;
+
+    const dailyExpenseMap = currentSummary.monthTransactions
+      .filter((item) => item.type === 'expense')
+      .reduce((acc, item) => {
+        acc[item.date] = (acc[item.date] || 0) + item.amount;
+        return acc;
+      }, {});
+
+    const peakExpenseDay = Object.entries(dailyExpenseMap).sort(([, a], [, b]) => b - a)[0] || null;
+    const outflowDiff = currentSummary.totalOutflow - previousSummary.totalOutflow;
+    const savingsDiff = currentSummary.savings - previousSummary.savings;
+
+    return {
+      topCategoryName,
+      topCategoryAmount,
+      peakExpenseDay,
+      outflowDiff,
+      savingsDiff,
+      summaryLine: currentSummary.income >= currentSummary.totalOutflow
+        ? `이번 달은 수입이 총 유출보다 ${formatCurrency(currentSummary.income - currentSummary.totalOutflow)}원 많아 비교적 안정적으로 마감 중입니다.`
+        : `이번 달은 총 유출이 수입보다 ${formatCurrency(currentSummary.totalOutflow - currentSummary.income)}원 많아 조정이 필요한 흐름입니다.`
+    };
+  }, [categoryEntries, currentSummary, previousSummary]);
+
   return (
     <div className="space-y-4 sm:space-y-6 animate-fade-in pb-20 sm:pb-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -330,8 +359,38 @@ export const StatisticsPage = ({
       >
         <div className="space-y-4 pt-4">
           <div className={`rounded-xl p-4 sm:p-5 ${currentIncome >= currentExpense ? 'bg-gradient-to-r from-emerald-50 to-indigo-50' : 'bg-gradient-to-r from-rose-50 to-orange-50'}`}>
-            <p className="text-sm sm:text-base font-semibold text-slate-800 mb-2">이번 달 해석</p>
-            <p className="text-sm sm:text-base text-slate-700">{analysisMessage}</p>
+            <p className="text-sm sm:text-base font-semibold text-slate-800 mb-2">월 마감 한줄 요약</p>
+            <p className="text-sm sm:text-base text-slate-700">{monthlyClosingReport.summaryLine}</p>
+            <p className="text-xs sm:text-sm text-slate-500 mt-2">{analysisMessage}</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
+            <div className="rounded-xl border border-slate-200 bg-white/80 p-4">
+              <p className="text-xs text-slate-500">전월 대비 총 유출</p>
+              <p className={`mt-2 text-lg font-bold ${monthlyClosingReport.outflowDiff <= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {monthlyClosingReport.outflowDiff > 0 ? '+' : ''}{formatCurrency(monthlyClosingReport.outflowDiff)}원
+              </p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-white/80 p-4">
+              <p className="text-xs text-slate-500">전월 대비 저축</p>
+              <p className={`mt-2 text-lg font-bold ${monthlyClosingReport.savingsDiff >= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
+                {monthlyClosingReport.savingsDiff > 0 ? '+' : ''}{formatCurrency(monthlyClosingReport.savingsDiff)}원
+              </p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-white/80 p-4">
+              <p className="text-xs text-slate-500">가장 큰 지출 카테고리</p>
+              <p className="mt-2 text-base font-bold text-slate-800">{monthlyClosingReport.topCategoryName}</p>
+              <p className="text-sm text-slate-500 mt-1">{formatCurrency(monthlyClosingReport.topCategoryAmount)}원</p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-white/80 p-4">
+              <p className="text-xs text-slate-500">소비 집중일</p>
+              <p className="mt-2 text-base font-bold text-slate-800">
+                {monthlyClosingReport.peakExpenseDay ? monthlyClosingReport.peakExpenseDay[0] : '없음'}
+              </p>
+              <p className="text-sm text-slate-500 mt-1">
+                {monthlyClosingReport.peakExpenseDay ? `${formatCurrency(monthlyClosingReport.peakExpenseDay[1])}원` : '지출 데이터 없음'}
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

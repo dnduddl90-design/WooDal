@@ -55,6 +55,24 @@ export default function App() {
   // ===== 테마 관리 (useTheme 훅 사용) =====
   const { theme, changeTheme } = useTheme();
 
+  const logFamilyActivity = useCallback(async (activity, targetFamilyId = null) => {
+    const familyId = targetFamilyId || familyInfo?.id;
+    if (!familyId || !currentUser?.firebaseId) {
+      return;
+    }
+
+    try {
+      const { logFamilyActivity: saveFamilyActivity } = await import('./firebase/databaseService');
+      await saveFamilyActivity(familyId, {
+        ...activity,
+        actorId: currentUser.firebaseId,
+        actorName: currentUser.name
+      });
+    } catch (error) {
+      console.error('❌ 가족 활동 로그 저장 실패:', error);
+    }
+  }, [currentUser, familyInfo?.id]);
+
   // ===== 2. 거래 내역 상태 (useTransactions 훅 사용) =====
   const {
     transactions,
@@ -69,7 +87,7 @@ export default function App() {
     handleSubmitTransaction,
     resetTransactionForm,
     settlePocketMoney
-  } = useTransactions(currentUser, familyInfo);
+  } = useTransactions(currentUser, familyInfo, { onActivity: logFamilyActivity });
 
   // ===== 3. 고정지출 상태 (useFixedExpenses 훅 사용) =====
   const {
@@ -88,7 +106,7 @@ export default function App() {
     handleDeactivateMultiple,
     handleSubmitFixed,
     resetFixedForm
-  } = useFixedExpenses(currentUser, familyInfo);
+  } = useFixedExpenses(currentUser, familyInfo, { onActivity: logFamilyActivity });
 
   // ===== 4. 주식 상태 (useStocks 훅 사용) =====
   const {
@@ -254,56 +272,53 @@ export default function App() {
   };
 
   // ===== 검색 관련 함수들 (useCallback으로 최적화) =====
-  const performSearch = useCallback(() => {
+  const runSearch = useCallback((query, filters) => {
     let results = [...transactions];
 
-    // 텍스트 검색
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      results = results.filter(transaction => {
+    if (query.trim()) {
+      const normalizedQuery = query.toLowerCase().trim();
+      results = results.filter((transaction) => {
         const memo = (transaction.memo || '').toLowerCase();
         const category = transaction.category?.toLowerCase() || '';
         const subcategory = (transaction.subcategory || '').toLowerCase();
-        return memo.includes(query) || category.includes(query) || subcategory.includes(query);
+        return memo.includes(normalizedQuery) || category.includes(normalizedQuery) || subcategory.includes(normalizedQuery);
       });
     }
 
-    // 타입 필터
-    if (searchFilters.type !== 'all') {
-      results = results.filter(t => t.type === searchFilters.type);
+    if (filters.type !== 'all') {
+      results = results.filter((transaction) => transaction.type === filters.type);
     }
 
-    // 카테고리 필터
-    if (searchFilters.category !== 'all') {
-      results = results.filter(t => t.category === searchFilters.category);
+    if (filters.category !== 'all') {
+      results = results.filter((transaction) => transaction.category === filters.category);
     }
 
-    // 날짜 범위 필터
-    if (searchFilters.dateFrom) {
-      results = results.filter(t => t.date >= searchFilters.dateFrom);
+    if (filters.dateFrom) {
+      results = results.filter((transaction) => transaction.date >= filters.dateFrom);
     }
-    if (searchFilters.dateTo) {
-      results = results.filter(t => t.date <= searchFilters.dateTo);
-    }
-
-    // 금액 범위 필터
-    if (searchFilters.amountMin) {
-      const minAmount = parseInt(searchFilters.amountMin);
-      results = results.filter(t => t.amount >= minAmount);
-    }
-    if (searchFilters.amountMax) {
-      const maxAmount = parseInt(searchFilters.amountMax);
-      results = results.filter(t => t.amount <= maxAmount);
+    if (filters.dateTo) {
+      results = results.filter((transaction) => transaction.date <= filters.dateTo);
     }
 
-    // 사용자 필터
-    if (searchFilters.user !== 'all') {
-      results = results.filter(t => t.userId === searchFilters.user);
+    if (filters.amountMin) {
+      const minAmount = parseInt(filters.amountMin, 10);
+      results = results.filter((transaction) => transaction.amount >= minAmount);
+    }
+    if (filters.amountMax) {
+      const maxAmount = parseInt(filters.amountMax, 10);
+      results = results.filter((transaction) => transaction.amount <= maxAmount);
     }
 
-    // 날짜순 정렬 (최신순)
-    setSearchResults(sortByDateDesc(results));
-  }, [transactions, searchQuery, searchFilters]);
+    if (filters.user !== 'all') {
+      results = results.filter((transaction) => transaction.userId === filters.user);
+    }
+
+    return sortByDateDesc(results);
+  }, [transactions]);
+
+  const performSearch = useCallback(() => {
+    setSearchResults(runSearch(searchQuery, searchFilters));
+  }, [runSearch, searchFilters, searchQuery]);
 
   const resetSearch = useCallback(() => {
     setSearchQuery('');
@@ -318,6 +333,55 @@ export default function App() {
     });
     setSearchResults([]);
   }, []);
+
+  const applySearchPreset = useCallback((preset) => {
+    if (!preset) return;
+
+    const nextFilters = {
+      type: preset.filters?.type || 'all',
+      category: preset.filters?.category || 'all',
+      dateFrom: preset.filters?.dateFrom || '',
+      dateTo: preset.filters?.dateTo || '',
+      amountMin: preset.filters?.amountMin || '',
+      amountMax: preset.filters?.amountMax || '',
+      user: preset.filters?.user || 'all'
+    };
+
+    setSearchQuery(preset.query || '');
+    setSearchFilters(nextFilters);
+    setSearchResults(runSearch(preset.query || '', nextFilters));
+    setCurrentView('search');
+  }, [runSearch]);
+
+  const saveSearchPreset = useCallback((name) => {
+    const trimmedName = String(name || '').trim();
+    if (!trimmedName) {
+      alert('저장할 필터 이름을 입력해주세요.');
+      return;
+    }
+
+    const nextPreset = {
+      id: `preset-${Date.now()}`,
+      name: trimmedName,
+      query: searchQuery,
+      filters: searchFilters,
+      createdAt: new Date().toISOString()
+    };
+
+    const existingPresets = settings?.searchPresets || [];
+    const dedupedPresets = existingPresets.filter((preset) => preset.name !== trimmedName);
+    updateSettings({
+      searchPresets: [nextPreset, ...dedupedPresets].slice(0, 12)
+    });
+    alert(`'${trimmedName}' 검색을 저장했습니다.`);
+  }, [searchFilters, searchQuery, settings?.searchPresets, updateSettings]);
+
+  const deleteSearchPreset = useCallback((presetId) => {
+    const nextPresets = (settings?.searchPresets || []).filter((preset) => preset.id !== presetId);
+    updateSettings({
+      searchPresets: nextPresets
+    });
+  }, [settings?.searchPresets, updateSettings]);
 
   // ===== 설정 관련 함수들 (useCallback으로 최적화) =====
   const exportData = useCallback(() => {
@@ -482,13 +546,21 @@ export default function App() {
         currentUser.name,
         trimmedEmail.toLowerCase()
       );
+      await logFamilyActivity({
+        type: 'family_invitation_sent',
+        title: '가족 초대 발송',
+        description: `${trimmedEmail} 주소로 가족 초대를 보냈습니다.`,
+        metadata: {
+          inviteeEmail: trimmedEmail.toLowerCase()
+        }
+      });
 
       alert(`🎉 ${trimmedEmail}로 초대를 보냈습니다!\n\n해당 이메일로 Google 로그인하면 자동으로 초대를 확인할 수 있습니다.`);
     } catch (error) {
       console.error('❌ 초대 실패:', error);
       alert('초대에 실패했습니다.');
     }
-  }, [familyInfo, currentUser]);
+  }, [currentUser, familyInfo, logFamilyActivity]);
 
   const handleLeaveFamily = useCallback(async () => {
     if (!familyInfo) return;
@@ -503,6 +575,11 @@ export default function App() {
     if (!confirmed) return;
 
     try {
+      await logFamilyActivity({
+        type: 'family_left',
+        title: '가족 탈퇴',
+        description: `${currentUser.name}님이 가족 가계부에서 탈퇴했습니다.`
+      });
       const { ref, database, remove } = await import('./firebase/config');
 
       // users/{userId}/familyId 삭제
@@ -521,19 +598,24 @@ export default function App() {
       console.error('❌ 가족 탈퇴 실패:', error);
       alert('가족 탈퇴에 실패했습니다.');
     }
-  }, [familyInfo, currentUser]);
+  }, [currentUser, familyInfo, logFamilyActivity]);
 
   // ===== 초대 관련 함수들 (useCallback으로 최적화) =====
   const handleAcceptInvitation = useCallback(async (invitationId) => {
     try {
       const { acceptInvitation } = await import('./firebase/databaseService');
 
-      await acceptInvitation(
+      const joinedFamilyId = await acceptInvitation(
         invitationId,
         currentUser.firebaseId,
         currentUser.name,
         userAvatar || '👩'  // 사용자 아바타 전달
       );
+      await logFamilyActivity({
+        type: 'family_joined',
+        title: '가족 참여',
+        description: `${currentUser.name}님이 가족 가계부에 참여했습니다.`
+      }, joinedFamilyId);
 
       alert('🎉 가족 가계부에 참여했습니다!');
 
@@ -543,7 +625,7 @@ export default function App() {
       console.error('❌ 초대 수락 실패:', error);
       alert('초대 수락에 실패했습니다.');
     }
-  }, [currentUser, userAvatar]);
+  }, [currentUser, logFamilyActivity, userAvatar]);
 
   const handleRejectInvitation = useCallback(async (invitationId) => {
     try {
@@ -685,12 +767,16 @@ export default function App() {
               searchQuery={searchQuery}
               searchFilters={searchFilters}
               searchResults={searchResults}
+              searchPresets={settings.searchPresets || []}
               familyInfo={familyInfo}
               currentUser={currentUser}
               onSearchQueryChange={setSearchQuery}
               onSearchFiltersChange={setSearchFilters}
               onPerformSearch={performSearch}
               onResetSearch={resetSearch}
+              onApplyPreset={applySearchPreset}
+              onSavePreset={saveSearchPreset}
+              onDeletePreset={deleteSearchPreset}
               onEditTransaction={startEditTransaction}
               onDeleteTransaction={handleDeleteTransaction}
             />
@@ -736,6 +822,9 @@ export default function App() {
               onDeleteCategory={handleDeleteCategory}
               brandingSettings={brandingSettings}
               onUpdateBranding={updateBrandingSettings}
+              activityLogs={Object.values(familyInfo?.activityLogs || {})
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .slice(0, 12)}
             />
           )}
         </main>

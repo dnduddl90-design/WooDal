@@ -82,7 +82,8 @@ export const SettingsPage = ({
   onUpdateCategory,
   onDeleteCategory,
   brandingSettings,
-  onUpdateBranding
+  onUpdateBranding,
+  activityLogs = []
 }) => {
   const [showFamilyModal, setShowFamilyModal] = useState(false);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
@@ -443,6 +444,48 @@ export const SettingsPage = ({
                 >
                   가족 탈퇴하기
                 </Button>
+              </div>
+
+              <div className="rounded-xl border border-slate-200 bg-white/70 p-4 space-y-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-slate-800">최근 활동 로그</p>
+                    <p className="text-xs text-slate-500 mt-1">가족 가계부에서 최근에 일어난 변경 기록입니다.</p>
+                  </div>
+                  <span className="rounded-full bg-slate-100 px-2 py-1 text-xs text-slate-600">
+                    최근 {Math.min(activityLogs.length, 12)}건
+                  </span>
+                </div>
+
+                {activityLogs.length > 0 ? (
+                  <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
+                    {activityLogs.map((log, index) => (
+                      <div key={`${log.createdAt}-${index}`} className="rounded-lg bg-slate-50 px-3 py-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium text-slate-800">{log.title}</p>
+                            <p className="text-xs text-slate-500 mt-1">{log.description}</p>
+                          </div>
+                          <span className="text-[11px] text-slate-400 whitespace-nowrap">
+                            {new Date(log.createdAt).toLocaleString('ko-KR', {
+                              month: 'numeric',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-indigo-600 mt-2">
+                          {log.actorName || '알 수 없음'}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="rounded-lg bg-slate-50 px-3 py-4 text-sm text-slate-500">
+                    아직 표시할 가족 활동 기록이 없습니다.
+                  </div>
+                )}
               </div>
             </>
           ) : (

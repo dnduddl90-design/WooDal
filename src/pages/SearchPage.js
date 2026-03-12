@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, X, Edit2, Trash2, SlidersHorizontal } from 'lucide-react';
+import { Search, X, Edit2, Trash2, SlidersHorizontal, Bookmark, BookmarkPlus } from 'lucide-react';
 import { CATEGORIES, PAYMENT_METHODS } from '../constants';
 import { formatCurrency, getAvailableUsers, resolveUserInfo } from '../utils';
 import { Button, Input } from '../components/common';
@@ -13,16 +13,21 @@ export const SearchPage = ({
   searchQuery,
   searchFilters,
   searchResults = [],
+  searchPresets = [],
   familyInfo,
   currentUser,
   onSearchQueryChange,
   onSearchFiltersChange,
   onPerformSearch,
   onResetSearch,
+  onApplyPreset,
+  onSavePreset,
+  onDeletePreset,
   onEditTransaction,
   onDeleteTransaction
 }) => {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [presetName, setPresetName] = useState('');
   const availableUsers = getAvailableUsers(familyInfo, currentUser);
   const hasActiveFilters = Object.entries(searchFilters).some(([key, value]) => {
     if (key === 'type' || key === 'category' || key === 'user') {
@@ -76,6 +81,36 @@ export const SearchPage = ({
       {/* 검색 패널 */}
       <div className="glass-effect rounded-xl p-4 sm:p-6 shadow-lg">
         <div className="space-y-3 sm:space-y-4">
+          {searchPresets.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 text-sm text-slate-700">
+                <Bookmark size={16} />
+                <span className="font-medium">빠른 필터</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {searchPresets.map((preset) => (
+                  <div key={preset.id} className="flex items-center rounded-full bg-white/80 border border-slate-200">
+                    <button
+                      type="button"
+                      onClick={() => onApplyPreset(preset)}
+                      className="px-3 py-1.5 text-xs sm:text-sm text-slate-700 hover:text-indigo-700"
+                    >
+                      {preset.name}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDeletePreset(preset.id)}
+                      className="px-2 py-1.5 text-slate-400 hover:text-rose-600"
+                      title="저장 검색 삭제"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* 텍스트 검색 */}
           <div>
             <Input
@@ -233,6 +268,35 @@ export const SearchPage = ({
               )}
             </div>
           )}
+
+          <div className="ui-surface-soft rounded-xl p-3 sm:p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-slate-800">현재 검색 저장</p>
+                <p className="text-xs text-slate-500 mt-1">자주 쓰는 조건을 이름으로 저장해 다음에 바로 불러옵니다.</p>
+              </div>
+              <div className="flex gap-2 w-full sm:w-auto">
+                <input
+                  type="text"
+                  value={presetName}
+                  onChange={(e) => setPresetName(e.target.value)}
+                  placeholder="예: 이번 달 식비"
+                  className="flex-1 sm:w-52 px-3 py-2 border border-slate-300 rounded-xl text-sm text-slate-700"
+                />
+                <Button
+                  variant="secondary"
+                  icon={BookmarkPlus}
+                  onClick={() => {
+                    onSavePreset(presetName);
+                    setPresetName('');
+                  }}
+                  className="text-xs sm:text-sm"
+                >
+                  저장
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

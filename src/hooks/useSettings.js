@@ -24,7 +24,8 @@ export const useSettings = (currentUser) => {
     backup: {
       autoBackup: false,
       backupFrequency: 'weekly'
-    }
+    },
+    searchPresets: []
   });
 
   // LocalStorage → Firebase 마이그레이션
@@ -60,7 +61,11 @@ export const useSettings = (currentUser) => {
         const firebaseSettings = await getSettings(userId);
 
         if (firebaseSettings) {
-          setSettings(firebaseSettings);
+          setSettings((prev) => ({
+            ...prev,
+            ...firebaseSettings,
+            searchPresets: firebaseSettings.searchPresets || []
+          }));
         } else {
           // Firebase에 설정이 없으면 마이그레이션 시도
           await migrateLocalSettings(userId);
@@ -75,7 +80,11 @@ export const useSettings = (currentUser) => {
     // 실시간 리스너 설정
     const unsubscribe = onSettingsChange(userId, (firebaseSettings) => {
       if (firebaseSettings) {
-        setSettings(firebaseSettings);
+        setSettings((prev) => ({
+          ...prev,
+          ...firebaseSettings,
+          searchPresets: firebaseSettings?.searchPresets || []
+        }));
       }
     });
 
@@ -88,7 +97,8 @@ export const useSettings = (currentUser) => {
   const updateSettings = async (updates) => {
     const newSettings = {
       ...settings,
-      ...updates
+      ...updates,
+      searchPresets: updates.searchPresets || settings.searchPresets || []
     };
 
     setSettings(newSettings);

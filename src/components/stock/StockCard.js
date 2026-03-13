@@ -119,31 +119,34 @@ export const StockCard = ({ stock, currentPrice, onDelete, onUpdatePrice, onEdit
           {holdings.map((holding, index) => {
             const accountType = ACCOUNT_TYPES[holding.account] || ACCOUNT_TYPES.GENERAL;
             return (
-              <div key={index} className="flex justify-between items-center text-xs bg-white p-2 rounded group/holding hover:bg-slate-50">
-                <div className="flex items-center gap-2">
+              <div
+                key={index}
+                className="flex flex-col gap-2 text-xs bg-white p-2 rounded group/holding hover:bg-slate-50 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="flex flex-wrap items-center gap-2 min-w-0">
                   <span className={`px-2 py-1 rounded ${accountType.color}`}>
                     {accountType.icon} {accountType.label}
                   </span>
                   <span className="text-slate-600">{holding.quantity}주</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <div className="text-right">
+                <div className="flex items-start justify-between gap-2 sm:items-center sm:justify-end">
+                  <div className="min-w-0">
                     <div className="text-slate-900 font-medium">
                       @{holding.buyPrice.toLocaleString()}{market.currency}
                     </div>
                     <div className="text-slate-500 text-xs">{holding.buyDate}</div>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-1 shrink-0">
                     <button
                       onClick={() => onEdit(stock, index)}
-                      className="opacity-100 sm:opacity-0 sm:group-hover/holding:opacity-100 transition-opacity p-1 hover:bg-indigo-100 rounded"
+                      className="stock-inline-action opacity-100 sm:opacity-0 sm:group-hover/holding:opacity-100 transition-opacity p-1 hover:bg-indigo-100 rounded"
                       title="이 계좌 수정"
                     >
                       <Edit2 size={14} className="text-indigo-600" />
                     </button>
                     <button
                       onClick={() => onDeleteHolding(stock, index)}
-                      className="opacity-100 sm:opacity-0 sm:group-hover/holding:opacity-100 transition-opacity p-1 hover:bg-red-100 rounded"
+                      className="stock-inline-action opacity-100 sm:opacity-0 sm:group-hover/holding:opacity-100 transition-opacity p-1 hover:bg-red-100 rounded"
                       title="이 계좌 삭제"
                     >
                       <Trash2 size={14} className="text-red-600" />

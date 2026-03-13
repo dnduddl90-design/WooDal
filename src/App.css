@@ -839,6 +839,15 @@ body.colorful-theme select:focus {
   header button svg {
     margin: 0 !important;
   }
+
+  /* 주식 계좌별 액션 버튼은 모바일 전역 버튼 규칙에서 제외 */
+  .stock-inline-action {
+    min-width: 32px !important;
+    min-height: 32px !important;
+    width: 32px !important;
+    height: 32px !important;
+    padding: 4px !important;
+  }
 }
 
 /* 매우 작은 화면 (아이폰 SE 등) */
@@ -863,6 +872,14 @@ body.colorful-theme select:focus {
 
   .glass-effect {
     padding: 12px !important;
+  }
+
+  .stock-inline-action {
+    min-width: 28px !important;
+    min-height: 28px !important;
+    width: 28px !important;
+    height: 28px !important;
+    padding: 2px !important;
   }
 }
 

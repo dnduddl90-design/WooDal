@@ -139,7 +139,7 @@ export const StockPage = ({
   }
 
   return (
-    <div className="p-4 sm:p-8 space-y-6">
+    <div className="min-w-0 max-w-full overflow-x-hidden p-4 sm:p-8 space-y-6">
       {/* 헤더 */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>

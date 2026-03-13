@@ -692,7 +692,7 @@ export default function App() {
         onInstallPWA={handleInstallPWA}
       />
 
-      <div className="flex min-h-0">
+      <div className="flex min-h-0 min-w-0">
         {/* 사이드바 */}
         <Sidebar
           currentView={currentView}
@@ -701,7 +701,7 @@ export default function App() {
         />
 
         {/* 메인 컨텐츠 */}
-        <main className="flex-1 p-4 sm:p-8 pb-24 sm:pb-8">
+        <main className="flex-1 min-w-0 max-w-full p-4 sm:p-8 pb-24 sm:pb-8 overflow-x-hidden">
           {currentView === 'calendar' && (
             <CalendarPage
               currentDate={currentDate}

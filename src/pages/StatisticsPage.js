@@ -229,7 +229,7 @@ export const StatisticsPage = ({
 
   const analysisMessage = currentIncome >= currentExpenseTotal
     ? `이번 달은 변동 소비 ${formatCurrency(currentExpense)}원, 고정지출 ${formatCurrency(fixedNonSavingsTotal)}원, 저축 ${formatCurrency(currentSavings)}원으로 흑자 흐름입니다.`
-    : `이번 달 총 유출이 수입보다 ${formatCurrency(currentExpenseTotal - currentIncome)}원 많습니다. 지출 점검이 필요합니다.`;
+    : `이번 달 총 지출이 수입보다 ${formatCurrency(currentExpenseTotal - currentIncome)}원 많습니다. 지출 점검이 필요합니다.`;
 
   const filteredCategoryAverage = categoryModalTransactions.length > 0
     ? Math.round(categoryModalTransactions.reduce((sum, item) => sum + item.amount, 0) / categoryModalTransactions.length)
@@ -258,8 +258,8 @@ export const StatisticsPage = ({
       outflowDiff,
       savingsDiff,
       summaryLine: currentSummary.income >= currentSummary.totalOutflow
-        ? `이번 달은 수입이 총 유출보다 ${formatCurrency(currentSummary.income - currentSummary.totalOutflow)}원 많아 비교적 안정적으로 마감 중입니다.`
-        : `이번 달은 총 유출이 수입보다 ${formatCurrency(currentSummary.totalOutflow - currentSummary.income)}원 많아 조정이 필요한 흐름입니다.`
+        ? `이번 달은 수입이 총 지출보다 ${formatCurrency(currentSummary.income - currentSummary.totalOutflow)}원 많아 비교적 안정적으로 마감 중입니다.`
+        : `이번 달은 총 지출이 수입보다 ${formatCurrency(currentSummary.totalOutflow - currentSummary.income)}원 많아 조정이 필요한 흐름입니다.`
     };
   }, [categoryEntries, currentSummary, previousSummary]);
 
@@ -316,7 +316,7 @@ export const StatisticsPage = ({
         <SummaryCard
           label="고정지출"
           value={`${formatCurrency(fixedExpenseTotal)}원`}
-          detail={`총 유출의 ${currentSummary.fixedShareRate.toFixed(1)}%`}
+          detail={`총 지출의 ${currentSummary.fixedShareRate.toFixed(1)}%`}
           icon={Layers3}
           tone="purple"
         />
@@ -328,7 +328,7 @@ export const StatisticsPage = ({
           tone="blue"
         />
         <SummaryCard
-          label="총 유출"
+          label="총 지출"
           value={`${formatCurrency(currentExpenseTotal)}원`}
           detail={`변동 ${formatCurrency(currentExpense)}원 + 고정 ${formatCurrency(fixedExpenseTotal)}원`}
           icon={Wallet}
@@ -366,7 +366,7 @@ export const StatisticsPage = ({
 
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
             <div className="rounded-xl border border-slate-200 bg-white/80 p-4">
-              <p className="text-xs text-slate-500">전월 대비 총 유출</p>
+              <p className="text-xs text-slate-500">전월 대비 총 지출</p>
               <p className={`mt-2 text-lg font-bold ${monthlyClosingReport.outflowDiff <= 0 ? 'text-emerald-600' : 'text-rose-600'}`}>
                 {monthlyClosingReport.outflowDiff > 0 ? '+' : ''}{formatCurrency(monthlyClosingReport.outflowDiff)}원
               </p>
@@ -627,7 +627,7 @@ export const StatisticsPage = ({
                 </div>
                 <div className="pt-2 border-t border-gray-100">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">총 유출 대비 비중</span>
+                    <span className="text-gray-600">총 지출 대비 비중</span>
                     <span className="font-semibold text-gray-800">{currentSummary.fixedShareRate.toFixed(1)}%</span>
                   </div>
                 </div>

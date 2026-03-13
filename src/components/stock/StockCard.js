@@ -44,25 +44,25 @@ export const StockCard = ({ stock, currentPrice, onDelete, onUpdatePrice, onEdit
 
   return (
     <div className="glass-effect p-5 rounded-xl space-y-4 hover:shadow-lg transition-all duration-200">
-      <div className="flex justify-between items-start gap-3">
+      <div className="flex flex-col items-start gap-3 sm:flex-row sm:justify-between">
         <div className="min-w-0">
           <h3 className="font-bold text-lg text-slate-900 truncate">{stock.name}</h3>
           <p className="text-sm text-slate-600 truncate">{stock.symbol}</p>
         </div>
-        <span className="text-xs px-2 py-1 bg-slate-100 text-slate-700 rounded-lg">
+        <span className="text-xs px-2 py-1 bg-slate-100 text-slate-700 rounded-lg shrink-0">
           {market.icon} {market.label}
         </span>
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-center justify-between gap-3">
-          <div>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
             <p className="text-xs uppercase tracking-wide text-slate-500">평가금액</p>
-            <p className="text-2xl font-bold text-slate-900">
+            <p className="break-all text-2xl font-bold text-slate-900">
               {stockValue.toLocaleString()}{market.currency}
             </p>
           </div>
-          <div className={`px-3 py-2 rounded-lg ${isProfit ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+          <div className={`px-3 py-2 rounded-lg self-start sm:self-auto ${isProfit ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
             <div className="flex items-center gap-2">
               {isProfit ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
               <span className="font-semibold">

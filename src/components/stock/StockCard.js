@@ -129,8 +129,8 @@ export const StockCard = ({ stock, currentPrice, onDelete, onUpdatePrice, onEdit
                   </span>
                   <span className="text-slate-600">{holding.quantity}주</span>
                 </div>
-                <div className="flex items-start justify-between gap-2 sm:items-center sm:justify-end">
-                  <div className="min-w-0">
+                <div className="flex w-full items-start gap-2 sm:w-auto sm:items-center sm:justify-end">
+                  <div className="min-w-0 flex-1 sm:flex-none sm:text-right">
                     <div className="text-slate-900 font-medium">
                       @{holding.buyPrice.toLocaleString()}{market.currency}
                     </div>

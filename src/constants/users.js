@@ -5,14 +5,14 @@
 export const USERS = {
   user1: {
     id: 'user1',
-    name: '우영',
+    name: '사용자 1',
     avatar: '👨',
     role: 'admin',
     color: 'bg-blue-500'
   },
   user2: {
     id: 'user2',
-    name: '달림',
+    name: '사용자 2',
     avatar: '👩',
     role: 'user',
     color: 'bg-indigo-500'

@@ -123,7 +123,7 @@ export const BrandingSettings = ({
           label="앱 이름"
           value={appName}
           onChange={(e) => setAppName(e.target.value)}
-          placeholder="우영달림 가계부"
+          placeholder={DEFAULT_BRANDING.appName}
           maxLength={50}
         />
         <p className="text-xs text-slate-500 mt-1">
@@ -172,7 +172,7 @@ export const BrandingSettings = ({
               label="짧은 이름"
               value={pwaShortName}
               onChange={(e) => setPwaShortName(e.target.value)}
-              placeholder="우영달림"
+              placeholder={DEFAULT_BRANDING.pwa.shortName}
               maxLength={12}
             />
             <p className="text-xs text-slate-500 -mt-2">
@@ -183,7 +183,7 @@ export const BrandingSettings = ({
               label="전체 이름"
               value={pwaFullName}
               onChange={(e) => setPwaFullName(e.target.value)}
-              placeholder="우영♥달림 커플 가계부"
+              placeholder={DEFAULT_BRANDING.pwa.fullName}
               maxLength={45}
             />
             <p className="text-xs text-slate-500 -mt-2">
@@ -197,7 +197,7 @@ export const BrandingSettings = ({
               <textarea
                 value={pwaDescription}
                 onChange={(e) => setPwaDescription(e.target.value)}
-                placeholder="커플을 위한 실시간 동기화 가계부 앱"
+                placeholder={DEFAULT_BRANDING.pwa.description}
                 maxLength={200}
                 rows={3}
                 className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none text-slate-800"

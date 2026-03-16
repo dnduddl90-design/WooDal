@@ -18,7 +18,7 @@ import {
   UserPlus,
   Users
 } from 'lucide-react';
-import { CATEGORIES, DEFAULT_AVATARS } from '../constants';
+import { CATEGORIES, DEFAULT_AVATARS, DEFAULT_BRANDING } from '../constants';
 import { Button, Input, Modal } from '../components/common';
 import { AvatarPicker } from '../components/forms';
 import { StockCategoryManager } from '../components/settings/StockCategoryManager';
@@ -626,7 +626,7 @@ export const SettingsPage = ({
             </div>
             <div className="text-center p-4 bg-gradient-to-r from-indigo-100 to-sky-100 rounded-lg">
               <p className="text-2xl font-bold">💕</p>
-              <p className="text-sm text-slate-600 mt-1">{brandingSettings?.pwa?.shortName || '우영♥달림'}</p>
+              <p className="text-sm text-slate-600 mt-1">{brandingSettings?.pwa?.shortName || DEFAULT_BRANDING.pwa.shortName}</p>
             </div>
           </div>
 
@@ -638,7 +638,7 @@ export const SettingsPage = ({
           />
 
           <p className="text-sm text-slate-500 text-center">
-            {brandingSettings?.appName || '우영달림 가계부'} • 2025
+            {brandingSettings?.appName || DEFAULT_BRANDING.appName} • 2025
           </p>
         </div>
       </AccordionSection>

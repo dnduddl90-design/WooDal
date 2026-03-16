@@ -100,7 +100,7 @@ self.addEventListener('fetch', (event) => {
 // 푸시 알림 (향후 구현 가능)
 self.addEventListener('push', (event) => {
   console.log('[Service Worker] Push received');
-  const title = '우영달림 가계부';
+  const title = '우리 가계부';
   const options = {
     body: event.data ? event.data.text() : '새로운 알림이 있습니다',
     icon: '/logo192.png',

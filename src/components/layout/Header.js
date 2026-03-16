@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { LogOut, Bell, Check, X, Download } from 'lucide-react';
 import { Button } from '../common';
+import { DEFAULT_BRANDING } from '../../constants';
 
 /**
  * 헤더 컴포넌트
@@ -9,7 +10,7 @@ import { Button } from '../common';
  */
 export const Header = ({
   user,
-  appTitle = "우영달림 가계부",
+  appTitle = DEFAULT_BRANDING.appName,
   onLogout,
   pendingInvitations = [],
   onAcceptInvitation,

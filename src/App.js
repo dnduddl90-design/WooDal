@@ -28,6 +28,7 @@ import {
   getTodayDateString,
   sortByDateDesc
 } from './utils';
+import { DEFAULT_BRANDING } from './constants';
 
 /**
  * 메인 애플리케이션 컴포넌트
@@ -657,8 +658,8 @@ export default function App() {
     return (
       <LoginPage
         onLogin={handleLogin}
-        appSubtitle={brandingSettings.pwa?.shortName || "우영달림"}
-        appTitle={brandingSettings.appName || "우영달림 가계부"}
+        appSubtitle={brandingSettings.pwa?.shortName || DEFAULT_BRANDING.pwa.shortName}
+        appTitle={brandingSettings.appName || DEFAULT_BRANDING.appName}
       />
     );
   }

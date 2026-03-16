@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Heart, LogIn } from 'lucide-react';
 import { Button } from '../components/common';
 import { signInWithGoogle } from '../firebase';
+import { DEFAULT_BRANDING } from '../constants';
 
 /**
  * 로그인 페이지 컴포넌트
@@ -9,7 +10,11 @@ import { signInWithGoogle } from '../firebase';
  * SRP: 로그인 UI만 담당
  * DIP: Props를 통해 로그인 핸들러 주입받음
  */
-export const LoginPage = ({ onLogin, appSubtitle = "우영 ♥ 달림", appTitle = "우영달림 가계부" }) => {
+export const LoginPage = ({
+  onLogin,
+  appSubtitle = DEFAULT_BRANDING.pwa.shortName,
+  appTitle = DEFAULT_BRANDING.appName
+}) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 

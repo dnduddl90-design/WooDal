@@ -3,6 +3,8 @@
  * SRP: PWA manifest와 meta 태그 동적 업데이트만 담당
  */
 
+import { DEFAULT_BRANDING } from '../constants';
+
 /**
  * PWA manifest와 meta 태그를 동적으로 업데이트
  * - document.title 변경
@@ -49,9 +51,9 @@ export const updatePWAMetadata = (pwaSettings) => {
 
     // 5. manifest.json 동적 생성 (blob URL)
     const manifest = {
-      short_name: pwaSettings.shortName || "우영달림",
-      name: pwaSettings.fullName || "우영♥달림 커플 가계부",
-      description: pwaSettings.description || "커플을 위한 실시간 동기화 가계부 앱",
+      short_name: pwaSettings.shortName || DEFAULT_BRANDING.pwa.shortName,
+      name: pwaSettings.fullName || DEFAULT_BRANDING.pwa.fullName,
+      description: pwaSettings.description || DEFAULT_BRANDING.pwa.description,
       icons: [
         {
           src: "favicon.ico",
@@ -114,9 +116,5 @@ export const updatePWAMetadata = (pwaSettings) => {
  * PWA 메타데이터 초기화 (기본값으로 복원)
  */
 export const resetPWAMetadata = () => {
-  updatePWAMetadata({
-    shortName: "우영달림",
-    fullName: "우영♥달림 커플 가계부",
-    description: "커플을 위한 실시간 동기화 가계부 앱 - 우영♥달림"
-  });
+  updatePWAMetadata(DEFAULT_BRANDING.pwa);
 };

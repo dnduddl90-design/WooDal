@@ -83,7 +83,7 @@ export const CATEGORIES = {
       name: '급여',
       icon: DollarSign,
       color: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      subCategories: ['우영', '달림']
+      subCategories: ['사용자 1', '사용자 2']
     },
     {
       id: 'side',

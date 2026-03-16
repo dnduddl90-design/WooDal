@@ -82,8 +82,8 @@ export const ALL_AVATARS = Object.values(AVATAR_CATEGORIES)
 
 // 기본 아바타
 export const DEFAULT_AVATARS = {
-  user1: '👨', // 우영 기본
-  user2: '👩'  // 달림 기본
+  user1: '👨', // 첫 번째 기본 아바타
+  user2: '👩'  // 두 번째 기본 아바타
 };
 
 // 아바타 유효성 검사

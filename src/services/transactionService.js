@@ -26,6 +26,7 @@ export class TransactionService {
     return {
       ...transaction,
       ...formData,
+      id: transaction.recordId ?? transaction.id,
       amount: parseInt(formData.amount) || 0
     };
   }

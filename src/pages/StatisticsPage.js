@@ -102,6 +102,7 @@ export const StatisticsPage = ({
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showPocketMoneyModal, setShowPocketMoneyModal] = useState(false);
+  const [isSettlingPocketMoney, setIsSettlingPocketMoney] = useState(false);
   const [userFilter, setUserFilter] = useState('all');
   const [detailTypeFilter, setDetailTypeFilter] = useState('all');
   const [detailSort, setDetailSort] = useState('dateDesc');
@@ -203,6 +204,10 @@ export const StatisticsPage = ({
   const pocketMoneyEntries = useMemo(() => {
     return Object.entries(currentSummary.pocketMoneyByUser).sort(([, a], [, b]) => b.total - a.total);
   }, [currentSummary.pocketMoneyByUser]);
+
+  const pocketMoneyTransactionIds = useMemo(() => {
+    return pocketMoneyEntries.flatMap(([, data]) => data.transactions.map((transaction) => transaction.id));
+  }, [pocketMoneyEntries]);
 
   const pocketMoneyAverage = totalPocketMoney > 0 && pocketMoneyEntries.length > 0
     ? Math.round(totalPocketMoney / pocketMoneyEntries.length)
@@ -1009,14 +1014,27 @@ export const StatisticsPage = ({
             <Button
               variant="primary"
               className="w-full"
+              disabled={isSettlingPocketMoney}
               onClick={async () => {
+                if (isSettlingPocketMoney) return;
                 if (window.confirm(`💰 용돈 ${formatCurrency(totalPocketMoney)}원을 정산 완료 처리하시겠습니까?\n\n정산 완료하면 해당 거래들의 '용돈 사용' 체크가 해제됩니다.`)) {
-                  await onSettlePocketMoney(currentDate.getFullYear(), currentDate.getMonth());
-                  setShowPocketMoneyModal(false);
+                  setIsSettlingPocketMoney(true);
+                  try {
+                    const success = await onSettlePocketMoney(
+                      currentDate.getFullYear(),
+                      currentDate.getMonth(),
+                      pocketMoneyTransactionIds
+                    );
+                    if (success) {
+                      setShowPocketMoneyModal(false);
+                    }
+                  } finally {
+                    setIsSettlingPocketMoney(false);
+                  }
                 }
               }}
             >
-              정산 완료
+              {isSettlingPocketMoney ? '정산 처리 중...' : '정산 완료'}
             </Button>
           )}
         </div>

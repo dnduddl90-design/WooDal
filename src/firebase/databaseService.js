@@ -44,6 +44,11 @@ const subscribeWithLogging = (targetRef, handleValue, label) => onValue(
  * @param {string} path - 데이터 경로
  */
 const getUserPath = (userId, path) => `users/${userId}/${path}`;
+const mapTransactionRecord = ([id, transaction]) => ({
+  ...transaction,
+  recordId: transaction.id,
+  id
+});
 
 // ==================== 거래 내역 (Transactions) ====================
 
@@ -58,10 +63,7 @@ export const getTransactions = async (userId) => {
   if (snapshot.exists()) {
     const data = snapshot.val();
     // 객체를 배열로 변환 (id를 키로 사용)
-    return Object.entries(data).map(([id, transaction]) => ({
-      ...transaction,
-      id
-    }));
+    return Object.entries(data).map(mapTransactionRecord);
   }
   return [];
 };
@@ -115,10 +117,7 @@ export const onTransactionsChange = (userId, callback) => {
   return subscribeWithLogging(transactionsRef, (snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
-      const transactions = Object.entries(data).map(([id, transaction]) => ({
-        ...transaction,
-        id
-      }));
+      const transactions = Object.entries(data).map(mapTransactionRecord);
       callback(transactions);
     } else {
       callback([]);
@@ -416,10 +415,7 @@ export const onFamilyTransactionsChange = (familyId, callback) => {
   return subscribeWithLogging(transactionsRef, (snapshot) => {
     if (snapshot.exists()) {
       const data = snapshot.val();
-      const transactions = Object.entries(data).map(([id, transaction]) => ({
-        ...transaction,
-        id
-      }));
+      const transactions = Object.entries(data).map(mapTransactionRecord);
       callback(transactions);
     } else {
       callback([]);

@@ -316,28 +316,41 @@ export const useTransactions = (currentUser, familyInfo, options = {}) => {
    * 용돈 정산 완료 처리
    * 현재 월의 모든 용돈 사용 거래의 isPocketMoney를 false로 변경
    */
-  const settlePocketMoney = async (year, month) => {
+  const settlePocketMoney = async (year, month, targetTransactionIds = null) => {
     try {
       const isFamilyMode = familyInfo && familyInfo.id;
       const dataId = isFamilyMode ? familyInfo.id : currentUser.firebaseId;
 
       // 해당 월의 용돈 사용 거래 찾기
-      const startDate = new Date(year, month, 1);
-      const endDate = new Date(year, month + 1, 0);
+      const pocketMoneyTransactions = Array.isArray(targetTransactionIds) && targetTransactionIds.length > 0
+        ? transactions.filter((t) => targetTransactionIds.includes(t.id) && t.isPocketMoney === true)
+        : (() => {
+            const startDate = new Date(year, month, 1);
+            const endDate = new Date(year, month + 1, 0);
 
-      const pocketMoneyTransactions = transactions.filter(t => {
-        const transactionDate = parseDateString(t.date);
-        return transactionDate >= startDate &&
-               transactionDate <= endDate &&
-               t.type === 'expense' &&
-               t.isPocketMoney === true;
-      });
+            return transactions.filter((t) => {
+              const transactionDate = parseDateString(t.date);
+              return transactionDate >= startDate &&
+                     transactionDate <= endDate &&
+                     t.type === 'expense' &&
+                     t.isPocketMoney === true;
+            });
+          })();
+
+      if (pocketMoneyTransactions.length === 0) {
+        alert('정산할 용돈 사용 내역이 없습니다.');
+        return false;
+      }
 
       // 각 거래의 isPocketMoney를 false로 업데이트
       const updateFunction = isFamilyMode ? updateFamilyTransaction : updateTransaction;
 
       for (const transaction of pocketMoneyTransactions) {
-        const updatedTransaction = { ...transaction, isPocketMoney: false };
+        const updatedTransaction = {
+          ...transaction,
+          id: transaction.recordId ?? transaction.id,
+          isPocketMoney: false
+        };
         await updateFunction(dataId, transaction.id, updatedTransaction);
       }
       if (isFamilyMode && pocketMoneyTransactions.length > 0) {
@@ -357,7 +370,7 @@ export const useTransactions = (currentUser, familyInfo, options = {}) => {
       return true;
     } catch (error) {
       console.error('❌ 정산 처리 실패:', error);
-      alert('정산 처리에 실패했습니다.');
+      alert(`정산 처리에 실패했습니다.${error?.message ? `\n\n${error.message}` : ''}`);
       return false;
     }
   };

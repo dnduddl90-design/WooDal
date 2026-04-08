@@ -213,6 +213,32 @@ export const StatisticsPage = ({
     ? Math.round(totalPocketMoney / pocketMoneyEntries.length)
     : 0;
 
+  const last6MonthsAverage = useMemo(() => {
+    if (last6Months.length === 0) {
+      return {
+        income: 0,
+        expense: 0,
+        saving: 0
+      };
+    }
+
+    const totals = last6Months.reduce((acc, monthData) => ({
+      income: acc.income + monthData.income,
+      expense: acc.expense + monthData.expense,
+      saving: acc.saving + monthData.saving
+    }), {
+      income: 0,
+      expense: 0,
+      saving: 0
+    });
+
+    return {
+      income: Math.round(totals.income / last6Months.length),
+      expense: Math.round(totals.expense / last6Months.length),
+      saving: Math.round(totals.saving / last6Months.length)
+    };
+  }, [last6Months]);
+
   const openCategoryModal = (categoryName) => {
     const categoryMeta = CATEGORIES.expense.find((item) => item.name === categoryName);
     setSelectedCategory({
@@ -747,6 +773,26 @@ export const StatisticsPage = ({
               <div className="flex items-center gap-2">
                 <BarChart3 size={18} className="text-indigo-500" />
                 <h4 className="text-sm sm:text-base font-semibold text-gray-800">최근 6개월 트렌드</h4>
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-3 mb-4 sm:grid-cols-3">
+              <div className="rounded-lg bg-emerald-50 p-3">
+                <p className="text-[11px] sm:text-xs text-emerald-700">평균 수입</p>
+                <p className="mt-1 text-sm sm:text-base font-bold text-emerald-800">
+                  {formatCurrency(last6MonthsAverage.income)}원
+                </p>
+              </div>
+              <div className="rounded-lg bg-rose-50 p-3">
+                <p className="text-[11px] sm:text-xs text-rose-700">평균 지출</p>
+                <p className="mt-1 text-sm sm:text-base font-bold text-rose-800">
+                  {formatCurrency(last6MonthsAverage.expense)}원
+                </p>
+              </div>
+              <div className="rounded-lg bg-blue-50 p-3">
+                <p className="text-[11px] sm:text-xs text-blue-700">평균 저축</p>
+                <p className="mt-1 text-sm sm:text-base font-bold text-blue-800">
+                  {formatCurrency(last6MonthsAverage.saving)}원
+                </p>
               </div>
             </div>
             <div className="space-y-3">
